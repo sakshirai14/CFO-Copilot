@@ -1,0 +1,44 @@
+# Docker Compose Placeholder for CFO Copilot on a Budget
+# Production / containerized deployment will be wired in Phase 2 / Phase 5.
+#
+# Services envisioned:
+#   - db: PostgreSQL 16 with pgvector extension (or relational db + standalone vector store)
+#   - inference: Local serving engine (e.g. llama.cpp server with Metal/CPU or vLLM on CUDA)
+#   - api: FastAPI / Google ADK application server
+#   - ui: Web frontend with streaming chat and "Show Your Work" panel
+#
+# Note for macOS hosts: Docker Desktop on macOS runs inside a Linux VM and does not
+# have direct access to Apple Silicon Metal GPU acceleration. Native llama.cpp is
+# recommended for local macOS development to utilize Apple M-series GPU/NE cores.
+
+# version: "3.8"
+# services:
+#   db:
+#     image: postgres:16
+#     environment:
+#       POSTGRES_DB: cfo_copilot
+#       POSTGRES_USER: cfo_user
+#       POSTGRES_PASSWORD: cfo_password
+#     ports:
+#       - "5432:5432"
+#     volumes:
+#       - postgres_data:/var/lib/postgresql/data
+#
+#   inference:
+#     # Image and runtime parameters depend on host architecture
+#     image: ghcr.io/ggerganov/llama.cpp:server
+#     command: ["-m", "/models/qwen2.5-3b-instruct-q4_k_m.gguf", "-c", "4096", "--host", "0.0.0.0", "--port", "8080"]
+#     ports:
+#       - "8080:8080"
+#
+#   api:
+#     build: .
+#     ports:
+#       - "8000:8000"
+#     env_file: .env
+#     depends_on:
+#       - db
+#       - inference
+#
+# volumes:
+#   postgres_data:
