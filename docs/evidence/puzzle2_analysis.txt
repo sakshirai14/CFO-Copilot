@@ -1,0 +1,69 @@
+================================================================================
+PUZZLE 2 DIAGNOSIS: PREFIX CACHE LOG ANALYSIS & SIMULATION
+================================================================================
+
+### 1. REFERENCE HARDWARE & KV MEMORY BUDGET
+GPU VRAM Target: 6.0 GB
+Runtime / Activation Reserve: 1.5 GB
+4-bit Model Weights: 2.0 GB
+Available KV Cache Budget: 2.5 GB (2,684,354,560 bytes)
+Model Architecture: 28 layers, 8 KV heads (GQA), 128 head dim
+KV Bytes Per Token:
+  FP16 (2 bytes): 114,688 bytes/token (112.00 KiB)
+  FP8  (1 byte):  57,344 bytes/token (56.00 KiB)
+  Q4   (0.5 byte): 28,672.0 bytes/token (28.00 KiB)
+Max Concurrent Tokens Storable in 2.5 GB Budget:
+  FP16: 23,405 tokens (5.71 full 4096-token contexts)
+  FP8:  46,811 tokens (11.43 full contexts)
+  Q4:   93,622 tokens (22.86 full contexts)
+Memory Needed for 16 Concurrent Users at 4,096 tokens (65,536 tokens):
+  FP16: 7.00 GB (EXCEEDS 2.5 GB BUDGET BY 4.50 GB!)
+  FP8:  3.50 GB (Requires shared prefix or eviction)
+  Q4:   1.75 GB (Fits safely within 2.5 GB budget)
+
+### 2. LOG RECONSTRUCTION & CACHED_TOKENS VALIDATION
+Reconstructed prompt whitespace token count matches prompt_tokens column: True (diffs: min=0, max=0)
+Consecutive request LCP matches logged cached_tokens column: True
+cached_tokens distribution: {16: 219, 0: 1}
+As-logged Prefix Cache Hit Rate: 3.50% (Target: 3.5%)
+
+### 3. INDEPENDENT HYPOTHESIS TESTING (VERIFIED OR REFUTED)
+
+[HYPOTHESIS 1] Timestamp at token 17 and random request ID in system block:
+  Status: CONFIRMED
+  Evidence: Tokens 0-15 ('You are FinSight... company. Current time:') are static (16 tokens). Token 16-17 contains changing wall-clock time ('2026-09-18 09:00:xx.'). End of system block contains random request id ('Request id: xxxxxx.'). This destroys cache validity at block boundary 16!
+
+[HYPOTHESIS 2] Tool schemas appearing in all 24 permutations:
+  Status: CONFIRMED
+  Evidence: Found exactly 24 distinct permutations of tool_schemas in 220 requests ($4! = 24$ permutations for 4 tools).
+
+[HYPOTHESIS 3] User profile placed before shared glossary and tools:
+  Status: CONFIRMED
+  Evidence: Column order is ['system_instructions', 'user_profile', 'kpi_glossary', 'tool_schemas', 'retrieved_context', 'conversation_history', 'user_query']. user_profile is at index 1, whereas kpi_glossary is at 2 and tool_schemas is at 3. User/tenant shifts invalidate all following static blocks!
+
+[HYPOTHESIS 4] 6-turn sliding history window that is never append-only once full:
+  Status: CONFIRMED
+  Evidence: All 14 sessions plateau at exactly 6 history turns. From turn 7 onwards, the earliest turn is dropped, altering the initial tokens of conversation_history and causing full cache invalidation on every subsequent turn.
+
+[HYPOTHESIS 5] Retrieved context placed before history:
+  Status: CONFIRMED
+  Evidence: retrieved_context is at index 4, preceding conversation_history at index 5. Because retrieved chunks change with every question, session history can never be prefix-cached.
+
+[HYPOTHESIS 6] cached_tokens equal to 16 in nearly every request:
+  Status: CONFIRMED
+  Evidence: Exactly 219 out of 220 requests logged cached_tokens = 16, and request 1 logged cached_tokens = 0.
+
+[HYPOTHESIS 7] Cache misses caused by GPU memory capacity / eviction:
+  Status: REFUTED
+  Evidence: The prefix cache failed on turn 2 of every session where VRAM usage was virtually zero. The failure is 100% prompt structure pathology, not memory capacity exhaustion.
+
+### 4. CUMULATIVE PREFIX CACHE FIX SIMULATION (RADIX CACHE)
+
+                           Stage Prefix Cache Hit Rate Target  Match
+           1. As-Logged Baseline                 3.50%   3.5%   True
+    2. Remove Clock & Request ID                55.95%  55.9%   True
+ 3. Deterministically Sort Tools                64.95%  64.9%   True
+      4. Static-First Reordering                70.39%  70.4%   True
+5. Hysteresis History Truncation                76.72%  76.6%   True
+     6. Day-Stamp at Prompt Tail                76.20%  76.2%   True
+

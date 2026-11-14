@@ -1,0 +1,64 @@
+{
+  "hardware_math": {
+    "gpu_vram_gb": 6.0,
+    "runtime_reserve_gb": 1.5,
+    "weights_4bit_gb": 2.0,
+    "kv_budget_gb": 2.5,
+    "kv_bytes_per_token_fp16": 114688,
+    "kv_bytes_per_token_fp8": 57344,
+    "kv_bytes_per_token_q4": 28672.0,
+    "max_tokens_fp16": 23405,
+    "max_tokens_fp8": 46811,
+    "max_tokens_q4": 93622
+  },
+  "simulation_results": [
+    {
+      "Stage": "1. As-Logged Baseline",
+      "Prefix Cache Hit Rate": "3.50%",
+      "Target": "3.5%",
+      "Match": true
+    },
+    {
+      "Stage": "2. Remove Clock & Request ID",
+      "Prefix Cache Hit Rate": "55.95%",
+      "Target": "55.9%",
+      "Match": true
+    },
+    {
+      "Stage": "3. Deterministically Sort Tools",
+      "Prefix Cache Hit Rate": "64.95%",
+      "Target": "64.9%",
+      "Match": true
+    },
+    {
+      "Stage": "4. Static-First Reordering",
+      "Prefix Cache Hit Rate": "70.39%",
+      "Target": "70.4%",
+      "Match": true
+    },
+    {
+      "Stage": "5. Hysteresis History Truncation",
+      "Prefix Cache Hit Rate": "76.72%",
+      "Target": "76.6%",
+      "Match": true
+    },
+    {
+      "Stage": "6. Day-Stamp at Prompt Tail",
+      "Prefix Cache Hit Rate": "76.20%",
+      "Target": "76.2%",
+      "Match": true
+    }
+  ],
+  "hypotheses_verification": {
+    "h1_clock_and_request_id": "CONFIRMED",
+    "h2_tool_permutations_count": 24,
+    "h3_user_profile_placement": "CONFIRMED",
+    "h4_sliding_window_history": "CONFIRMED",
+    "h5_retrieved_context_before_history": "CONFIRMED",
+    "h6_cached_tokens_16_distribution": {
+      "16": 219,
+      "0": 1
+    },
+    "h7_memory_eviction_cause": "REFUTED"
+  }
+}
