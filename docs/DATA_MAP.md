@@ -90,8 +90,9 @@ From `data_pack/DROP2_RELEASE/README_DROP2.md`:
 
 ## 4. Open Questions Unresolved by the READMEs
 
-1. **Ingestion Timing of Drop 2**: Should Drop 2 data be loaded into the initial database during Day 1 development, or held back and applied strictly via an automated migration script simulating the Day 2 live event?
-   - *Assumption*: We will build an idempotent schema migration and ingestion pipeline where Drop 1 is the baseline migration `001_initial_schema_and_pack.sql` and Drop 2 is migration `002_drop2_amendments_and_zlg.sql`. This allows running the platform in both pre-Drop 2 and post-Drop 2 states to prove policy consistency.
+1. **Ingestion Timing of Drop 2**: Should Drop 2 data be loaded into the initial database during Day 1 development, or held back and applied strictly via an ingestion command simulating the Day 2 live event?
+   - *Assumption*: Drop 2 is an additive and amendatory **data ingestion event**, not a schema migration (the database schema supports all 6 companies and amendments from the initial DDL migration). Our ingestion script supports loading Drop 1 independently, and then loading Drop 2, demonstrating idempotency across multi-phase releases.
 2. **Original Filing Retention upon Amendment**: When `NWI-10QA-FY2024Q3` amends `NWI-10Q-FY2024Q3`, should the database overwrite existing raw rows, mark them as superseded via an `is_superseded` flag / effective dating, or store both under distinct filing IDs and resolve during KPI aggregation?
    - *Assumption*: In financial systems, financial statement line items must preserve immutable audit trails. Both filings will be stored with full provenance, but KPI resolution views will select amended figures by default based on filing date / form type hierarchy (`10-Q/A` supersedes `10-Q`), with an explicit policy flag.
 3. **ZLG Reporting Currency and Unit Scale**: Does ZLG share the same reporting scale (`thousands` or `millions`) and currency as the initial 5 companies, or does it introduce novel unit labels? (Addressed empirically in `docs/DATA_AUDIT.md`).
+

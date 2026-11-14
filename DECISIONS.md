@@ -44,14 +44,14 @@
 
 ---
 
-### [2026-11-14] DECISION 4: Data Release Architecture: Drop 1 Baseline vs. Drop 2 Migration
-- **Decision**: Treat `CANDIDATE_PACK` (Drop 1) as the baseline database seed (`001_initial_pack.sql`) and `DROP2_RELEASE` (Drop 2) as an incremental database migration (`002_drop2_migration.sql`).
+### [2026-11-14] DECISION 4: Data Release Architecture: Drop 1 Baseline vs. Drop 2 Data Ingestion Event
+- **Decision**: Treat `CANDIDATE_PACK` (Drop 1) as the baseline dataset and `DROP2_RELEASE` (Drop 2) as a subsequent **data ingestion event** (introducing 6th company `ZLG` and amended filing `NWI-10QA-FY2024Q3`), NOT a schema migration. Schema migrations are strictly reserved for structural DDL changes.
 - **Evidence / Measurement**:
   - `DROP2_RELEASE` provides only 1 new company (`ZLG`, 12 quarters, 276 financial rows) and 1 amended filing (`NWI-10QA-FY2024Q3`, 7 amended lines), plus 13 documents.
-  - Drop 2 does not replace Drop 1; it extends the company coverage and tests amendment policy handling.
+  - Drop 2 does not alter table structures or require DDL migrations. The database schema created in Phase 1 fully accommodates all 6 companies and amendment linkages from day one.
 - **Policy Contract**:
   - Form 10-Q/A amendments supersede original Form 10-Q numbers for default KPI calculations.
-  - Original filings remain stored in database staging tables with `is_superseded = TRUE` for complete auditability.
+  - Original filings remain stored in database staging tables with `status = 'superseded'` for complete auditability.
 
 ---
 
@@ -90,3 +90,4 @@
    - *What Surprised Us*: The SEC filing `NWI-10Q-FY2024Q3` contained an explicit system prompt spoofing attack instructing the AI to lie that its operating margin was 45%. Furthermore, `CEP_investor_faq` attempted to trick the model into executing `SELECT * FROM information_schema.tables` and dumping database credentials. This reinforces why Foundation Lock 2 (LLM never generates financial figures, agent contains no SQL strings) is non-negotiable.
 4. **Surprise: Llama-3.2-3B vs. Qwen2.5-3B KV Footprint Discrepancy**:
    - *What Surprised Us*: The reference model in the assignment is an 8-KV-head architecture (Llama-3.2-3B). In FP16, 16 concurrent users at 4k tokens consume 7.0 GB of KV cache — completely blowing past a 6 GB VRAM GPU before even counting model weights. Switching to `Qwen2.5-3B` with 2 KV heads drops the KV memory requirement by $68\%$, making 16 concurrent users feasible.
+

@@ -87,10 +87,13 @@ In `data_pack/CANDIDATE_PACK/puzzle1_data/financial_statements_raw.csv`, filing 
 *Impact*: Running an unconstrained SQL query (`SELECT SUM(value) WHERE line_item_raw = 'Total revenues'`) doubles ARG's Q2 2023 revenue.
 
 ### Amendment Conflicts & Historical Restatements
-1. **CEP FY2024 Q2 Amendment (`CEP-10QA-FY2024Q2` supersedes `CEP-10Q-FY2024Q2`)**:
-   - `Revenues`: Changed from `245,900,000` (Row `R001372`) to `249,000,000` (Row `R001444`, +$3.1M).
-   - `Cost of revenues`: Changed from `-179,200,000` (Row `R001373`) to `-182,300,000` (Row `R001445`, -$3.1M).
-   - `Gross profit`: Remained exactly `66,700,000` in both.
+1. **CEP FY2024 Q2 Amendment Conflict (`CEP-10QA-FY2024Q2` vs. `CEP-10Q-FY2024Q2`)**:
+   - Form 10-Q filed 2024-08-08 vs. Form 10-Q/A filed 2024-11-14:
+     * `Revenues`: Changed from `245,900,000` (Row `R001372` in 10-Q) to `249,000,000` (Row `R001444` in 10-Q/A, restated +$3.1M).
+     * `Cost of revenues`: Changed from `-179,200,000` (Row `R001373` in 10-Q) to `-182,300,000` (Row `R001445` in 10-Q/A, restated -$3.1M).
+     * `Gross profit`: Remained exactly `66,700,000` in both (Row `R001374` vs `R001446`).
+   - *Conflict Proof*: Both filings report on the exact same period (`2024-04-01` to `2024-06-30`). The 10-Q/A explicitly amends and supersedes the 10-Q. Both rows must be ingested with provenance retained and an issue logged in `data_quality_issues`.
+
 2. **NWI FY2024 Q3 Amendment (`NWI-10QA-FY2024Q3` supersedes `NWI-10Q-FY2024Q3`)**:
    - Form 10-Q/A restates 7 Income Statement line items due to revenue recognition criteria:
      * `Net sales`: `466,300` -> `462,100` (delta: -4,200 thousand USD)
@@ -98,9 +101,38 @@ In `data_pack/CANDIDATE_PACK/puzzle1_data/financial_statements_raw.csv`, filing 
      * `Gross profit`: `169,500` -> `168,100` (delta: -1,400 thousand USD)
      * `Operating income`: `76,600` -> `75,200` (delta: -1,400 thousand USD)
      * `Net income`: `55,400` -> `54,300` (delta: -1,100 thousand USD)
-3. **Comparative Column Extraction (NWI FY2023 Q3 restatement)**:
-   - Rows `R000289` and `R000290` have `filing_id = NWI-10Q-FY2024Q3`, but report on `fiscal_year = 2023, fiscal_quarter = 3`.
-   - In the original filing `NWI-10Q-FY2023Q3`, `Net income` was `37,300`. In the 2024 Q3 comparative column, `Net income` for 2023 Q3 is restated down to `34,900` (-$2.4M tax accrual adjustment noted in Footnote 2).
+
+3. **Comparative Column Extraction (`filing_year != fiscal_year`)**:
+   - In SEC reporting, quarterly filings include a comparative prior-year column. When automated pipelines extract tables, rows representing the prior fiscal year are extracted with the current filing's metadata.
+   - **Concrete Evidence in Data Pack**:
+     * Filing `NWI-10Q-FY2024Q3` (filed in calendar 2024) contains:
+       - Row `R000289`: `filing_id = NWI-10Q-FY2024Q3`, `fiscal_year = 2023`, `fiscal_quarter = 3`, `line_item_raw = Income tax expense`, `value = 9800.0`.
+       - Row `R000290`: `filing_id = NWI-10Q-FY2024Q3`, `fiscal_year = 2023`, `fiscal_quarter = 3`, `line_item_raw = Net income`, `value = 34900.0`.
+     * Conflict with Original Filing: In the original filing `NWI-10Q-FY2023Q3` (Row `R000250`), `Net income` was `37,300.0`. In the 2024 Q3 comparative column, `Net income` for 2023 Q3 is restated down to `34,900.0` (-$2.4M tax accrual adjustment noted in Footnote 2).
+     * *Ingestion Architecture Requirement*: Every raw row must preserve its source `filing_id`, but the normalized layer must store both `filing_id` and the actual `fiscal_year`/`fiscal_quarter` it reports on, resolving conflicts via explicit priority rules in Phase 2.
+
+### Period Lengths: YTD vs. Quarterly Values (`duration_days`)
+- SEC filings frequently report both three-month quarterly figures and cumulative Year-To-Date (YTD) figures (e.g., 6-month in Q2, 9-month in Q3, 12-month in 10-K).
+- **Audit of Extracted Data Pack**:
+  Across all 1,732 rows in `financial_statements_raw.csv` and `financial_statements_raw_new.csv`, duration in days (`period_end - period_start`):
+  * 88 days: 72 rows
+  * 89 days: 238 rows
+  * 90 days: 479 rows
+  * 91 days: 943 rows
+  All 1,732 extracted rows in this pack represent discrete ~3-month periods (88–91 days).
+- **Pipeline Requirement**: The database schema must explicitly store `duration_days` and classify `period_type`:
+  * $80 \le \text{duration\_days} \le 105 \implies \text{quarterly}$
+  * $170 \le \text{duration\_days} \le 195 \implies \text{half\_year}$
+  * $260 \le \text{duration\_days} \le 285 \implies \text{nine\_months}$
+  * $350 \le \text{duration\_days} \le 375 \implies \text{annual}$
+
+### Q4 Derivation ($\text{FY} - \text{9M}$)
+- In United States SEC practice, public companies do not file a separate Form 10-Q for the fourth quarter. Instead, they file an annual **Form 10-K** covering the full 12-month fiscal year.
+- For income statement flow metrics (Revenue, COGS, Net Income) and Cash Flow metrics:
+  $$\text{Q4 Value} = \text{FY Total (from 10-K)} - \text{9M YTD (from Q3 10-Q)}$$
+  or equivalently:
+  $$\text{Q4 Value} = \text{FY Total} - (\text{Q1} + \text{Q2} + \text{Q3})$$
+- In this data pack, the synthetic extraction has pre-populated Q4 rows with 3-month date bounds (`2021-11-01 to 2022-01-31`). However, our domain and verification layer must verify that $\sum_{q=1}^4 Q_q \approx \text{FY Total}$ and flag any non-reconciling discrepancies.
 
 ### Date Formatting Inconsistencies
 - All companies except CEP format dates as ISO `YYYY-MM-DD`.
@@ -177,3 +209,38 @@ The document corpus comprises 77 total documents across 6 companies (74 SEC fili
 3. **Capex Outflow Convention**:
    - In `kpi_glossary.csv`, free cash flow formula is `cash_from_operations - capital_expenditures`, noting `"Capex taken as a positive outflow amount"`. In raw cash flows, `Purchases of property and equipment` is negative.
    - *Policy Choice*: `free_cash_flow = operating_cash_flow - ABS(capex)`.
+
+---
+
+## 9. Evaluation Dataset Audit: `dev_questions.csv`
+
+### Location & Structure
+- **Path**: `data_pack/CANDIDATE_PACK/puzzle4_data/dev_questions.csv`
+- **Total Questions**: 21
+- **Columns (9 total)**:
+  1. `id`: Unique identifier (`dev-01` to `dev-21`)
+  2. `category`: Intent classification (`structured`, `unstructured`, `mixed`, `unanswerable`, `hostile_user`)
+  3. `question`: Literal query string presented to the system
+  4. `expected_route`: Target architectural subsystem (`sql`, `rag`, `both`, `none`)
+  5. `expected_answer`: Reference textual answer
+  6. `numeric_answer`: Floating-point reference value for structured KPI evaluations
+  7. `tolerance_rel`: Allowable relative error threshold (typically `0.01` or $1\%$)
+  8. `expected_source_hint`: Expected source document/table citations
+  9. `expected_behaviour`: Behavioral directives for refusals and adversarial handling
+
+### Distribution of Question Categories & Routing
+| Category | Count | Expected Routing | Purpose / Evaluation Focus |
+| :--- | :---: | :---: | :--- |
+| `structured` | 14 | `sql` | Exact KPI computation (Free Cash Flow, Debt/Equity, Current Ratio, Operating Margin, ROE). Requires deterministic SQL execution. |
+| `unstructured` | 2 | `rag` | Management explanation retrieval (revenue change drivers). Requires RAG chunk retrieval with citations. |
+| `mixed` | 2 | `both` | Quantitative KPI combined with qualitative driver explanation. Requires combined SQL + RAG synthesis. |
+| `unanswerable` | 2 | `none` | Out-of-bounds entities or future quarters (e.g. NWI FY2026Q1, Nimbus Cloud Systems). Requires clean refusal without hallucination. |
+| `hostile_user` | 1 | `none` | Prompt injection attack attempting schema and credential dump. Requires refusal and zero secret leakage. |
+
+> [!CAUTION]
+> ### Strict Prohibition: Do NOT Use for Tuning!
+> `dev_questions.csv` is an authoritative sample of the **hidden evaluation question set**. Under our scientific validation discipline:
+> - **Zero In-Sample Tuning**: Do NOT tune prompt templates, retrieval $k$, semantic similarity thresholds, or agent routing rules directly against `dev_questions.csv`.
+> - **Dev / Held-Out Split Plan**: During Phase 8 (Evaluation & Verification), this dataset will be formally partitioned into a development set (for regression checks) and an unobserved held-out set to guarantee unbiased generalization measurement.
+
+

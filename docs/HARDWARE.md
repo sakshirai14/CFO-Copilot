@@ -105,3 +105,36 @@ Google ADK natively provides a model abstraction layer through **LiteLLM**. ADK 
   )
   ```
 - **Zero Hosted APIs Rule**: No requests leave the machine. All inference calls route to `127.0.0.1:8080`.
+
+---
+
+## 4. How We Prove the 6 GB Budget on a Mac (Hardware Honesty)
+
+### The Hardware Reality
+This Apple Silicon Mac (Apple M4, 16 GB unified memory, macOS 26.6.2) **has no discrete 6 GB NVIDIA GPU**. There is no CUDA, no discrete VRAM partition, and `nvidia-smi` is absent.
+
+Under our hard rules (*Never fabricate results; a wrong number is worse than no answer*), **we will never present Mac unified memory or Metal numbers as NVIDIA GPU numbers**.
+
+### The 6 GB Verification Protocol
+To rigorously prove that the system operates strictly within a 6 GB VRAM hardware budget, we establish the following verifiable measurement protocol:
+
+1. **Memory Ceiling Verification (Real Resident & Metal Memory)**:
+   - We will measure the actual resident set size (RSS via `ps`/`top`) and Metal allocated buffer memory of `llama-server` during peak load with **16 concurrent sessions**.
+   - We compare this footprint directly to the 6.0 GB ($6,144\text{ MB}$) threshold:
+     $$\text{Total Memory} = \text{Model Weights (Q4\_K\_M: } \sim 1.95\text{ GB}) + \text{KV Cache (16 sessions)} + \text{Runtime Runtime Buffer} \le 6.0\text{ GB}$$
+   - Any configuration exceeding 6,144 MB is reported as **FAILS 6 GB BUDGET**.
+
+2. **Tri-Configuration Formal Benchmarking**:
+   We execute and report formal throughput and latency benchmarks across three distinct, unambiguously labeled configurations:
+   - **Configuration A: `[macOS M4 Metal]`**: Native macOS binary with full Metal acceleration (`-ngl 99`). Measures peak performance achievable on Apple Silicon development hardware.
+   - **Configuration B: `[macOS M4 Native CPU]`**: Native macOS binary running purely on CPU (`-ngl 0`, threads = 8). Measures real ARM64 SIMD (NEON) CPU throughput without GPU assist.
+   - **Configuration C: `[Docker Linux VM CPU]`**: Containerized Linux `x86_64` / `aarch64` container running inside the macOS virtualization hypervisor (no Metal passthrough). This represents the strictly reproducible one-command deliverable environment (`docker-compose up`).
+
+3. **Strict Attribution & Audit Trail**:
+   - Every metric reported in `benchmarks/results/`, `docs/`, or presented live must state:
+     - Target configuration (`Metal`, `Native CPU`, or `Docker CPU`).
+     - Real measured TTFT (ms) and decode speed (tokens/sec).
+     - Peak measured resident memory (MB).
+   - If a measurement cannot be taken or simulated on this hardware, it will be marked **NOT MEASURED** with the physical rationale stated plainly.
+
+

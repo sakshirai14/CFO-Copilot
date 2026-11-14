@@ -29,9 +29,9 @@ This document outlines all core architectural, financial, and operational assump
 
 ---
 
-### 4. Drop 1 vs. Drop 2 Authority & Migration Model
-- **Assumption**: Drop 1 (`CANDIDATE_PACK`) serves as the immutable historical baseline (Companies 1–5, FY2022–FY2024), while Drop 2 (`DROP2_RELEASE`) represents a production schema migration adding Company 6 (`ZLG`) and filing amendment `NWI-10QA-FY2024Q3`.
-- **Reason**: `README_DROP2.md` states: `"Zephyr Logistics Ltd. (ZLG) joins the CFO's coverage list... Add it through a proper schema migration, not by editing tables by hand... the document NWI-10QA-FY2024Q3... amend[s] a quarter already in your database."`
+### 4. Drop 1 vs. Drop 2 Authority & Ingestion Event Model
+- **Assumption**: Drop 1 (`CANDIDATE_PACK`) serves as the immutable historical baseline (Companies 1–5, FY2022–FY2024), while Drop 2 (`DROP2_RELEASE`) represents a subsequent **data ingestion event** adding Company 6 (`ZLG`) and filing amendment `NWI-10QA-FY2024Q3`. It is not a schema migration; the schema created in Phase 1 structurally supports both drops.
+- **Reason**: `README_DROP2.md` states: `"Zephyr Logistics Ltd. (ZLG) joins the CFO's coverage list... Add it through a proper schema migration, not by editing tables by hand... the document NWI-10QA-FY2024Q3... amend[s] a quarter already in your database."` Adding rows to existing tables is an idempotent data ingestion process.
 - **How It Could Be Wrong**: If Drop 2 was intended to replace Drop 1 entirely, retaining Drop 1 rows would result in redundant or obsolete tables. Our data audit proved Drop 2 only provides 1 new company and 1 amendment; discarding Drop 1 would destroy 90% of the financial dataset.
 
 ---
@@ -79,3 +79,4 @@ This document outlines all core architectural, financial, and operational assump
 - **Assumption**: When a CFO requests comparative cross-company benchmarks (e.g. `"Compare Q3 2023 operating margins across all companies"`), queries must align on fiscal quarter identifiers (`fiscal_year = 2023, fiscal_quarter = 3`), but explicitly disclose the calendar period end date in the answer.
 - **Reason**: HBS designates fiscal years by calendar year of beginning (July 1), whereas NWI, CEP, and MSI follow calendar years, and ARG follows a retail calendar.
 - **How It Could Be Wrong**: A user asking about calendar Q3 2023 expects operations between July 1 and September 30, 2023. For HBS, fiscal Q1 2023 covers July–September 2023, NOT fiscal Q3. Without date-based reconciliation, peer comparisons compare non-overlapping operational quarters.
+

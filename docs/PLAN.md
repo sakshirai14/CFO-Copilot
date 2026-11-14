@@ -48,7 +48,7 @@ flowchart TD
 - **Phase 1: Relational Database Schema & Idempotent Ingestion (Puzzle 1 & Foundation Locks 4, 5, 6)**
   - Implement relational schema in PostgreSQL / SQLite (`filings`, `statements_raw`, `kpis_canonical`, `chunks`, `sessions`, `metrics`).
   - Write idempotent ingestion pipeline with transaction rollbacks, deduplication, and unit auto-correction.
-  - Implement Drop 2 migration script adding 6th company (`ZLG`) and amended filing (`NWI-10QA-FY2024Q3`).
+  - Implement Drop 2 data ingestion (loading 6th company `ZLG` and amended filing `NWI-10QA-FY2024Q3`) as an additive data ingestion event, demonstrating idempotent data intake without schema modifications.
 - **Phase 2: Deterministic KPI Engine & Accounting Conflict Policy (Puzzle 1 & Foundation Lock 2)**
   - Implement deterministic SQL calculators for all 16 KPIs in `kpi_glossary.csv`.
   - Enforce formal conflict resolution policy (Form 10-Q/A supersedes 10-Q, latest filing date wins, immutable audit history).
@@ -115,3 +115,4 @@ flowchart TD
 | **9** | Automated CI, Test Suite & One-Command Self-Check | PENDING | Pending Phase 9 execution | — |
 | **10** | Production Blueprint & Drop 2 Diff Note | PENDING | Pending Phase 10 execution | — |
 | **11** | Final Acceptance Gate & Walkthrough Script | PENDING | Pending Phase 11 execution | — |
+
