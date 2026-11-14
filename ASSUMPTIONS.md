@@ -95,3 +95,24 @@ This document outlines all core architectural, financial, and operational assump
 - **How It Could Be Wrong**: A read-only role can still be subjected to Denial-of-Service (DoS) queries (e.g. Cartesian joins or recursive CTEs). In Phase 2, statement timeouts (`statement_timeout = '3000ms'`) and result row limits (`LIMIT 50`) will be added to prevent compute exhaustion.
 
 
+
+---
+
+### 13. Pure SQL KPI Engine Execution (Foundation Lock 2)
+- **Assumption**: All 16 KPIs must be computed in pure, deterministic SQL without Python business logic or LLM arithmetic.
+- **Reason**: Foundation Lock 2 mandates strict layering: the agent layer contains NO SQL strings and NO business rules. Precomputing and versioning all 16 KPIs in `kpi_values` guarantees that financial answers are deterministic, reproducible, and immune to prompt injection or model hallucination.
+- **How It Could Be Wrong**: If a KPI requires subjective non-GAAP adjustments or bespoke segment allocations not defined in `kpi_glossary.csv`, pure SQL cannot infer analyst judgment. We strictly follow `kpi_glossary.csv` with zero ad-hoc addbacks.
+
+---
+
+### 14. Economic Domain Boundary Gating (Rule R8)
+- **Assumption**: If `total_equity <= 0`, Return on Equity and Debt-to-Equity ratios are economically non-meaningful and must output `status = 'not_meaningful'` rather than an arithmetic quotient.
+- **Reason**: Negative book equity produces a positive ROE when net income is negative (loss / negative equity = positive percentage), falsely signaling profitability to an executive. In corporate credit analysis, debt-to-negative-equity is undefined.
+- **How It Could Be Wrong**: Some quant models report bare negative ratios with footnotes; our conflict policy requires explicit `not_meaningful` status to avoid misleading the CFO.
+
+---
+
+### 15. Comparative Column Prior-Period Restatement Authority (Rule R3)
+- **Assumption**: When a newer SEC filing includes comparative prior-period columns whose values diverge from the original filing, the newer comparative value represents an official restatement or reclassification and governs `as_restated`.
+- **Reason**: SEC reporting rules mandate that comparative columns incorporate any retrospective adjustments adopted in subsequent periods (e.g. NWI Footnote 2 tax accrual adjustment in FY2024 Q3 restating FY2023 Q3 net income).
+- **How It Could Be Wrong**: If comparative columns contain typographical errors by the filer, adopting them without human review could introduce noise. We record all discrepancies in `data_quality_issues`.

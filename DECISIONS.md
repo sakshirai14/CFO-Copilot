@@ -116,6 +116,30 @@
 
 ---
 
+### [2026-11-15] DECISION 11: Conflict Policy Architecture & Dual-Reporting Basis (Rules R1 - R12)
+- **Decision**: Adopt formal Conflict & Reconciliation Policy Rules R1 through R12 in `docs/CONFLICT_POLICY.md` and implement table `effective_line_items` to resolve financial inputs under two concurrent bases:
+  1. **`as_restated` (Default)**: Incorporates all SEC Form 10-Q/A amendments and later comparative column restatements (`R2`, `R3`). Archives historical originally reported values in JSONB `alternatives`.
+  2. **`as_originally_reported`**: Freezes data strictly to the original Form 10-Q / 10-K filing date for audit and forensic inquiries.
+- **Rationale**: A CFO frequently requires both views—the official audited present state and the historical snapshot. Resolving this deterministically via set-based window functions (`ROW_NUMBER() OVER (...)`) in `app/data/effective.py` eliminates runtime ambiguity and prevents the agent layer from guessing.
+
+---
+
+### [2026-11-15] DECISION 12: Pure SQL Engine for 16 KPIs & SQL Provenance Assertion
+- **Decision**: Implement all 16 KPI calculations in pure, versioned `.sql` files under `app/data/sql/kpis/`. Store computed values in `kpi_values` table with explicit `status`, `reason`, `input_line_item_ids`, `basis`, `restated`, and `policy_version`.
+- **Enforcement (Lock 2 & Lock 5)**:
+  1. *Zero SQL in Agent*: The agent layer never executes dynamic SQL queries or builds math expressions; it queries precomputed rows from `kpi_values`.
+  2. *Provenance Assertion*: Runner `app/data/kpi_calculator.py` executes an automated assertion `verify_provenance_integrity()` proving that zero `status = 'ok'` KPI rows depend on non-effective inputs.
+- **Verification**: Differential verification (`scripts/verify_kpis_differential.py`) achieved 100.00% agreement against an independent clean-room pandas engine across all 2,304 records (1,152 per basis).
+
+---
+
+### [2026-11-15] DECISION 13: Deduplication Scoping to Fiscal Periods
+- **Context**: During Phase 2 differential testing, NWI FY2024 Q3 originally-reported net income differed between pandas and SQL.
+- **Root Cause**: In Phase 1 ingestion, intra-filing duplicate detection checked `(filing_id, statement, canonical_item)`. In `NWI-10Q-FY2024Q3`, the filing contained both a comparative prior-period column (FY2023 Q3 net income $34.9M) and the current period (FY2024 Q3 net income $55.4M). The current quarter's line item was falsely flagged as a duplicate of the comparative column.
+- **Decision**: Scoped deduplication key strictly to `(filing_id, statement, canonical_item, fiscal_year, fiscal_quarter)`. Reingested and verified that genuine duplicates (such as ARG FY2023 Q2 identical revenue rows) remain collapsed, while comparative columns reporting on prior periods are properly preserved as valid line items.
+
+---
+
 ### What I'd Do Differently / What Failed or Surprised Us
 1. **Initial File Access Outside Workspace Boundary**:
    - *What Happened*: Initial user prompt referenced files located outside the project folder. macOS Privacy & Security (TCC) strictly blocked directory traversal of `~/Downloads`.
