@@ -1,4 +1,4 @@
-.PHONY: up down ingest test report selfcheck bench clean audit puzzle2-eval help
+.PHONY: up down ingest kpis test report selfcheck bench clean audit puzzle2-eval help
 
 VENV_PYTHON := ./.venv/bin/python3
 PYTHON := $(shell if [ -f $(VENV_PYTHON) ]; then echo $(VENV_PYTHON); else echo python3; fi)
@@ -8,6 +8,7 @@ help:
 	@echo "  make up          - Start PostgreSQL+pgvector DB, configure roles, and run migrations"
 	@echo "  make down        - Stop Docker Compose services"
 	@echo "  make ingest      - Ingest Drop 1 and Drop 2 into PostgreSQL and generate report"
+	@echo "  make kpis        - Compute 16 KPIs in pure SQL across all companies and periods"
 	@echo "  make test        - Run unit and integration tests against isolated test database"
 	@echo "  make report      - Re-generate Phase 1 verification report (docs/evidence/phase1_report.txt)"
 	@echo "  make selfcheck   - Run end-to-end selfcheck against golden set (Phase 5)"
@@ -35,6 +36,10 @@ ingest:
 	$(PYTHON) scripts/ingest.py
 	@echo "[make ingest] Generating Phase 1 verification report..."
 	$(PYTHON) scripts/phase1_report.py
+
+kpis:
+	@echo "[make kpis] Computing 16 KPIs in pure SQL across all companies and periods..."
+	$(PYTHON) scripts/compute_kpis.py
 
 test:
 	@echo "[make test] Running test suite against test database..."
