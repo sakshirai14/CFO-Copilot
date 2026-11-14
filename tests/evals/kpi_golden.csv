@@ -1,0 +1,51 @@
+case_id,company_id,fiscal_year,fiscal_quarter,kpi_id,basis,expected_value,expected_unit,expected_status,raw_verification_source,hand_verified
+gold-01,ARG,2022,2,free_cash_flow_usd,as_restated,37800000.000000,USD,ok,raw_financial_rows R000335: 68.1M - R000336: 30.3M,true
+gold-02,CEP,2022,3,debt_to_equity_x,as_restated,0.580789,x,ok,raw_financial_rows R001345: 468M debt / R001347: 805.8M equity,true
+gold-03,CEP,2024,1,interest_coverage_x,as_restated,7.953125,x,ok,raw_financial_rows R001436: 50.9M op_inc / R001437: 6.4M int_exp,true
+gold-04,ARG,2022,3,current_ratio_x,as_restated,1.402419,x,ok,raw_financial_rows R000345: 1020.4M curr_assets / R000347: 727.6M curr_liab,true
+gold-05,CEP,2024,3,debt_to_equity_x,as_restated,0.540915,x,ok,raw_financial_rows R001454: 468M debt / R001456: 865.2M equity,true
+gold-06,CEP,2023,1,operating_margin_pct,as_restated,18.314367,percent,ok,raw_financial_rows R001374: 52.4M op_inc / R001368: 286.1M rev,true
+gold-07,ARG,2022,1,current_ratio_x,as_restated,1.423986,x,ok,raw_financial_rows R000321: 998.5M curr_assets / R000323: 701.2M curr_liab,true
+gold-08,CEP,2023,2,gross_margin_pct,as_restated,27.254902,percent,ok,raw_financial_rows R001391: 78.4M gross_profit / R001389: 287.7M rev,true
+gold-09,ARG,2024,1,current_ratio_x,as_restated,1.451350,x,ok,raw_financial_rows R000441: 1092.6M curr_assets / R000443: 752.8M curr_liab,true
+gold-10,CEP,2022,3,gross_margin_pct,as_restated,27.276065,percent,ok,raw_financial_rows R001337: 79.1M gross_profit / R001335: 290.0M rev,true
+gold-11,CEP,2024,2,gross_margin_pct,as_restated,26.787149,percent,ok,financial_statements_raw.csv R001446: 66.7M / R001444: 249M,true
+gold-12,CEP,2024,2,gross_margin_pct,as_originally_reported,27.124847,percent,ok,financial_statements_raw.csv R001420: 66.7M / R001418: 245.9M,true
+gold-13,NWI,2023,3,net_margin_pct,as_restated,7.874549,percent,ok,comparative column R000290 in NWI-10Q-FY2024Q3 (34.9M / 443.2M),true
+gold-14,NWI,2023,3,net_margin_pct,as_originally_reported,8.416065,percent,ok,original 10-Q row R000155 in NWI-10Q-FY2023Q3 (37.3M / 443.2M),true
+gold-15,HBS,2024,2,gross_margin_pct,as_restated,61.263736,percent,ok,raw rows R000795 & R000797 normalized with 1000x scale (66.9M / 109.2M),true
+gold-16,ARG,2022,1,asset_turnover_x,as_originally_reported,0.331546,x,ok,Systematic coverage evaluation ARG FY2022Q1 asset_turnover_x,false
+gold-17,ARG,2022,1,asset_turnover_x,as_restated,0.331546,x,ok,Systematic coverage evaluation ARG FY2022Q1 asset_turnover_x,false
+gold-18,ARG,2022,1,current_ratio_x,as_originally_reported,1.423986,x,ok,Systematic coverage evaluation ARG FY2022Q1 current_ratio_x,false
+gold-19,ARG,2022,1,current_ratio_x,as_restated,1.423986,x,ok,Systematic coverage evaluation ARG FY2022Q1 current_ratio_x,false
+gold-20,ARG,2022,1,debt_to_equity_x,as_originally_reported,0.690877,x,ok,Systematic coverage evaluation ARG FY2022Q1 debt_to_equity_x,false
+gold-21,ARG,2022,1,debt_to_equity_x,as_restated,0.690877,x,ok,Systematic coverage evaluation ARG FY2022Q1 debt_to_equity_x,false
+gold-22,ARG,2022,1,ebitda_margin_pct,as_originally_reported,10.986733,percent,ok,Systematic coverage evaluation ARG FY2022Q1 ebitda_margin_pct,false
+gold-23,ARG,2022,1,ebitda_margin_pct,as_restated,10.986733,percent,ok,Systematic coverage evaluation ARG FY2022Q1 ebitda_margin_pct,false
+gold-24,ARG,2022,1,ebitda_usd,as_originally_reported,79500000.000000,USD,ok,Systematic coverage evaluation ARG FY2022Q1 ebitda_usd,false
+gold-25,ARG,2022,1,ebitda_usd,as_restated,79500000.000000,USD,ok,Systematic coverage evaluation ARG FY2022Q1 ebitda_usd,false
+gold-26,ARG,2022,1,fcf_margin_pct,as_originally_reported,4.339414,percent,ok,Systematic coverage evaluation ARG FY2022Q1 fcf_margin_pct,false
+gold-27,ARG,2022,1,fcf_margin_pct,as_restated,4.339414,percent,ok,Systematic coverage evaluation ARG FY2022Q1 fcf_margin_pct,false
+gold-28,ARG,2022,1,free_cash_flow_usd,as_originally_reported,31400000.000000,USD,ok,Systematic coverage evaluation ARG FY2022Q1 free_cash_flow_usd,false
+gold-29,ARG,2022,1,free_cash_flow_usd,as_restated,31400000.000000,USD,ok,Systematic coverage evaluation ARG FY2022Q1 free_cash_flow_usd,false
+gold-30,ARG,2022,1,gross_margin_pct,as_originally_reported,38.778331,percent,ok,Systematic coverage evaluation ARG FY2022Q1 gross_margin_pct,false
+gold-31,ARG,2022,1,gross_margin_pct,as_restated,38.778331,percent,ok,Systematic coverage evaluation ARG FY2022Q1 gross_margin_pct,false
+gold-32,ARG,2022,1,interest_coverage_x,as_originally_reported,7.706667,x,ok,Systematic coverage evaluation ARG FY2022Q1 interest_coverage_x,false
+gold-33,ARG,2022,1,interest_coverage_x,as_restated,7.706667,x,ok,Systematic coverage evaluation ARG FY2022Q1 interest_coverage_x,false
+gold-34,ARG,2022,1,net_margin_pct,as_originally_reported,5.417358,percent,ok,Systematic coverage evaluation ARG FY2022Q1 net_margin_pct,false
+gold-35,ARG,2022,1,net_margin_pct,as_restated,5.417358,percent,ok,Systematic coverage evaluation ARG FY2022Q1 net_margin_pct,false
+gold-36,ARG,2022,1,operating_margin_pct,as_originally_reported,7.987839,percent,ok,Systematic coverage evaluation ARG FY2022Q1 operating_margin_pct,false
+gold-37,ARG,2022,1,operating_margin_pct,as_restated,7.987839,percent,ok,Systematic coverage evaluation ARG FY2022Q1 operating_margin_pct,false
+gold-38,ARG,2022,1,opex_ratio_pct,as_originally_reported,30.790492,percent,ok,Systematic coverage evaluation ARG FY2022Q1 opex_ratio_pct,false
+gold-39,ARG,2022,1,opex_ratio_pct,as_restated,30.790492,percent,ok,Systematic coverage evaluation ARG FY2022Q1 opex_ratio_pct,false
+gold-40,ARG,2022,1,rd_intensity_pct,as_originally_reported,0.000000,percent,ok,Systematic coverage evaluation ARG FY2022Q1 rd_intensity_pct,false
+gold-41,ARG,2022,1,rd_intensity_pct,as_restated,0.000000,percent,ok,Systematic coverage evaluation ARG FY2022Q1 rd_intensity_pct,false
+gold-42,ARG,2022,1,revenue_yoy_growth_pct,as_originally_reported,,percent,missing_input,Systematic coverage evaluation ARG FY2022Q1 revenue_yoy_growth_pct,false
+gold-43,ARG,2022,1,revenue_yoy_growth_pct,as_restated,,percent,missing_input,Systematic coverage evaluation ARG FY2022Q1 revenue_yoy_growth_pct,false
+gold-44,ARG,2022,1,roe_quarterly_pct,as_originally_reported,4.960142,percent,ok,Systematic coverage evaluation ARG FY2022Q1 roe_quarterly_pct,false
+gold-45,ARG,2022,1,roe_quarterly_pct,as_restated,4.960142,percent,ok,Systematic coverage evaluation ARG FY2022Q1 roe_quarterly_pct,false
+gold-46,ARG,2022,1,working_capital_usd,as_originally_reported,276100000.000000,USD,ok,Systematic coverage evaluation ARG FY2022Q1 working_capital_usd,false
+gold-47,ARG,2022,1,working_capital_usd,as_restated,276100000.000000,USD,ok,Systematic coverage evaluation ARG FY2022Q1 working_capital_usd,false
+gold-48,ARG,2022,2,asset_turnover_x,as_originally_reported,0.339962,x,ok,Systematic coverage evaluation ARG FY2022Q2 asset_turnover_x,false
+gold-49,ARG,2022,2,asset_turnover_x,as_restated,0.339962,x,ok,Systematic coverage evaluation ARG FY2022Q2 asset_turnover_x,false
+gold-50,ARG,2022,2,current_ratio_x,as_originally_reported,1.415493,x,ok,Systematic coverage evaluation ARG FY2022Q2 current_ratio_x,false
