@@ -1,0 +1,317 @@
+# CFO Copilot: 7 Authoritative KPI Provenance Verification Traces
+Generated deterministically by app.data.provenance from PostgreSQL database.
+
+================================================================================
+Case 1: Standard Clean Calculation (ARG FY2022 Q2 Free Cash Flow)
+Command: python -m app.data.provenance --company ARG --period FY2022Q2 --kpi free_cash_flow_usd
+================================================================================
+================================================================================
+CFO COPILOT - FINANCIAL KPI PROVENANCE TRACE
+================================================================================
+Company:         Aurora Retail Group (ARG) - Sector: Specialty retail
+Fiscal Period:   FY2022 Q2 (Period End: 2021-07-31)
+KPI Identifier:  free_cash_flow_usd (Free cash flow)
+Formula:         cash_from_operations - capital_expenditures
+Calculated Val:  $37,800,000.00 (USD)
+Status:          OK (Basis: as_restated, Restated: False)
+Policy Version:  v1.0.0 | Computed At: 2026-11-14 18:28:24.522662+00:00
+--------------------------------------------------------------------------------
+INPUT LINE ITEMS RESOLVED (2 inputs):
+
+  [1] Canonical Item: capital_expenditures (Statement: CF)
+      Normalized Value:  $30,300,000.00
+      Effective Rules:   R1, R5
+      Source Filing:     ARG-10Q-FY2022Q2 (10-Q, filed 2021-09-08)
+      Normalization:     Scale 1000.0x, Sign Multiplier -1, Raw: -30300.0 USD_thousands
+      Raw Source Row:    R000336 in 'financial_statements_raw.csv' (line 36)
+      Raw Line Item:     "Purchases of property and equipment"
+      Row Hash (SHA256): 3decb7d3d67121f0497b385dad38b44e0fcb0e5b612333b69e07ecae22cc73d6
+
+  [2] Canonical Item: cash_from_operations (Statement: CF)
+      Normalized Value:  $68,100,000.00
+      Effective Rules:   R1, R5
+      Source Filing:     ARG-10Q-FY2022Q2 (10-Q, filed 2021-09-08)
+      Normalization:     Scale 1000.0x, Sign Multiplier 1, Raw: 68100.0 USD_thousands
+      Raw Source Row:    R000335 in 'financial_statements_raw.csv' (line 35)
+      Raw Line Item:     "Net cash provided by operating activities"
+      Row Hash (SHA256): 877a4bdac466a089590916835ef3203811ce9a4c063312bce09136832a2d6f16
+
+--------------------------------------------------------------------------------
+DATA QUALITY ISSUES AUDIT (1 issues detected on underlying inputs/filings):
+  * [WARNING] negative_expense_sign (Filing: ARG-10Q-FY2022Q2): Company ARG reports expense item 'capital_expenditures' with negative sign (-30300.0). Inverted to canonical positive value 30300000.0 with sign_multiplier = -1.
+================================================================================
+
+
+================================================================================
+Case 2: Form 10-Q/A Restatement (CEP FY2024 Q2 Gross Margin)
+Command: python -m app.data.provenance --company CEP --period FY2024Q2 --kpi gross_margin_pct
+================================================================================
+================================================================================
+CFO COPILOT - FINANCIAL KPI PROVENANCE TRACE
+================================================================================
+Company:         Cobalt Energy Partners (CEP) - Sector: Energy midstream and upstream
+Fiscal Period:   FY2024 Q2 (Period End: 2024-06-30)
+KPI Identifier:  gross_margin_pct (Gross margin)
+Formula:         gross_profit / revenue * 100
+Calculated Val:  26.79% (percent)
+Status:          OK (Basis: as_restated, Restated: True)
+Policy Version:  v1.0.0 | Computed At: 2026-11-14 18:28:24.522662+00:00
+--------------------------------------------------------------------------------
+INPUT LINE ITEMS RESOLVED (2 inputs):
+
+  [1] Canonical Item: gross_profit (Statement: IS)
+      Normalized Value:  $66,700,000.00
+      Effective Rules:   R1, R2
+      Source Filing:     CEP-10QA-FY2024Q2 (10-Q/A, filed 2024-10-26)
+      Amends Filing:     CEP-10Q-FY2024Q2
+      Normalization:     Scale 1.0x, Sign Multiplier 1, Raw: 66700000.0 USD
+      Raw Source Row:    R001446 in 'financial_statements_raw.csv' (line 535)
+      Raw Line Item:     "Gross profit"
+      Row Hash (SHA256): e608d87505b2cc8e9396561864d77572a32c3e8a495561ff4e182eabaca6df4c
+
+  [2] Canonical Item: revenue (Statement: IS)
+      Normalized Value:  $249,000,000.00
+      Effective Rules:   R1, R2
+      Source Filing:     CEP-10QA-FY2024Q2 (10-Q/A, filed 2024-10-26)
+      Amends Filing:     CEP-10Q-FY2024Q2
+      Normalization:     Scale 1.0x, Sign Multiplier 1, Raw: 249000000.0 USD
+      Raw Source Row:    R001444 in 'financial_statements_raw.csv' (line 533)
+      Raw Line Item:     "Revenues"
+      Row Hash (SHA256): a95848617fa67533c346c4946eb022958e0a17126578c8fbe340701d847503de
+      Historical Values:
+        - $245,900,000.00 originally reported in CEP-10Q-FY2024Q2 (10-Q filed 2024-08-07)
+
+--------------------------------------------------------------------------------
+DATA QUALITY ISSUES AUDIT (3 issues detected on underlying inputs/filings):
+  * [WARNING] negative_expense_sign (Filing: CEP-10QA-FY2024Q2): Company CEP reports expense item 'cost_of_revenue' with negative sign (-182300000.0). Inverted to canonical positive value 182300000.0 with sign_multiplier = -1.
+  * [WARNING] line_item_restatement (Filing: CEP-10QA-FY2024Q2): Restated line item in CEP-10QA-FY2024Q2: 'revenue' restated from $245,900,000.00 to $249,000,000.00 (diff: $+3,100,000.00).
+  * [WARNING] line_item_restatement (Filing: CEP-10QA-FY2024Q2): Restated line item in CEP-10QA-FY2024Q2: 'cost_of_revenue' restated from $179,200,000.00 to $182,300,000.00 (diff: $+3,100,000.00).
+================================================================================
+
+
+================================================================================
+Case 3: Form 10-Q/A Restatement with Net Income Amendment (NWI FY2024 Q3 Net Margin)
+Command: python -m app.data.provenance --company NWI --period FY2024Q3 --kpi net_margin_pct
+================================================================================
+================================================================================
+CFO COPILOT - FINANCIAL KPI PROVENANCE TRACE
+================================================================================
+Company:         Northwind Industrial Corp (NWI) - Sector: Industrial machinery
+Fiscal Period:   FY2024 Q3 (Period End: 2024-09-30)
+KPI Identifier:  net_margin_pct (Net margin)
+Formula:         net_income / revenue * 100
+Calculated Val:  11.75% (percent)
+Status:          OK (Basis: as_restated, Restated: True)
+Policy Version:  v1.0.0 | Computed At: 2026-11-14 18:28:24.522662+00:00
+--------------------------------------------------------------------------------
+INPUT LINE ITEMS RESOLVED (2 inputs):
+
+  [1] Canonical Item: net_income (Statement: IS)
+      Normalized Value:  $54,300,000.00
+      Effective Rules:   R1, R5
+      Source Filing:     NWI-10QA-FY2024Q3 (10-Q/A, filed 2025-03-19)
+      Amends Filing:     NWI-10Q-FY2024Q3
+      Normalization:     Scale 1000.0x, Sign Multiplier 1, Raw: 54300 USD_thousands
+      Raw Source Row:    R900283 in 'financial_statements_raw_new.csv' (line 284)
+      Raw Line Item:     "Net income"
+      Row Hash (SHA256): bfcdf8390c8b5389723a7e58ce6abcd14742281c5a0602daea966cd70489d181
+
+  [2] Canonical Item: revenue (Statement: IS)
+      Normalized Value:  $462,100,000.00
+      Effective Rules:   R1, R2, R5
+      Source Filing:     NWI-10QA-FY2024Q3 (10-Q/A, filed 2025-03-19)
+      Amends Filing:     NWI-10Q-FY2024Q3
+      Normalization:     Scale 1000.0x, Sign Multiplier 1, Raw: 462100 USD_thousands
+      Raw Source Row:    R900277 in 'financial_statements_raw_new.csv' (line 278)
+      Raw Line Item:     "Net sales"
+      Row Hash (SHA256): 39f21e92c34a650a6edabbf9793a64d382697967ccbb09fbec758f247afc9494
+      Historical Values:
+        - $466,300,000.00 originally reported in NWI-10Q-FY2024Q3 (10-Q filed 2024-11-08)
+
+--------------------------------------------------------------------------------
+DATA QUALITY ISSUES AUDIT (8 issues detected on underlying inputs/filings):
+  * [WARNING] line_item_restatement (Filing: NWI-10QA-FY2024Q3): Restated line item in NWI-10QA-FY2024Q3: 'revenue' restated from $466,300,000.00 to $462,100,000.00 (diff: $-4,200,000.00).
+  * [WARNING] line_item_restatement (Filing: NWI-10QA-FY2024Q3): Restated line item in NWI-10QA-FY2024Q3: 'cost_of_revenue' restated from $296,800,000.00 to $294,000,000.00 (diff: $-2,800,000.00).
+  * [WARNING] line_item_restatement (Filing: NWI-10QA-FY2024Q3): Restated line item in NWI-10QA-FY2024Q3: 'gross_profit' restated from $169,500,000.00 to $168,100,000.00 (diff: $-1,400,000.00).
+  * [WARNING] line_item_restatement (Filing: NWI-10QA-FY2024Q3): Restated line item in NWI-10QA-FY2024Q3: 'operating_income' restated from $76,600,000.00 to $75,200,000.00 (diff: $-1,400,000.00).
+  * [WARNING] line_item_restatement (Filing: NWI-10QA-FY2024Q3): Restated line item in NWI-10QA-FY2024Q3: 'income_before_tax' restated from $71,000,000.00 to $69,600,000.00 (diff: $-1,400,000.00).
+  * [WARNING] line_item_restatement (Filing: NWI-10QA-FY2024Q3): Restated line item in NWI-10QA-FY2024Q3: 'tax_expense' restated from $15,600,000.00 to $15,300,000.00 (diff: $-300,000.00).
+  * [WARNING] line_item_restatement (Filing: NWI-10QA-FY2024Q3): Restated line item in NWI-10QA-FY2024Q3: 'net_income' restated from $55,400,000.00 to $54,300,000.00 (diff: $-1,100,000.00).
+  * [WARNING] accounting_identity_failure (Filing: NWI-10QA-FY2024Q3): Operating income identity failed on NWI-10QA-FY2024Q3: Gross Profit ($168,100,000.00) - Opex ($0.00) != Operating Income ($75,200,000.00) (diff: $92,900,000.00). Form 10-Q/A omitted unamended opex lines.
+================================================================================
+
+
+================================================================================
+Case 4: Comparative Column Restatement (NWI FY2023 Q3 Net Margin)
+Command: python -m app.data.provenance --company NWI --period FY2023Q3 --kpi net_margin_pct
+================================================================================
+================================================================================
+CFO COPILOT - FINANCIAL KPI PROVENANCE TRACE
+================================================================================
+Company:         Northwind Industrial Corp (NWI) - Sector: Industrial machinery
+Fiscal Period:   FY2023 Q3 (Period End: 2023-09-30)
+KPI Identifier:  net_margin_pct (Net margin)
+Formula:         net_income / revenue * 100
+Calculated Val:  7.87% (percent)
+Status:          OK (Basis: as_restated, Restated: True)
+Policy Version:  v1.0.0 | Computed At: 2026-11-14 18:28:24.522662+00:00
+--------------------------------------------------------------------------------
+INPUT LINE ITEMS RESOLVED (2 inputs):
+
+  [1] Canonical Item: net_income (Statement: IS)
+      Normalized Value:  $34,900,000.00
+      Effective Rules:   R1, R2, R3, R5
+      Source Filing:     NWI-10Q-FY2024Q3 (10-Q, filed 2024-11-08)
+      Normalization:     Scale 1000.0x, Sign Multiplier 1, Raw: 34900.0 USD_thousands
+      Raw Source Row:    R000290 in 'financial_statements_raw.csv' (line 1330)
+      Raw Line Item:     "Net income"
+      Row Hash (SHA256): cc5d03130f75f5956362ea28b13250938101ad37143736011b9bd813c6831624
+      Historical Values:
+        - $37,300,000.00 originally reported in NWI-10Q-FY2023Q3 (10-Q filed 2023-11-04)
+
+  [2] Canonical Item: revenue (Statement: IS)
+      Normalized Value:  $443,200,000.00
+      Effective Rules:   R1, R5
+      Source Filing:     NWI-10Q-FY2023Q3 (10-Q, filed 2023-11-04)
+      Normalization:     Scale 1000.0x, Sign Multiplier 1, Raw: 443200.0 USD_thousands
+      Raw Source Row:    R000145 in 'financial_statements_raw.csv' (line 1318)
+      Raw Line Item:     "Net sales"
+      Row Hash (SHA256): c648655b047ee7cbe819ffbe79d24d2c06f6a7c4927a98591cefa83264291398
+
+--------------------------------------------------------------------------------
+DATA QUALITY ISSUES AUDIT (6 issues detected on underlying inputs/filings):
+  * [WARNING] negative_expense_sign (Filing: NWI-10Q-FY2023Q3): Company NWI reports expense item 'capital_expenditures' with negative sign (-15500.0). Inverted to canonical positive value 15500000.0 with sign_multiplier = -1.
+  * [WARNING] negative_expense_sign (Filing: NWI-10Q-FY2024Q3): Company NWI reports expense item 'capital_expenditures' with negative sign (-16300.0). Inverted to canonical positive value 16300000.0 with sign_multiplier = -1.
+  * [INFO] comparative_column_restatement (Filing: NWI-10Q-FY2024Q3): Comparative column in NWI-10Q-FY2024Q3 reports prior-period FY2023Q3 Income tax expense = $9,800.00 (row R000289). Restatement corroborated by Footnote 2 tax accrual adjustment.
+  * [INFO] comparative_column_restatement (Filing: NWI-10Q-FY2024Q3): Comparative column in NWI-10Q-FY2024Q3 reports prior-period FY2023Q3 Net income = $34,900.00 (row R000290). Restatement corroborated by Footnote 2 tax accrual adjustment.
+  * [CRITICAL] intra_filing_duplicate (Filing: NWI-10Q-FY2024Q3): Duplicate line item within same filing: 'Income tax expense' (row R000250) duplicates prior line_item 4373.
+  * [CRITICAL] intra_filing_duplicate (Filing: NWI-10Q-FY2024Q3): Duplicate line item within same filing: 'Net income' (row R000251) duplicates prior line_item 4374.
+================================================================================
+
+
+================================================================================
+Case 5: Unit Scale Normalization via Dual Evidence (HBS FY2024 Q2 Gross Margin)
+Command: python -m app.data.provenance --company HBS --period FY2024Q2 --kpi gross_margin_pct
+================================================================================
+================================================================================
+CFO COPILOT - FINANCIAL KPI PROVENANCE TRACE
+================================================================================
+Company:         Helix BioSystems (HBS) - Sector: Life-science instruments
+Fiscal Period:   FY2024 Q2 (Period End: 2024-12-31)
+KPI Identifier:  gross_margin_pct (Gross margin)
+Formula:         gross_profit / revenue * 100
+Calculated Val:  61.26% (percent)
+Status:          OK (Basis: as_restated, Restated: False)
+Policy Version:  v1.0.0 | Computed At: 2026-11-14 18:28:24.522662+00:00
+--------------------------------------------------------------------------------
+INPUT LINE ITEMS RESOLVED (2 inputs):
+
+  [1] Canonical Item: gross_profit (Statement: IS)
+      Normalized Value:  $66,900,000.00
+      Effective Rules:   R1, R5
+      Source Filing:     HBS-10Q-FY2024Q2 (10-Q, filed 2025-02-04)
+      Normalization:     Scale 1000.0x, Sign Multiplier 1, Raw: 66900.0 USD_millions
+      Raw Source Row:    R000797 in 'financial_statements_raw.csv' (line 815)
+      Raw Line Item:     "Gross profit"
+      Row Hash (SHA256): cb8559573e4f6df8559a5663201f6cd14610a91ee33265828ac6d4297031601b
+
+  [2] Canonical Item: revenue (Statement: IS)
+      Normalized Value:  $109,200,000.00
+      Effective Rules:   R1, R5
+      Source Filing:     HBS-10Q-FY2024Q2 (10-Q, filed 2025-02-04)
+      Normalization:     Scale 1000.0x, Sign Multiplier 1, Raw: 109200.0 USD_millions
+      Raw Source Row:    R000795 in 'financial_statements_raw.csv' (line 813)
+      Raw Line Item:     "Revenue"
+      Row Hash (SHA256): 06494b7543be70b6a2ef2802c92e01f1649b126228b91c071cf3cc58cfeb01b1
+
+--------------------------------------------------------------------------------
+DATA QUALITY ISSUES AUDIT (12 issues detected on underlying inputs/filings):
+  * [WARNING] negative_expense_sign (Filing: HBS-10Q-FY2024Q2): Company HBS reports expense item 'capital_expenditures' with negative sign (-4900.0). Inverted to canonical positive value 4900000.0 with sign_multiplier = -1.
+  * [CRITICAL] unit_scale_mismatch (Filing: HBS-10Q-FY2024Q2): Filing HBS-10Q-FY2024Q2 line item extracted with raw unit 'USD_millions' while filing index declares 'USD_thousands'. Two-check evidence: (1) filings_index.reporting_unit='USD_thousands'; (2) adjacent quarter revenue magnitude check (FY2024Q1=\.3M, FY2024Q3=\.9M) confirms raw 109,200 is in thousands. Corrected scale factor to 1,000 to prevent 1,000x overstatement.
+  * [CRITICAL] unit_scale_mismatch (Filing: HBS-10Q-FY2024Q2): Filing HBS-10Q-FY2024Q2 line item extracted with raw unit 'USD_millions' while filing index declares 'USD_thousands'. Two-check evidence: (1) filings_index.reporting_unit='USD_thousands'; (2) adjacent quarter revenue magnitude check (FY2024Q1=\.3M, FY2024Q3=\.9M) confirms raw 109,200 is in thousands. Corrected scale factor to 1,000 to prevent 1,000x overstatement.
+  * [CRITICAL] unit_scale_mismatch (Filing: HBS-10Q-FY2024Q2): Filing HBS-10Q-FY2024Q2 line item extracted with raw unit 'USD_millions' while filing index declares 'USD_thousands'. Two-check evidence: (1) filings_index.reporting_unit='USD_thousands'; (2) adjacent quarter revenue magnitude check (FY2024Q1=\.3M, FY2024Q3=\.9M) confirms raw 109,200 is in thousands. Corrected scale factor to 1,000 to prevent 1,000x overstatement.
+  * [CRITICAL] unit_scale_mismatch (Filing: HBS-10Q-FY2024Q2): Filing HBS-10Q-FY2024Q2 line item extracted with raw unit 'USD_millions' while filing index declares 'USD_thousands'. Two-check evidence: (1) filings_index.reporting_unit='USD_thousands'; (2) adjacent quarter revenue magnitude check (FY2024Q1=\.3M, FY2024Q3=\.9M) confirms raw 109,200 is in thousands. Corrected scale factor to 1,000 to prevent 1,000x overstatement.
+  * [CRITICAL] unit_scale_mismatch (Filing: HBS-10Q-FY2024Q2): Filing HBS-10Q-FY2024Q2 line item extracted with raw unit 'USD_millions' while filing index declares 'USD_thousands'. Two-check evidence: (1) filings_index.reporting_unit='USD_thousands'; (2) adjacent quarter revenue magnitude check (FY2024Q1=\.3M, FY2024Q3=\.9M) confirms raw 109,200 is in thousands. Corrected scale factor to 1,000 to prevent 1,000x overstatement.
+  * [CRITICAL] unit_scale_mismatch (Filing: HBS-10Q-FY2024Q2): Filing HBS-10Q-FY2024Q2 line item extracted with raw unit 'USD_millions' while filing index declares 'USD_thousands'. Two-check evidence: (1) filings_index.reporting_unit='USD_thousands'; (2) adjacent quarter revenue magnitude check (FY2024Q1=\.3M, FY2024Q3=\.9M) confirms raw 109,200 is in thousands. Corrected scale factor to 1,000 to prevent 1,000x overstatement.
+  * [CRITICAL] unit_scale_mismatch (Filing: HBS-10Q-FY2024Q2): Filing HBS-10Q-FY2024Q2 line item extracted with raw unit 'USD_millions' while filing index declares 'USD_thousands'. Two-check evidence: (1) filings_index.reporting_unit='USD_thousands'; (2) adjacent quarter revenue magnitude check (FY2024Q1=\.3M, FY2024Q3=\.9M) confirms raw 109,200 is in thousands. Corrected scale factor to 1,000 to prevent 1,000x overstatement.
+  * [CRITICAL] unit_scale_mismatch (Filing: HBS-10Q-FY2024Q2): Filing HBS-10Q-FY2024Q2 line item extracted with raw unit 'USD_millions' while filing index declares 'USD_thousands'. Two-check evidence: (1) filings_index.reporting_unit='USD_thousands'; (2) adjacent quarter revenue magnitude check (FY2024Q1=\.3M, FY2024Q3=\.9M) confirms raw 109,200 is in thousands. Corrected scale factor to 1,000 to prevent 1,000x overstatement.
+  * [CRITICAL] unit_scale_mismatch (Filing: HBS-10Q-FY2024Q2): Filing HBS-10Q-FY2024Q2 line item extracted with raw unit 'USD_millions' while filing index declares 'USD_thousands'. Two-check evidence: (1) filings_index.reporting_unit='USD_thousands'; (2) adjacent quarter revenue magnitude check (FY2024Q1=\.3M, FY2024Q3=\.9M) confirms raw 109,200 is in thousands. Corrected scale factor to 1,000 to prevent 1,000x overstatement.
+  * [CRITICAL] unit_scale_mismatch (Filing: HBS-10Q-FY2024Q2): Filing HBS-10Q-FY2024Q2 line item extracted with raw unit 'USD_millions' while filing index declares 'USD_thousands'. Two-check evidence: (1) filings_index.reporting_unit='USD_thousands'; (2) adjacent quarter revenue magnitude check (FY2024Q1=\.3M, FY2024Q3=\.9M) confirms raw 109,200 is in thousands. Corrected scale factor to 1,000 to prevent 1,000x overstatement.
+  * [CRITICAL] unit_scale_mismatch (Filing: HBS-10Q-FY2024Q2): Filing HBS-10Q-FY2024Q2 line item extracted with raw unit 'USD_millions' while filing index declares 'USD_thousands'. Two-check evidence: (1) filings_index.reporting_unit='USD_thousands'; (2) adjacent quarter revenue magnitude check (FY2024Q1=\.3M, FY2024Q3=\.9M) confirms raw 109,200 is in thousands. Corrected scale factor to 1,000 to prevent 1,000x overstatement.
+================================================================================
+
+
+================================================================================
+Case 6: Missing Input Handling / First 4 Quarters Undefined (NWI FY2022 Q1 Revenue YoY Growth)
+Command: python -m app.data.provenance --company NWI --period FY2022Q1 --kpi revenue_yoy_growth_pct
+================================================================================
+================================================================================
+CFO COPILOT - FINANCIAL KPI PROVENANCE TRACE
+================================================================================
+Company:         Northwind Industrial Corp (NWI) - Sector: Industrial machinery
+Fiscal Period:   FY2022 Q1 (Period End: 2022-03-31)
+KPI Identifier:  revenue_yoy_growth_pct (Revenue growth, year over year)
+Formula:         (revenue / revenue same fiscal quarter prior fiscal year - 1) * 100
+Calculated Val:  N/A (percent)
+Status:          MISSING_INPUT (Basis: as_restated, Restated: False)
+Status Reason:   Prior year fiscal quarter not available in dataset (first four quarters)
+Policy Version:  v1.0.0 | Computed At: 2026-11-14 18:28:24.522662+00:00
+--------------------------------------------------------------------------------
+INPUT LINE ITEMS RESOLVED (1 inputs):
+
+  [1] Canonical Item: revenue (Statement: IS)
+      Normalized Value:  $398,300,000.00
+      Effective Rules:   R1, R5
+      Source Filing:     NWI-10Q-FY2022Q1 (10-Q, filed 2022-05-05)
+      Normalization:     Scale 1000.0x, Sign Multiplier 1, Raw: 398300.0 USD_thousands
+      Raw Source Row:    R000001 in 'financial_statements_raw.csv' (line 1174)
+      Raw Line Item:     "Net sales"
+      Row Hash (SHA256): e44f707d132e49b3789a106c4b75d02bb4c278958a560fb342d7628984fd7a13
+
+--------------------------------------------------------------------------------
+DATA QUALITY ISSUES AUDIT (1 issues detected on underlying inputs/filings):
+  * [WARNING] negative_expense_sign (Filing: NWI-10Q-FY2022Q1): Company NWI reports expense item 'capital_expenditures' with negative sign (-13900.0). Inverted to canonical positive value 13900000.0 with sign_multiplier = -1.
+================================================================================
+
+
+================================================================================
+Case 7: Zero R&D Handling for Non-R&D Reporter (ARG FY2023 Q1 R&D Intensity)
+Command: python -m app.data.provenance --company ARG --period FY2023Q1 --kpi rd_intensity_pct
+================================================================================
+================================================================================
+CFO COPILOT - FINANCIAL KPI PROVENANCE TRACE
+================================================================================
+Company:         Aurora Retail Group (ARG) - Sector: Specialty retail
+Fiscal Period:   FY2023 Q1 (Period End: 2022-04-30)
+KPI Identifier:  rd_intensity_pct (R&D intensity)
+Formula:         research_and_development / revenue * 100
+Calculated Val:  0.00% (percent)
+Status:          OK (Basis: as_restated, Restated: False)
+Policy Version:  v1.0.0 | Computed At: 2026-11-14 18:28:24.522662+00:00
+--------------------------------------------------------------------------------
+INPUT LINE ITEMS RESOLVED (2 inputs):
+
+  [1] Canonical Item: research_and_development (Statement: IS)
+      Normalized Value:  $0.00
+      Effective Rules:   R1, R5
+      Source Filing:     ARG-10Q-FY2023Q1 (10-Q, filed 2022-06-09)
+      Normalization:     Scale 1000.0x, Sign Multiplier 1, Raw: 0.0 USD_thousands
+      Raw Source Row:    R000390 in 'financial_statements_raw.csv' (line 114)
+      Raw Line Item:     "Technology and development"
+      Row Hash (SHA256): 5f3cdb60c293d8521d92387b6c1a287b15409710cf02289a7c39720b74cc1de6
+
+  [2] Canonical Item: revenue (Statement: IS)
+      Normalized Value:  $746,800,000.00
+      Effective Rules:   R1, R5
+      Source Filing:     ARG-10Q-FY2023Q1 (10-Q, filed 2022-06-09)
+      Normalization:     Scale 1000.0x, Sign Multiplier 1, Raw: 746800.0 USD_thousands
+      Raw Source Row:    R000387 in 'financial_statements_raw.csv' (line 111)
+      Raw Line Item:     "Total revenues"
+      Row Hash (SHA256): a05f19c74f5f783431f478380f2454bbc32d219e53c869036553943df70d0265
+
+--------------------------------------------------------------------------------
+DATA QUALITY ISSUES AUDIT (1 issues detected on underlying inputs/filings):
+  * [WARNING] negative_expense_sign (Filing: ARG-10Q-FY2023Q1): Company ARG reports expense item 'capital_expenditures' with negative sign (-29900.0). Inverted to canonical positive value 29900000.0 with sign_multiplier = -1.
+================================================================================
+
+
