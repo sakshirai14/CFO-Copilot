@@ -132,3 +132,4 @@ Any attempt by an LLM or an injected SQL payload to execute `INSERT`, `UPDATE`, 
 - [x] **Zero Secrets in Repository**: `.env` is git-ignored (mode 600) and generated with cryptographically random passwords via `scripts/bootstrap_env.sh`.
 - [x] **Full Test Suite**: 17 unit and integration tests passing in 1.21s against an isolated test database.
 - [x] **Executive Verification Report**: Raw audit output permanently preserved at `docs/evidence/phase1_report.txt`.
+

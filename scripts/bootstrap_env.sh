@@ -39,3 +39,4 @@ chmod 600 "$ENV_FILE"
 
 echo "[bootstrap_env] Successfully created $ENV_FILE (permissions 600)."
 echo "[bootstrap_env] Database roles configured: cfo_owner (migrations), app_rw (ingest/write), app_ro (read-only)."
+

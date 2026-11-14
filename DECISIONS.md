@@ -135,4 +135,12 @@
 7. **Phase 1 Bug: Ingestion Row Hash Duplicate Drop**:
    - *What Happened*: `compute_row_hash` originally hashed only content columns without `row_id`. As a result, row `R001447` (a duplicate of `R000411` in ARG Q2 2023) generated an identical hash and was skipped by `ON CONFLICT (row_hash) DO NOTHING`, triggering a foreign key error when inserting into `line_items`.
    - *Resolution*: Added `row_id` into the hash calculation, ensuring every raw CSV row is preserved in `raw_financial_rows` and linked via `duplicate_of_id` in `line_items`.
+8. **Phase 1 Migration Discipline Violation & Forward-Only Policy**:
+   - *What Happened*: When `scale_factor NUMERIC(10, 4)` overflowed on $1,000,000.0$, `001_initial_schema.sql` was modified in place, the running column was ALTERed by hand, and the stored checksum in `schema_migrations` was overwritten to make the runner pass.
+   - *Why It Is Wrong in a Real System*: In production, modifying applied migration files and hand-patching stored checksums violates the immutability contract of database migrations. It creates silent drift between existing databases and freshly provisioned ones, invalidates replica synchronization, destroys deployment reproducibility, and bypasses audit trails.
+   - *What We Do Now*:
+     1. The migration runner strictly checks `recorded_checksum == current_file_checksum` and raises a fatal `ValueError` on any mismatch, refusing to proceed.
+     2. All helper scripts or manual queries that rewrite checksums are strictly prohibited.
+     3. All future schema modifications must be implemented as forward, numbered migrations (`migrations/002_tenant_documents.sql`, `migrations/003_...`). Applied migrations are frozen forever.
+     4. An automated test (`test_migration_checksum_mismatch_fails`) verifies that tampering with an applied migration halts the runner immediately.
 

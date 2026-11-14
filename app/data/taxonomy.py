@@ -95,3 +95,4 @@ def get_canonical_line_item(company_id: str, statement: str, raw_item: str) -> T
     # Fallback to sanitized snake_case name
     sanitized = clean_raw.lower().replace(" ", "_").replace("-", "_").replace(",", "")
     return sanitized, 1, "Auto-mapped fallback"
+

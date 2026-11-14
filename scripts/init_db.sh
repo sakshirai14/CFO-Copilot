@@ -72,3 +72,4 @@ EOSQL
 done
 
 echo "[init_db] Database roles and permissions successfully initialized."
+

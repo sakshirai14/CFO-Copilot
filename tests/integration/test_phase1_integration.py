@@ -173,3 +173,164 @@ class TestTenantIsolationRLS:
         finally:
             conn_acme.close()
             conn_borealis.close()
+
+
+class TestIsolationHardening:
+    """Verifies Lock 6 isolation hardening: role privileges, bypassrls, and tenant_documents."""
+
+    def test_role_privileges_and_bypassrls_prohibited(self, test_db_setup, settings):
+        """Asserts app_rw, app_ro, and cfo_owner are NOT superusers and do NOT possess BYPASSRLS."""
+        conn = psycopg2.connect(**settings.get_connection_params(role="owner", is_test=True))
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT rolname, rolsuper, rolbypassrls 
+                FROM pg_roles 
+                WHERE rolname IN ('cfo_owner', 'app_rw', 'app_ro');
+            """)
+            roles = {r[0]: (r[1], r[2]) for r in cur.fetchall()}
+
+        conn.close()
+
+        for role_name in ("cfo_owner", "app_rw", "app_ro"):
+            assert role_name in roles, f"Role {role_name} missing from pg_roles!"
+            is_super, bypass_rls = roles[role_name]
+            assert not is_super, f"SECURITY VIOLATION: Role {role_name} has superuser privileges!"
+            assert not bypass_rls, f"SECURITY VIOLATION: Role {role_name} has BYPASSRLS privilege!"
+
+    def test_tenant_documents_rls_canary(self, test_db_setup, settings):
+        """Tests RLS enforcement on tenant_documents table using seeded canary records."""
+        conn_acme = psycopg2.connect(**settings.get_connection_params(role="rw", is_test=True))
+        conn_borealis = psycopg2.connect(**settings.get_connection_params(role="rw", is_test=True))
+
+        try:
+            # Acme context
+            with conn_acme.cursor() as cur:
+                cur.execute("SET app.current_tenant = 'acme';")
+                cur.execute("SELECT doc_text FROM tenant_documents;")
+                acme_docs = [r[0] for r in cur.fetchall()]
+                assert any("CANARY_ACME_CONFIDENTIAL_DOCUMENT_PAYLOAD" in d for d in acme_docs)
+                assert not any("CANARY_BOREALIS" in d for d in acme_docs)
+
+            # Borealis context
+            with conn_borealis.cursor() as cur:
+                cur.execute("SET app.current_tenant = 'borealis';")
+                cur.execute("SELECT doc_text FROM tenant_documents;")
+                borealis_docs = [r[0] for r in cur.fetchall()]
+                assert any("CANARY_BOREALIS_CONFIDENTIAL_DOCUMENT_PAYLOAD" in d for d in borealis_docs)
+                assert not any("CANARY_ACME" in d for d in borealis_docs)
+
+                # Borealis cannot insert under tenant 'acme'
+                with pytest.raises(psycopg2.errors.InsufficientPrivilege):
+                    cur.execute("""
+                        INSERT INTO tenant_documents (tenant_id, title, doc_text, content_hash)
+                        VALUES ('acme', 'Hacked Doc', 'Payload', 'hash_hack');
+                    """)
+                conn_borealis.rollback()
+
+        finally:
+            conn_acme.close()
+            conn_borealis.close()
+
+
+class TestMissingPhase1Requirements:
+    """Verifies ARG duplicate collapse, NWI amendment linking, and natural key conflict logging."""
+
+    def test_arg_duplicate_collapse(self, test_db_setup, settings):
+        """Verifies duplicate line items in ARG-10Q-FY2023Q2 are linked via duplicate_of_id."""
+        conn = psycopg2.connect(**settings.get_connection_params(role="ro", is_test=True))
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT id, status, duplicate_of_id, value_normalized
+                FROM line_items
+                WHERE filing_id = 'ARG-10Q-FY2023Q2' AND canonical_item = 'revenue'
+                ORDER BY id ASC;
+            """)
+            rows = cur.fetchall()
+            assert len(rows) == 2, f"Expected exactly 2 rows for ARG revenue, got {len(rows)}"
+            orig, dup = rows[0], rows[1]
+
+            assert orig[1] == "valid"
+            assert orig[2] is None
+            assert float(orig[3]) == 774400000.0
+
+            assert dup[1] == "duplicate"
+            assert dup[2] == orig[0], f"Expected duplicate_of_id={orig[0]}, got {dup[2]}"
+            assert float(dup[3]) == 774400000.0
+
+            # Verified: SUM over valid items does NOT double revenue
+            cur.execute("""
+                SELECT SUM(value_normalized)
+                FROM line_items
+                WHERE filing_id = 'ARG-10Q-FY2023Q2' AND canonical_item = 'revenue' AND status = 'valid';
+            """)
+            valid_sum = cur.fetchone()[0]
+            assert float(valid_sum) == 774400000.0
+        conn.close()
+
+    def test_nwi_amendment_linked_not_overwritten(self, test_db_setup, settings):
+        """Verifies NWI-10QA-FY2024Q3 links to NWI-10Q-FY2024Q3 and original rows are preserved."""
+        conn = psycopg2.connect(**settings.get_connection_params(role="ro", is_test=True))
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT filing_id, form_type, amends_filing_id
+                FROM filings
+                WHERE filing_id = 'NWI-10QA-FY2024Q3';
+            """)
+            f = cur.fetchone()
+            assert f is not None
+            assert f[1] == "10-Q/A"
+            assert f[2] == "NWI-10Q-FY2024Q3"
+
+            # Check both original and restated revenue coexist in line_items
+            cur.execute("""
+                SELECT f.filing_id, l.value_normalized
+                FROM line_items l
+                JOIN filings f ON l.filing_id = f.filing_id
+                WHERE f.filing_id IN ('NWI-10Q-FY2024Q3', 'NWI-10QA-FY2024Q3')
+                  AND l.canonical_item = 'revenue'
+                ORDER BY f.filing_id;
+            """)
+            revs = dict(cur.fetchall())
+            assert "NWI-10Q-FY2024Q3" in revs
+            assert "NWI-10QA-FY2024Q3" in revs
+            assert float(revs["NWI-10Q-FY2024Q3"]) == 466300000.0  # Original
+            assert float(revs["NWI-10QA-FY2024Q3"]) == 462100000.0  # Amended (-$4.2M)
+        conn.close()
+
+    def test_natural_key_conflict_creates_issue_not_overwritten(self, test_db_setup, settings):
+        """Verifies conflicting natural keys are logged as issues and never silently overwrite data."""
+        conn = psycopg2.connect(**settings.get_connection_params(role="ro", is_test=True))
+        with conn.cursor() as cur:
+            # Check data_quality_issues has logged intra-filing duplicate issues
+            cur.execute("""
+                SELECT COUNT(*) FROM data_quality_issues
+                WHERE issue_type = 'intra_filing_duplicate' AND company_id = 'ARG';
+            """)
+            cnt = cur.fetchone()[0]
+            assert cnt >= 3, "Expected intra_filing_duplicate issues logged for ARG Q2 2023"
+        conn.close()
+
+
+class TestMigrationDiscipline:
+    def test_migration_checksum_mismatch_fails(self, test_db_setup, settings):
+        """Verifies migration runner halts with ValueError when an applied migration is modified."""
+        conn = psycopg2.connect(**settings.get_connection_params(role="owner", is_test=True))
+        with conn.cursor() as cur:
+            # Temporarily simulate a checksum corruption in schema_migrations
+            cur.execute("SELECT checksum FROM schema_migrations WHERE version = '001';")
+            real_checksum = cur.fetchone()[0]
+
+            cur.execute("UPDATE schema_migrations SET checksum = 'corrupted_fake_hash' WHERE version = '001';")
+        conn.commit()
+
+        try:
+            with pytest.raises(ValueError, match="checksum mismatch"):
+                run_migrations(is_test=True)
+        finally:
+            # Restore genuine checksum
+            with conn.cursor() as cur:
+                cur.execute("UPDATE schema_migrations SET checksum = %s WHERE version = '001';", (real_checksum,))
+            conn.commit()
+            conn.close()
+
+

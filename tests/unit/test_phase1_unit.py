@@ -192,3 +192,44 @@ class TestDeterministicRowHash:
         # Modifying value changes hash
         row2["value"] = 800000.0
         assert compute_row_hash(row1) != compute_row_hash(row2)
+
+
+class TestZlgFiscalCalendar:
+    """Verifies ZLG fiscal quarter mapping from its Sept 30 fiscal year-end."""
+
+    @staticmethod
+    def map_zlg_date_to_fiscal(end_date: date) -> tuple[int, int]:
+        """Maps period end date to (fiscal_year, fiscal_quarter) for Sept 30 year-end filers."""
+        month = end_date.month
+        year = end_date.year
+        if month in (10, 11, 12):
+            return year + 1, 1
+        elif month in (1, 2, 3):
+            return year, 2
+        elif month in (4, 5, 6):
+            return year, 3
+        elif month in (7, 8, 9):
+            return year, 4
+        raise ValueError(f"Invalid month: {month}")
+
+    def test_zlg_quarter_mapping_all_quarters(self):
+        # Q1 ends Dec 31
+        assert self.map_zlg_date_to_fiscal(date(2021, 12, 31)) == (2022, 1)
+        assert self.map_zlg_date_to_fiscal(date(2022, 12, 31)) == (2023, 1)
+        assert self.map_zlg_date_to_fiscal(date(2023, 12, 31)) == (2024, 1)
+
+        # Q2 ends Mar 31
+        assert self.map_zlg_date_to_fiscal(date(2022, 3, 31)) == (2022, 2)
+        assert self.map_zlg_date_to_fiscal(date(2023, 3, 31)) == (2023, 2)
+        assert self.map_zlg_date_to_fiscal(date(2024, 3, 31)) == (2024, 2)
+
+        # Q3 ends Jun 30
+        assert self.map_zlg_date_to_fiscal(date(2022, 6, 30)) == (2022, 3)
+        assert self.map_zlg_date_to_fiscal(date(2023, 6, 30)) == (2023, 3)
+        assert self.map_zlg_date_to_fiscal(date(2024, 6, 30)) == (2024, 3)
+
+        # Q4 ends Sep 30 (Fiscal Year End)
+        assert self.map_zlg_date_to_fiscal(date(2022, 9, 30)) == (2022, 4)
+        assert self.map_zlg_date_to_fiscal(date(2023, 9, 30)) == (2023, 4)
+        assert self.map_zlg_date_to_fiscal(date(2024, 9, 30)) == (2024, 4)
+

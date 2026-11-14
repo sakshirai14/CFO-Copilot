@@ -28,3 +28,4 @@ if __name__ == "__main__":
         ingestor.ingest_release("drop2")
     else:
         ingest_all(is_test=args.test)
+
