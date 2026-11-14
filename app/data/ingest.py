@@ -222,15 +222,15 @@ class DataIngestor:
             filing_units = dict(cur.fetchall())
 
             # Track existing canonical items per filing to detect intra-filing duplicates
-            # (filing_id, statement, canonical_item) -> line_item_id
+            # (filing_id, statement, canonical_item, fiscal_year, fiscal_quarter) -> line_item_id
             cur.execute("""
-                SELECT filing_id, statement, canonical_item, id 
+                SELECT filing_id, statement, canonical_item, fiscal_year, fiscal_quarter, id 
                 FROM line_items 
                 WHERE status = 'valid';
             """)
             existing_items = {}
-            for fid, stmt, citem, lid in cur.fetchall():
-                existing_items[(fid, stmt, citem)] = lid
+            for fid, stmt, citem, fy, fq, lid in cur.fetchall():
+                existing_items[(fid, stmt, citem, fy, fq)] = lid
 
         raw_rows_to_insert = []
         rows_data = []
@@ -331,8 +331,8 @@ class DataIngestor:
                     """, (sign_issue["issue_type"], sign_issue["severity"], cid, fid, row_id, sign_issue["description"], "sign_normalizer"))
                     issue_count += 1
 
-                # Deduplication Check (ARG Q2 2023 trap)
-                dup_key = (fid, stmt, canonical_item)
+                # Deduplication Check (ARG Q2 2023 trap: identical period duplicate)
+                dup_key = (fid, stmt, canonical_item, fy, fq)
                 if dup_key in existing_items:
                     orig_id = existing_items[dup_key]
                     status = "duplicate"

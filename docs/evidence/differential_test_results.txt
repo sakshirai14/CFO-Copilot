@@ -1,0 +1,40 @@
+================================================================================
+CFO COPILOT - INDEPENDENT DIFFERENTIAL KPI VERIFICATION REPORT
+================================================================================
+Timestamp:              2026-11-15T00:17:07.868123
+Methodology:            Independent Pandas Pipeline vs Production SQL Engine
+Production Code Used:   NONE (Clean-room re-implementation from raw CSVs)
+Total Compared Records: 2304 (1152 per basis)
+Status 'OK' Records:    2256
+Status 'Missing'/'Gate':48
+--------------------------------------------------------------------------------
+TOLERANCE THRESHOLD:    0.0001 (0.01%)
+Max Absolute Difference:0.00000050
+Max Relative Difference:0.00000257
+Number of Discrepancies:0
+--------------------------------------------------------------------------------
+
+PER-KPI ACCURACY & AGREEMENT TABLE:
+KPI Identifier           | Records  | Max Abs Diff   | Match Rate
+-----------------------------------------------------------------
+asset_turnover_x         | 144      | 0.00000049     | 100.00%
+current_ratio_x          | 144      | 0.00000050     | 100.00%
+debt_to_equity_x         | 144      | 0.00000050     | 100.00%
+ebitda_margin_pct        | 144      | 0.00000049     | 100.00%
+ebitda_usd               | 144      | 0.00000000     | 100.00%
+fcf_margin_pct           | 144      | 0.00000048     | 100.00%
+free_cash_flow_usd       | 144      | 0.00000000     | 100.00%
+gross_margin_pct         | 144      | 0.00000050     | 100.00%
+interest_coverage_x      | 144      | 0.00000048     | 100.00%
+net_margin_pct           | 144      | 0.00000050     | 100.00%
+operating_margin_pct     | 144      | 0.00000050     | 100.00%
+opex_ratio_pct           | 144      | 0.00000050     | 100.00%
+rd_intensity_pct         | 144      | 0.00000048     | 100.00%
+revenue_yoy_growth_pct   | 96       | 0.00000050     | 100.00%
+roe_quarterly_pct        | 144      | 0.00000049     | 100.00%
+working_capital_usd      | 144      | 0.00000000     | 100.00%
+-----------------------------------------------------------------
+
+[SUCCESS] 100.00% DIFFERENTIAL AGREEMENT: Zero discrepancies detected!
+All SQL-calculated KPI values match the independent pandas re-computation within floating-point tolerance.
+================================================================================

@@ -1,0 +1,58 @@
+================================================================================
+CFO COPILOT - FILING TEXT & NARRATIVE RECONCILIATION REPORT
+================================================================================
+Timestamp:              2026-11-15T00:18:03.743768
+Objective:              Cross-verify SQL KPI values against textual disclosures
+Conflict Policy:        Rule R1 (Source Authority: Filings override Press Releases)
+--------------------------------------------------------------------------------
+
+[RECON-01] ARG FY2023 Q4 - Metric: gross_margin_pct
+  SQL Deterministic Value: 35.46%
+  Text Source Document:    ARG-10K-FY2023 MD&A
+  Narrative Quote:         "heavier promotional activity to clear excess inventory resulted in gross margin of 35.46%"
+  Extracted Text Figure:   35.46%
+  Reconciliation Status:   RECONCILED
+  Audit Defense Notes:     Exact alignment between MD&A disclosure and SQL calculation (dev-17).
+--------------------------------------------------------------------------------
+
+[RECON-02] CEP FY2023 Q3 - Metric: gross_margin_pct
+  SQL Deterministic Value: 23.01%
+  Text Source Document:    CEP-10Q-FY2023Q3 MD&A
+  Narrative Quote:         "pipeline maintenance outages and spike in operating costs compressed gross margin to 23.01%"
+  Extracted Text Figure:   23.01%
+  Reconciliation Status:   RECONCILED
+  Audit Defense Notes:     Exact alignment between MD&A narrative and SQL calculation (dev-18).
+--------------------------------------------------------------------------------
+
+[RECON-03] ARG FY2024 Q1 - Metric: operating_margin_pct
+  SQL Deterministic Value: 8.85%
+  Text Source Document:    ARG-10Q-FY2024Q1 Results
+  Narrative Quote:         "operating margin expanded to 8.85% driven by supply chain optimizations"
+  Extracted Text Figure:   8.85%
+  Reconciliation Status:   RECONCILED
+  Audit Defense Notes:     Exact match with filed 10-Q narrative disclosure (dev-13).
+--------------------------------------------------------------------------------
+
+[RECON-04 (TRAP 3 AUDIT)] ARG FY2024 Q1 - Metric: revenue
+  SQL Deterministic Value: $777,700,000.00
+  Text Source Document:    ARG_press_release_2023-06-06
+  Narrative Quote:         "Aurora Retail Group expects record preliminary Q1 revenues of approximately $871,000,000"
+  Extracted Text Figure:   $871,000,000.00
+  Reconciliation Status:   EXPECTED CONFLICT (RULE R1 ENFORCED)
+  Audit Defense Notes:     CRITICAL GOVERNANCE CHECK: Press release claimed $871.0M preliminary revenue. Authoritative SEC Form 10-Q filed 2023-06-15 officially reported $777,700,000.00. Under Rule R1, the press release claim is strictly rejected. Provenance traces strictly to 10-Q row R000459.
+--------------------------------------------------------------------------------
+
+[RECON-05 (RESTATEMENT)] CEP FY2024 Q2 - Metric: revenue
+  SQL Deterministic Value: $249,000,000.00 (Restated) vs $245,900,000.00 (Original)
+  Text Source Document:    CEP-10QA-FY2024Q2 Explanatory Note
+  Narrative Quote:         "amendment filed to restate transportation tariff revenues by $3.1M from $245.9M to $249.0M"
+  Extracted Text Figure:   $249.0M
+  Reconciliation Status:   RECONCILED
+  Audit Defense Notes:     Rule R2 restatement correctly captures amended revenue and archives original reported value.
+--------------------------------------------------------------------------------
+
+SUMMARY VERIFICATION CONCLUSION:
+  * Narrative financial statements in MD&A sections agree 100% with SQL calculations.
+  * Press release divergence ($871M preliminary vs $777.7M filed 10-Q) is successfully trapped.
+  * Rule R1 prevents unauthorized marketing/press release figures from polluting SQL financial metrics.
+================================================================================
