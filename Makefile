@@ -1,28 +1,47 @@
-.PHONY: up down test selfcheck bench clean audit puzzle2-eval help
+.PHONY: up down ingest test report selfcheck bench clean audit puzzle2-eval help
 
-PYTHON ?= python3
+VENV_PYTHON := ./.venv/bin/python3
+PYTHON := $(shell if [ -f $(VENV_PYTHON) ]; then echo $(VENV_PYTHON); else echo python3; fi)
 
 help:
 	@echo "CFO Copilot - Available Targets:"
-	@echo "  make up          - Start local services (stub)"
-	@echo "  make down        - Stop local services (stub)"
-	@echo "  make test        - Run test suite (unit, integration, security)"
-	@echo "  make selfcheck   - Run end-to-end selfcheck against golden set"
-	@echo "  make bench       - Run benchmarks (KV cache, latency, concurrency)"
+	@echo "  make up          - Start PostgreSQL+pgvector DB, configure roles, and run migrations"
+	@echo "  make down        - Stop Docker Compose services"
+	@echo "  make ingest      - Ingest Drop 1 and Drop 2 into PostgreSQL and generate report"
+	@echo "  make test        - Run unit and integration tests against isolated test database"
+	@echo "  make report      - Re-generate Phase 1 verification report (docs/evidence/phase1_report.txt)"
+	@echo "  make selfcheck   - Run end-to-end selfcheck against golden set (Phase 5)"
+	@echo "  make bench       - Run benchmarks (Phase 7)"
 	@echo "  make audit       - Re-run Phase 0 data audit"
 	@echo "  make puzzle2-eval- Re-run Phase 0 Puzzle 2 request log diagnosis"
 
 up:
-	@echo "[STUB] Starting CFO Copilot services..."
-	@echo "Services startup will be wired in Phase 2/Phase 5."
+	@./scripts/bootstrap_env.sh
+	@echo "[make up] Starting PostgreSQL + pgvector container..."
+	docker compose up -d
+	@echo "[make up] Ensuring databases and roles are configured..."
+	$(PYTHON) scripts/setup_db_roles.py
+	@echo "[make up] Applying database migrations to main and test databases..."
+	$(PYTHON) app/data/migrations.py
+	$(PYTHON) app/data/migrations.py --test
+	@echo "[make up] Database services and migrations successfully initialized."
 
 down:
-	@echo "[STUB] Stopping CFO Copilot services..."
-	@echo "Services shutdown will be wired in Phase 2/Phase 5."
+	@echo "[make down] Stopping Docker Compose services..."
+	docker compose down
+
+ingest:
+	@echo "[make ingest] Ingesting Drop 1 and Drop 2 datasets..."
+	$(PYTHON) scripts/ingest.py
+	@echo "[make ingest] Generating Phase 1 verification report..."
+	$(PYTHON) scripts/phase1_report.py
 
 test:
-	@echo "Running test suite..."
-	$(PYTHON) -m pytest tests/ -v || echo "Tests pending implementation in subsequent phases."
+	@echo "[make test] Running test suite against test database..."
+	$(PYTHON) -m pytest tests/ -v
+
+report:
+	$(PYTHON) scripts/phase1_report.py
 
 selfcheck:
 	@echo "Running one-command self-check against golden question set..."

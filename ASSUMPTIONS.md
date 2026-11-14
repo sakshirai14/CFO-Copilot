@@ -80,3 +80,18 @@ This document outlines all core architectural, financial, and operational assump
 - **Reason**: HBS designates fiscal years by calendar year of beginning (July 1), whereas NWI, CEP, and MSI follow calendar years, and ARG follows a retail calendar.
 - **How It Could Be Wrong**: A user asking about calendar Q3 2023 expects operations between July 1 and September 30, 2023. For HBS, fiscal Q1 2023 covers July–September 2023, NOT fiscal Q3. Without date-based reconciliation, peer comparisons compare non-overlapping operational quarters.
 
+---
+
+### 11. Multi-Tenant Engine Isolation via PostgreSQL RLS
+- **Assumption**: PostgreSQL Row-Level Security (RLS) with `FORCE ROW LEVEL SECURITY` and `current_setting('app.current_tenant', true)` satisfies Foundation Lock 6's requirement that two tenants cannot see or leak each other's session contexts or chat history.
+- **Reason**: Tested and confirmed via `tests/integration/test_phase1_integration.py::TestTenantIsolationRLS`, where an automated canary string written under tenant `acme` is completely invisible to tenant `borealis` (`count == 0`), and cross-tenant insertions are rejected at the database engine level.
+- **How It Could Be Wrong**: If an application database connection executes queries without calling `SET app.current_tenant = ...`, or if superuser/owner roles are accidentally used for user queries, RLS policies could be bypassed. To prevent this, all application queries must set tenant context upon acquiring a connection from the pool.
+
+---
+
+### 12. Complete Segregation of Credentials (Lock 6)
+- **Assumption**: The LLM agent and tool execution layer can safely execute read-only queries by being permanently restricted to database role `app_ro`.
+- **Reason**: Foundation Lock 6 specifies `"LLM never holds DB credentials; SQL role read-only"`. By maintaining three distinct database roles (`cfo_owner`, `app_rw`, `app_ro`), the inference layer only receives an `app_ro` connection string that lacks `INSERT`, `UPDATE`, `DELETE`, or DDL permissions.
+- **How It Could Be Wrong**: A read-only role can still be subjected to Denial-of-Service (DoS) queries (e.g. Cartesian joins or recursive CTEs). In Phase 2, statement timeouts (`statement_timeout = '3000ms'`) and result row limits (`LIMIT 50`) will be added to prevent compute exhaustion.
+
+

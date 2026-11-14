@@ -1,44 +1,30 @@
-# Docker Compose Placeholder for CFO Copilot on a Budget
-# Production / containerized deployment will be wired in Phase 2 / Phase 5.
-#
-# Services envisioned:
-#   - db: PostgreSQL 16 with pgvector extension (or relational db + standalone vector store)
-#   - inference: Local serving engine (e.g. llama.cpp server with Metal/CPU or vLLM on CUDA)
-#   - api: FastAPI / Google ADK application server
-#   - ui: Web frontend with streaming chat and "Show Your Work" panel
-#
-# Note for macOS hosts: Docker Desktop on macOS runs inside a Linux VM and does not
-# have direct access to Apple Silicon Metal GPU acceleration. Native llama.cpp is
-# recommended for local macOS development to utilize Apple M-series GPU/NE cores.
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: cfo_copilot_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-cfo_copilot}
+      POSTGRES_TEST_DB: ${POSTGRES_TEST_DB:-cfo_copilot_test}
+      DB_OWNER_USER: ${DB_OWNER_USER:-cfo_owner}
+      DB_OWNER_PASSWORD: ${DB_OWNER_PASSWORD}
+      DB_APP_RW_USER: ${DB_APP_RW_USER:-app_rw}
+      DB_APP_RW_PASSWORD: ${DB_APP_RW_PASSWORD}
+      DB_APP_RO_USER: ${DB_APP_RO_USER:-app_ro}
+      DB_APP_RO_PASSWORD: ${DB_APP_RO_PASSWORD}
+    ports:
+      - "${POSTGRES_PORT:-5435}:5432"
+    volumes:
+      - cfo_pgdata:/var/lib/postgresql/data
+      - ./scripts/init_db.sh:/docker-entrypoint-initdb.d/01_init_db.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-cfo_copilot}"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
 
-# version: "3.8"
-# services:
-#   db:
-#     image: postgres:16
-#     environment:
-#       POSTGRES_DB: cfo_copilot
-#       POSTGRES_USER: cfo_user
-#       POSTGRES_PASSWORD: cfo_password
-#     ports:
-#       - "5432:5432"
-#     volumes:
-#       - postgres_data:/var/lib/postgresql/data
-#
-#   inference:
-#     # Image and runtime parameters depend on host architecture
-#     image: ghcr.io/ggerganov/llama.cpp:server
-#     command: ["-m", "/models/qwen2.5-3b-instruct-q4_k_m.gguf", "-c", "4096", "--host", "0.0.0.0", "--port", "8080"]
-#     ports:
-#       - "8080:8080"
-#
-#   api:
-#     build: .
-#     ports:
-#       - "8000:8000"
-#     env_file: .env
-#     depends_on:
-#       - db
-#       - inference
-#
-# volumes:
-#   postgres_data:
+volumes:
+  cfo_pgdata:
+    name: cfo_copilot_pgdata

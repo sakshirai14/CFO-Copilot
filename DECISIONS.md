@@ -80,6 +80,42 @@
 
 ---
 
+### [2026-11-14] DECISION 7: Relational Schema Architecture & Full Provenance Normalization (Phase 1)
+- **Context**: In Phase 1, we must design a database schema that loads Drop 1 and Drop 2 idempotently, maintains immutable audit provenance, and stages calculations without resolving conflicts prematurely.
+- **Decision**: Adopt a Three-Tier Financial Data Architecture:
+  1. **Tier 1: Immutable Raw Layer (`raw_financial_rows`)**: Stores every raw extracted CSV row with its original string values, `source_file`, `source_row_number`, and deterministic SHA-256 `row_hash`. No alterations or deletions are ever made to this table.
+  2. **Tier 2: Calculation-Ready Canonical Layer (`line_items`)**: Stores normalized line items mapped to canonical names via `line_item_map`. Records `value_normalized` (in canonical USD), `scale_factor`, `sign_multiplier`, `original_value`, `duration_days`, and `period_type`. Deduplication is handled explicitly by setting `status = 'duplicate'` and pointing `duplicate_of_id` to the canonical row.
+  3. **Tier 3: Audit Anomaly Log (`data_quality_issues`)**: Records every detected data trap (140 total: 121 warnings, 19 critical) with severity, description, and source entity references.
+- **Rationale**: For a CFO briefing, every number must be defensible. If an executive asks why a metric changed, the platform can display the exact audit chain from raw row ID to filing document.
+
+---
+
+### [2026-11-14] DECISION 8: Multi-Tenant Isolation: PostgreSQL Row-Level Security (RLS) vs. Schema-per-Tenant
+- **Context**: Foundation Lock 6 mandates strict isolation between two tenants (`acme` and `borealis`) with zero cross-tenant cache or context leakage.
+- **Decision**: Selected **PostgreSQL Row-Level Security (RLS)** using `FORCE ROW LEVEL SECURITY` and session parameter `current_setting('app.current_tenant', true)` over a schema-per-tenant architecture.
+- **Rationale**:
+  1. *Operational Simplicity*: Shared table schema prevents migration drift between tenants and simplifies schema versioning.
+  2. *Connection Pooling Efficiency*: Enables a single connection pool across all tenants without expensive connection switching per request.
+  3. *Engine-Level Guarantee*: RLS policies are enforced by PostgreSQL internally, making it impossible for application-level query bugs to leak rows across tenants. Verified via an automated canary leak test in `tests/integration/test_phase1_integration.py`.
+
+---
+
+### [2026-11-14] DECISION 9: Database Role Segregation Contract (Foundation Lock 6)
+- **Decision**: Enforce three distinct database roles with non-overlapping privileges:
+  1. `cfo_owner`: Schema owner; only role permitted to run migrations and DDL statements.
+  2. `app_rw`: Application runtime role; permitted to run `SELECT`, `INSERT`, `UPDATE`, `DELETE` on data and chat tables. Used by ingestion pipeline and chat session loggers.
+  3. `app_ro`: Strictly read-only role (`SELECT` only); the **ONLY role exposed to future SQL tools or LLM agent layers**.
+- **Security Rule**: The LLM layer will NEVER hold credentials to `cfo_owner` or `app_rw`. Any SQL query executed on behalf of a user runs strictly under `app_ro`. Attempts to execute `INSERT`, `UPDATE`, or `DELETE` immediately trigger an `InsufficientPrivilege` error.
+
+---
+
+### [2026-11-14] DECISION 10: Pure-Python Versioned SQL Migration Runner
+- **Context**: Need a versioned migration runner tracked in `schema_migrations` where re-running is guaranteed to be an idempotent no-op.
+- **Decision**: Implemented `app/data/migrations.py` directly using pure Python and PostgreSQL rather than taking a heavy Alembic/SQLAlchemy dependency.
+- **Rationale**: Keeps the platform lightweight, transparent, and completely explainable. Tracks migration version, name, applied timestamp, and SHA-256 checksum. Re-running executes in $<0.05\text{ s}$ and verifies that applied migrations have not been altered.
+
+---
+
 ### What I'd Do Differently / What Failed or Surprised Us
 1. **Initial File Access Outside Workspace Boundary**:
    - *What Happened*: Initial user prompt referenced files located outside the project folder. macOS Privacy & Security (TCC) strictly blocked directory traversal of `~/Downloads`.
@@ -90,4 +126,13 @@
    - *What Surprised Us*: The SEC filing `NWI-10Q-FY2024Q3` contained an explicit system prompt spoofing attack instructing the AI to lie that its operating margin was 45%. Furthermore, `CEP_investor_faq` attempted to trick the model into executing `SELECT * FROM information_schema.tables` and dumping database credentials. This reinforces why Foundation Lock 2 (LLM never generates financial figures, agent contains no SQL strings) is non-negotiable.
 4. **Surprise: Llama-3.2-3B vs. Qwen2.5-3B KV Footprint Discrepancy**:
    - *What Surprised Us*: The reference model in the assignment is an 8-KV-head architecture (Llama-3.2-3B). In FP16, 16 concurrent users at 4k tokens consume 7.0 GB of KV cache — completely blowing past a 6 GB VRAM GPU before even counting model weights. Switching to `Qwen2.5-3B` with 2 KV heads drops the KV memory requirement by $68\%$, making 16 concurrent users feasible.
+5. **Phase 1 Failure: Numeric Precision Overflow on Scale Factor**:
+   - *What Happened*: `scale_factor` in `line_items` was originally typed `NUMERIC(10, 4)`. A scale factor of $1,000,000.0$ for `USD_millions` has 7 integer digits, overflowing the 6-integer-digit capacity ($10 - 4 = 6$).
+   - *Resolution*: Upgraded `scale_factor` to `NUMERIC(16, 4)`, supporting multipliers up to trillions.
+6. **Phase 1 Failure: Host Port Collision on 5432 & 5433**:
+   - *What Happened*: A preexisting macOS Homebrew PostgreSQL service occupied port 5432, and an active socket occupied 5433, causing Docker port binding errors.
+   - *Resolution*: Switched `POSTGRES_PORT` to `5435` in `.env` and `docker-compose.yml`, successfully binding the container without interfering with host services.
+7. **Phase 1 Bug: Ingestion Row Hash Duplicate Drop**:
+   - *What Happened*: `compute_row_hash` originally hashed only content columns without `row_id`. As a result, row `R001447` (a duplicate of `R000411` in ARG Q2 2023) generated an identical hash and was skipped by `ON CONFLICT (row_hash) DO NOTHING`, triggering a foreign key error when inserting into `line_items`.
+   - *Resolution*: Added `row_id` into the hash calculation, ensuring every raw CSV row is preserved in `raw_financial_rows` and linked via `duplicate_of_id` in `line_items`.
 

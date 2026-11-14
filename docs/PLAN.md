@@ -45,9 +45,13 @@ flowchart TD
   - Audit all files in Drop 1 and Drop 2; catalog accounting anomalies and prompt injections.
   - Reproduce Puzzle 2 prefix-cache log analysis and establish baseline hit rate.
   - Lay out repository skeleton, Makefile, `.gitignore`, `.env.example`, and baseline documentation.
-- **Phase 1: Relational Database Schema & Idempotent Ingestion (Puzzle 1 & Foundation Locks 4, 5, 6)**
-  - Implement relational schema in PostgreSQL / SQLite (`filings`, `statements_raw`, `kpis_canonical`, `chunks`, `sessions`, `metrics`).
-  - Write idempotent ingestion pipeline with transaction rollbacks, deduplication, and unit auto-correction.
+- **Phase 1: Relational Database Schema & Idempotent Ingestion (Puzzle 1 & Foundation Locks 4, 5, 6, 11)** *(COMPLETED)*
+  - Implement relational schema with pgvector in PostgreSQL (`companies`, `filings`, `raw_financial_rows`, `line_item_map`, `line_items`, `data_quality_issues`, `kpi_definitions`, `documents`, `chunks`, `chat_sessions`, `chat_messages`, `answer_log`, `metrics`).
+  - Versioned pure-Python migration runner (`app/data/migrations.py`) tracking SHA-256 checksums in `schema_migrations`.
+  - Transactional, idempotent ingestion pipeline (`app/data/ingest.py`, `scripts/ingest.py`) loading Drop 1 and Drop 2.
+  - Normalization pipeline: HBS unit scale auto-correction, CEP negative expense sign inversion, ARG intra-filing duplicate row collapse via `duplicate_of_id`, period duration classification, and prompt injection security scanning.
+  - Role segregation (`cfo_owner`, `app_rw`, `app_ro`) and PostgreSQL Row-Level Security (RLS) tenant isolation verified with canary tests.
+  - Automated report generated at `docs/evidence/phase1_report.txt` and full test suite passing (17 tests).
   - Implement Drop 2 data ingestion (loading 6th company `ZLG` and amended filing `NWI-10QA-FY2024Q3`) as an additive data ingestion event, demonstrating idempotent data intake without schema modifications.
 - **Phase 2: Deterministic KPI Engine & Accounting Conflict Policy (Puzzle 1 & Foundation Lock 2)**
   - Implement deterministic SQL calculators for all 16 KPIs in `kpi_glossary.csv`.
