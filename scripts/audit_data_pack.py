@@ -206,7 +206,7 @@ def run_audit():
     # Security scan
     suspicious_patterns = [
         (r'developer mode', 'Developer Mode Jailbreak'),
-        (r'ignore (any|all|previous) (rules|instructions)', 'Instruction Override'),
+        (r'ignore (?:any|all|previous) (?:rules|instructions)', 'Instruction Override'),
         (r'disregard all previous instructions', 'Instruction Override'),
         (r'SELECT \* FROM', 'SQL Injection / Exfiltration Probe'),
         (r'database connection string', 'Credential Exfiltration Probe'),
