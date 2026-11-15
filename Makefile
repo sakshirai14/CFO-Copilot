@@ -105,3 +105,11 @@ model-down:
 eval-models:
 	@echo "[make eval-models] Running model comparison and grounding evaluation..."
 	$(PYTHON) scripts/eval_models.py
+
+agent-eval:
+	@echo "[make agent-eval] Running ADK agent evaluation against agent_questions.jsonl..."
+	$(PYTHON) scripts/eval_adk_agents.py
+
+adk-eval:
+	@echo "[make adk-eval] Running Google ADK agent test suite..."
+	$(PYTHON) scripts/eval_adk_agents.py

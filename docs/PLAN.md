@@ -2,7 +2,7 @@
 
 > **Project**: CFO Copilot on a Budget  
 > **Target**: 3 Calendar Days | 11 Foundation Locks | 5 Puzzles  
-> **Status**: Phases 0, 1, 2, 3, and 4 Complete. Waiting for user authorization to proceed to Phase 5.
+> **Status**: Phases 0, 1, 2, 3, 4, and 5 Complete. Waiting for user authorization to proceed to Phase 6.
 
 ---
 
@@ -120,9 +120,9 @@ flowchart TD
 | **1** | **Database Schema, Migrations & Ingestion** | **COMPLETED** | [phase1_report.txt](file:///Users/sakshirai/AI_RAG_Assignment/docs/evidence/phase1_report.txt) | 2026-11-15 |
 | **2** | **Deterministic KPI Engine & Conflict Policy** | **COMPLETED** | [provenance_examples.txt](file:///Users/sakshirai/AI_RAG_Assignment/docs/evidence/provenance_examples.txt), [differential_test_results.txt](file:///Users/sakshirai/AI_RAG_Assignment/docs/evidence/differential_test_results.txt) | 2026-11-15 |
 | **3** | **RAG Retrieval Engine & Citation Provenance** | **COMPLETED** | [corpus_profile.txt](file:///Users/sakshirai/AI_RAG_Assignment/docs/evidence/corpus_profile.txt), [embedding_model_benchmark.txt](file:///Users/sakshirai/AI_RAG_Assignment/docs/evidence/embedding_model_benchmark.txt), [retrieval.json](file:///Users/sakshirai/AI_RAG_Assignment/benchmarks/results/retrieval.json) | 2026-11-15 |
-| **4** | Small Model Benchmark & Constrained Decoding | **NEXT** | Pending Phase 4 execution | — |
-| **5** | Google ADK Multi-Agent Orchestration | PENDING | Pending Phase 5 execution | — |
-| **6** | Streaming API, Queue, Observability & UI | PENDING | Pending Phase 6 execution | — |
+| **4** | **Small Model Benchmark & Grounding Contract** | **COMPLETED** | [model_serving_benchmarks.md](file:///Users/sakshirai/AI_RAG_Assignment/docs/evidence/model_serving_benchmarks.md), [serving_benchmark_isolated.md](file:///Users/sakshirai/AI_RAG_Assignment/docs/evidence/serving_benchmark_isolated.md) | 2026-11-15 |
+| **5** | **Google ADK Multi-Agent Orchestration** | **COMPLETED** | [agent_evaluation_report.md](file:///Users/sakshirai/AI_RAG_Assignment/docs/evidence/agent_evaluation_report.md), [AGENT_DESIGN.md](file:///Users/sakshirai/AI_RAG_Assignment/docs/AGENT_DESIGN.md) | 2026-11-15 |
+| **6** | Streaming API, Queue, Observability & UI | **NEXT** | Pending Phase 6 execution | — |
 | **7** | KV-Cache Fixes & 3-Level Benchmarks | PENDING | Pending Phase 7 execution | — |
 | **8** | Adversarial Robustness & Attack Suite | PENDING | Pending Phase 8 execution | — |
 | **9** | Automated CI, Test Suite & One-Command Self-Check | PENDING | Pending Phase 9 execution | — |
