@@ -30,3 +30,4 @@ def setup_structured_logging():
 
 def get_logger(name: str = "cfo_copilot"):
     return structlog.get_logger(name)
+

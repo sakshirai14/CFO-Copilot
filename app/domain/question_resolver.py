@@ -163,10 +163,12 @@ class QuestionResolver:
         dict_comp = None
         dict_fy = None
         dict_fq = None
+        dict_kpi = None
         if isinstance(prior_context, dict):
             dict_comp = prior_context.get("company_id")
             dict_fy = prior_context.get("fiscal_year")
             dict_fq = prior_context.get("fiscal_quarter")
+            dict_kpi = prior_context.get("kpi_id")
             prior_str = " ".join(str(v) for v in prior_context.values())
         elif isinstance(prior_context, str):
             prior_str = prior_context
@@ -265,7 +267,10 @@ class QuestionResolver:
         found_kpi = cls._extract_kpi(clean_q)
         if not found_kpi and prior_context:
             # Inherit KPI from prior context if current query is asking about a different period for same KPI
-            found_kpi = cls._extract_kpi(prior_context)
+            if dict_kpi:
+                found_kpi = dict_kpi
+            elif prior_str:
+                found_kpi = cls._extract_kpi(prior_str)
 
         # 8. Check for Qualitative / Narrative Elements
         is_qualitative = bool(re.search(r"\b(why|explains?|drove|driver|note\s+\d+|litigation|hedging|risk|discloses?|contract|outage)\b", clean_q, re.IGNORECASE))

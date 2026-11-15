@@ -154,3 +154,4 @@ The table below defines the authoritative policy governing system behavior under
 - **Mitigation**:
   1. **Progressive SSE Streaming**: Immediate `facts` event delivers certified data in $< 50\text{ ms}$, meeting user perceptual needs while narrative generates in background.
   2. **True Prefix Caching**: Static system prompt prefix caching yields $10.45\times$ speedup (99.7 ms TTFT vs 1,042.5 ms cold).
+

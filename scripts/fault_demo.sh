@@ -95,3 +95,4 @@ run_fault_test \
 echo "========================================================================"
 echo " Fallback Demonstration Complete. All 5 fault scenarios verified."
 echo "========================================================================"
+

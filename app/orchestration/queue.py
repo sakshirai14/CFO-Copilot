@@ -105,3 +105,4 @@ def get_llm_queue() -> BoundedLlmQueue:
             wait_timeout_seconds=float(settings.REQUEST_QUEUE_TIMEOUT_SECONDS)  # 10s
         )
     return _llm_queue
+

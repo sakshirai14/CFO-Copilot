@@ -40,3 +40,4 @@ Traceback (most recent call last):
   File "/Users/sakshirai/AI_RAG_Assignment/.venv/lib/python3.11/site-packages/google/adk/evaluation/agent_evaluator.py", line 243, in evaluate_eval_set
     raise ModuleNotFoundError(MISSING_EVAL_DEPENDENCIES_MESSAGE) from e
 ModuleNotFoundError: Eval module is not installed, please install via `pip install "google-adk[eval]"`.
+

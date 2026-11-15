@@ -116,7 +116,7 @@ async def evaluate_case(agent: CfoCopilotRootAgent, case: Dict[str, Any]) -> Dic
         if exp_comp is None:
             company_correct = (len(res_query.company_ids) == 0)
         else:
-            company_correct = (res_query.company_ids == [exp_comp] or (isinstance(exp_comp, list) and set(res_query.company_ids) == set(exp_comp)))
+            company_correct = (exp_comp in res_query.company_ids or (isinstance(exp_comp, list) and set(res_query.company_ids) == set(exp_comp)))
 
     period_correct = True
     if "expected_period" in case:

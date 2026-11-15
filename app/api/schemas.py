@@ -66,3 +66,4 @@ class KpiDefinitionItem(BaseModel):
     formula: str
     unit: str
     notes: Optional[str] = None
+

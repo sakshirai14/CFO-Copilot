@@ -41,3 +41,4 @@ def get_authenticated_tenant(x_api_key: Optional[str] = Header(None)) -> str:
         )
 
     return tenant
+
