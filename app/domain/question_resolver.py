@@ -154,11 +154,21 @@ class QuestionResolver:
     """Deterministically maps natural language CFO queries to structured metadata."""
 
     @classmethod
-    def resolve(cls, query: str) -> ResolvedQuery:
+    def resolve(cls, query: str, prior_context: Optional[str] = None) -> ResolvedQuery:
         clean_q = query.strip()
         upper_q = clean_q.upper()
 
-        # 1. Check for Hostile / Prompt Injection Attacks
+        # 0. Check for Hostile / Prompt Injection Attacks in prior_context FIRST
+        if prior_context:
+            for pat in HOSTILE_PATTERNS:
+                if re.search(pat, prior_context, re.IGNORECASE):
+                    return ResolvedQuery(
+                        question=clean_q,
+                        route=RouteType.REFUSAL,
+                        refusal_reason="Request rejected: Hostile instruction or injection detected in conversation context."
+                    )
+
+        # 1. Check for Hostile / Prompt Injection Attacks in Current Query
         for pat in HOSTILE_PATTERNS:
             if re.search(pat, clean_q, re.IGNORECASE):
                 return ResolvedQuery(
@@ -175,7 +185,7 @@ class QuestionResolver:
                     route=RouteType.CHITCHAT
                 )
 
-        # 3. Check for Non-Corpus Known Entities
+        # 3. Check for Non-Corpus Known Entities in Current Query
         for nce in KNOWN_NON_CORPUS_ENTITIES:
             if re.search(r"\b" + nce + r"\b", upper_q):
                 return ResolvedQuery(
@@ -184,15 +194,38 @@ class QuestionResolver:
                     refusal_reason=f"Entity '{nce.title()}' is not covered in our public company financial corpus."
                 )
 
-        # 4. Extract Covered Company Entities
+        # 4. Extract Covered Company Entities (Explicit query takes absolute precedence)
         found_companies = []
         for alias, cid in sorted(COMPANY_ALIASES.items(), key=lambda x: -len(x[0])):
             if re.search(r"\b" + re.escape(alias) + r"\b", upper_q):
                 if cid not in found_companies:
                     found_companies.append(cid)
 
-        # 5. Extract Fiscal Year & Quarter
+        # Multi-turn slot inheritance: If company missing, inspect safe prior_context
+        if not found_companies and prior_context:
+            prior_upper = prior_context.upper()
+            for alias, cid in sorted(COMPANY_ALIASES.items(), key=lambda x: -len(x[0])):
+                if re.search(r"\b" + re.escape(alias) + r"\b", prior_upper):
+                    if cid not in found_companies:
+                        found_companies.append(cid)
+
+        # 5. Extract Fiscal Year & Quarter (Explicit query takes absolute precedence)
         fy, fq = cls._extract_period(clean_q)
+
+        # Handle multi-turn follow-ups like "What about the previous quarter?" or "prior quarter"
+        is_prior_quarter_request = bool(re.search(r"\b(previous|prior)\s+quarter\b", clean_q, re.IGNORECASE))
+        if prior_context and (fy is None or is_prior_quarter_request):
+            p_fy, p_fq = cls._extract_period(prior_context)
+            if is_prior_quarter_request and p_fy is not None and p_fq is not None:
+                # Compute arithmetic previous quarter
+                if p_fq > 1:
+                    fy, fq = p_fy, p_fq - 1
+                else:
+                    fy, fq = p_fy - 1, 4
+            elif fy is None:
+                fy = p_fy
+                if fq is None:
+                    fq = p_fq
 
         # Check for Out-of-Horizon Time Trap (e.g. FY2026, FY2027)
         if fy is not None and (fy < 2022 or fy > 2024):
@@ -210,6 +243,9 @@ class QuestionResolver:
 
         # 7. Extract KPI Identifier
         found_kpi = cls._extract_kpi(clean_q)
+        if not found_kpi and prior_context:
+            # Inherit KPI from prior context if current query is asking about a different period for same KPI
+            found_kpi = cls._extract_kpi(prior_context)
 
         # 8. Check for Qualitative / Narrative Elements
         is_qualitative = bool(re.search(r"\b(why|explains?|drove|driver|note\s+\d+|litigation|hedging|risk|discloses?|contract|outage)\b", clean_q, re.IGNORECASE))

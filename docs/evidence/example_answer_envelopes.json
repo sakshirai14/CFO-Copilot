@@ -1,0 +1,102 @@
+{
+  "template_answer": {
+    "request_id": "req_8322e499ecc6",
+    "question": "What was ARG gross margin in fiscal 2023 quarter 2?",
+    "route": "STRUCTURED",
+    "status": "ok",
+    "answer": "ARG FY2023 Q2 gross_margin_pct was 38.30%.",
+    "llm_calls_made": 0,
+    "latency_ms": 36.65,
+    "facts_used": [
+      {
+        "fact_id": "fact_ARG_2023Q2_gross_margin_pct",
+        "company_id": "ARG",
+        "fiscal_year": 2023,
+        "fiscal_quarter": 2,
+        "kpi_id": "gross_margin_pct",
+        "canonical_item": null,
+        "statement": null,
+        "value": 38.30062,
+        "unit": "percent",
+        "basis": "as_restated",
+        "restated": false,
+        "status": "ok",
+        "reason": null,
+        "text": "ARG FY2023 Q2 gross_margin_pct was 38.30% (percent) under basis 'as_restated'.",
+        "source_filing": null,
+        "input_line_item_ids": [136, 134]
+      }
+    ],
+    "caveats": [],
+    "provenance_traces": [],
+    "verification": {
+      "is_valid": true,
+      "reasons": [],
+      "ungrounded_numbers": [],
+      "cited_fact_ids": ["fact_ARG_2023Q2_gross_margin_pct"]
+    }
+  },
+  "refusal_answer": {
+    "request_id": "req_595970ff33f6",
+    "question": "What was Tesla revenue in fiscal 2024 quarter 1?",
+    "route": "REFUSAL",
+    "status": "refused",
+    "answer": "Refused: Entity 'Tesla' is not covered in our public company financial corpus.",
+    "llm_calls_made": 0,
+    "latency_ms": 0.04,
+    "facts_used": [],
+    "caveats": [
+      "Entity 'Tesla' is not covered in our public company financial corpus."
+    ],
+    "provenance_traces": [],
+    "verification": {
+      "is_valid": true,
+      "reasons": [],
+      "ungrounded_numbers": [],
+      "cited_fact_ids": []
+    }
+  },
+  "llm_narrative_answer": {
+    "request_id": "req_a3694e4d25b9",
+    "question": "What did Northwind disclose in Note 7 about revenue recognition?",
+    "route": "UNSTRUCTURED",
+    "status": "refused",
+    "answer": "Refused: Requested data is not available in historical filings.",
+    "llm_calls_made": 1,
+    "latency_ms": 5606.7,
+    "facts_used": [
+      {
+        "fact_id": "rag_NWI_2024Q2_IS#t1",
+        "company_id": "NWI",
+        "fiscal_year": 2024,
+        "fiscal_quarter": 2,
+        "kpi_id": null,
+        "canonical_item": null,
+        "statement": null,
+        "value": null,
+        "unit": "USD",
+        "basis": "as_restated",
+        "restated": false,
+        "status": "ok",
+        "reason": null,
+        "text": "[NWI NWI-10Q-FY2024Q2 | Income Statement Table (as_restated)]:\nCompany: Northwind Industrial Corp (NWI) | Period: fiscal 2024 quarter 2 (FY2024 Q2) | Statement: Income Statement Table | Key Metrics: revenue, gross margin, operating margin, net margin, ebitda, gross profit, operating income, net income, tax, interest, opex, rd intensity | Basis: as_restated\n\n| Canonical Item | Normalized Value (USD) | Units | Restatement Note |\n|:---|---:|:---|:---|\n| cost_of_revenue | 312,700,000 | USD | - |\n| general_and_administrative | 37,100,000 | USD | - |\n| gross_profit | 140,800,000 | USD | - |\n| income_before_tax | 43,200,000 | USD | - |\n| interest_expense | 5,600,000 | USD | - |\n| net_income | 33,700,000 | USD | - |\n| operating_income | 48,800,000 | USD | - |\n| research_and_development | 13,400,000 | USD | - |\n| revenue | 453,500,000 | USD | - |\n| sales_and_marketing | 41,500,000 | USD | - |\n| tax_expense | 9,500,000 | USD | - |",
+        "source_filing": "NWI-10Q-FY2024Q2",
+        "input_line_item_ids": []
+      }
+    ],
+    "caveats": [
+      "The provided facts only include income statement data for specific fiscal quarters and do not provide Note 7 or revenue recognition details."
+    ],
+    "provenance_traces": [],
+    "verification": {
+      "is_valid": true,
+      "reasons": [],
+      "ungrounded_numbers": [],
+      "cited_fact_ids": [
+        "rag_NWI_2024Q1_IS#t1",
+        "rag_NWI_2024Q2_IS#t1",
+        "rag_NWI_2024Q3_IS#t1"
+      ]
+    }
+  }
+}

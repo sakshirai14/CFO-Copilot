@@ -57,7 +57,7 @@ class CfoCopilotRootAgent(BaseAgent):
         caveats: List[str] = []
 
         # 1. Step 1: Deterministic Query Resolution & Routing
-        query: ResolvedQuery = self.router.resolve(question)
+        query: ResolvedQuery = self.router.resolve(question, prior_context=prior_context)
 
         # 2. Early-Exit Routes (0 LLM Calls)
         if query.route == RouteType.REFUSAL:
@@ -174,3 +174,20 @@ class CfoCopilotRootAgent(BaseAgent):
             author=self.name,
             content=env.answer
         )
+
+
+async def answer(
+    question: str,
+    tenant: str = "acme",
+    prior_context: Optional[str] = None,
+    request_id: Optional[str] = None
+) -> AnswerEnvelope:
+    """Module-level entry point matching specified signature."""
+    agent = CfoCopilotRootAgent()
+    return await agent.answer(
+        question=question,
+        tenant=tenant,
+        prior_context=prior_context,
+        request_id=request_id
+    )
+

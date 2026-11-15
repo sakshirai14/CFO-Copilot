@@ -18,9 +18,9 @@ class RouterAgent(BaseAgent):
     name: str = "RouterAgent"
     description: str = "Classifies user inquiries into STRUCTURED, UNSTRUCTURED, MIXED, REFUSAL, or CHITCHAT."
 
-    def resolve(self, question: str) -> ResolvedQuery:
+    def resolve(self, question: str, prior_context: Optional[str] = None) -> ResolvedQuery:
         """Synchronously resolves query into typed ResolvedQuery object."""
-        return QuestionResolver.resolve(question)
+        return QuestionResolver.resolve(question, prior_context=prior_context)
 
     async def run_async(self, parent_context: InvocationContext) -> AsyncGenerator[Event, None]:
         """ADK pipeline execution hook."""
@@ -30,3 +30,4 @@ class RouterAgent(BaseAgent):
             author=self.name,
             content=f"Route classified as {resolved.route.value} (entities: {resolved.company_ids}, period: {resolved.fiscal_year}Q{resolved.fiscal_quarter})"
         )
+
