@@ -111,5 +111,5 @@ agent-eval:
 	$(PYTHON) scripts/eval_adk_agents.py
 
 adk-eval:
-	@echo "[make adk-eval] Running Google ADK agent test suite..."
-	$(PYTHON) scripts/eval_adk_agents.py
+	@echo "[make adk-eval] Running Google ADK native evalset suite..."
+	$(PYTHON) scripts/run_adk_native_eval.py
