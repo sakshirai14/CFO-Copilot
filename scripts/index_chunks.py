@@ -81,3 +81,4 @@ if __name__ == "__main__":
     parser.add_argument("--test", action="store_true", help="Index test database")
     args = parser.parse_args()
     embed_and_store_chunks(is_test=args.test)
+

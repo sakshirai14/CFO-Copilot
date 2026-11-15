@@ -1,333 +1,2102 @@
 {
-  "timestamp": "2026-11-15T12:11:43Z",
-  "dataset_sha256": "e2be6886488d3629c6e6d528da3531daaa6a59239c95ea7f55981535dcbea497",
+  "timestamp": "2026-11-15T12:29:55Z",
+  "dataset_sha256": "08a98c7c7a14404da4f423c141dd5ad380a4932b10ae839759a92a01b01810fc",
   "dataset_path": "/Users/sakshirai/AI_RAG_Assignment/tests/evals/retrieval_eval.csv",
   "split_summary": {
     "total": 49,
     "dev": 34,
     "held_out": 15,
-    "dev_pct": 69.39,
-    "held_out_pct": 30.61
+    "answerable_dev": 27,
+    "answerable_held_out": 11
+  },
+  "counterfactual_quarantine": {
+    "enforced_injected_count": 0,
+    "counterfactual_injected_count": 5,
+    "counterfactual_injected_rate_pct": 1.0204
   },
   "configurations_evaluated": [
     {
       "mode": "hybrid",
-      "use_filters": true,
+      "filter_mode": "gold",
       "split": "all",
       "total_queries": 49,
       "answerable_queries": 38,
-      "latency_p50_ms": 19.8,
-      "latency_p95_ms": 22.775999999999996,
-      "latency_mean_ms": 20.67102040816327,
-      "recall_at_1": 10.53,
-      "recall_at_3": 71.05,
-      "recall_at_5": 89.47,
-      "recall_at_10": 94.74,
-      "mrr": 0.4175,
+      "latency_p50_ms": 19.21,
+      "latency_p95_ms": 22.81,
+      "recall_at_1": 68.4,
+      "recall_at_1_ci95": [
+        52.5,
+        80.9
+      ],
+      "recall_at_5": 94.7,
+      "recall_at_5_ci95": [
+        82.7,
+        98.5
+      ],
+      "mrr": 0.8048,
+      "rank_distribution": {
+        "rank_1": 26,
+        "rank_2": 8,
+        "rank_3": 1,
+        "rank_4": 1,
+        "rank_5": 0,
+        "rank_6_10": 0,
+        "rank_gt_10": 2
+      },
+      "failure_cases": [
+        {
+          "id": "dev-03",
+          "question": "What was Cobalt Energy Partners's interest coverage in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "CEP_2024Q1_IS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "CEP-10Q-FY2024Q1#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-06",
+          "question": "What was Cobalt Energy Partners's operating margin in fiscal 2023 quarter 1?",
+          "gold_chunks": [
+            "CEP_2023Q1_IS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "CEP-10Q-FY2023Q1#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-08",
+          "question": "What was Cobalt Energy Partners's gross margin in fiscal 2023 quarter 2?",
+          "gold_chunks": [
+            "CEP_2023Q2_IS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "CEP-10Q-FY2023Q2#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-10",
+          "question": "What was Cobalt Energy Partners's gross margin in fiscal 2022 quarter 3?",
+          "gold_chunks": [
+            "CEP_2022Q3_IS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "CEP-10Q-FY2022Q3#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-13",
+          "question": "What was Aurora Retail Group's operating margin in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "ARG_2024Q1_IS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "ARG-10Q-FY2024Q1#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-15",
+          "question": "According to the filings what drove the revenue change at Aurora Retail Group in fiscal 2022 quarter 4?",
+          "gold_chunks": [
+            "ARG-10K-FY2022#c2"
+          ],
+          "gold_rank": 3,
+          "top1_chunk_id": "ARG-10K-FY2022#c4",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-02",
+          "question": "What reasons did Northwind provide in Notes to Financial Statements for restating third quarter fiscal 2023?",
+          "gold_chunks": [
+            "NWI-10Q-FY2024Q3#c4"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "NWI_2024Q3_IS#t1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-05",
+          "question": "What does Cobalt Energy Partners state regarding its dividend policy in investor communications?",
+          "gold_chunks": [
+            "CEP_investor_faq#c1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "CEP-10K-FY2022#c1",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-10",
+          "question": "What did Helix Biosystems disclose about supply chain disruptions in fiscal 2023?",
+          "gold_chunks": [
+            "HBS-10K-FY2023#c3"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "HBS-10K-FY2023#c4",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-11",
+          "question": "What was Helix Biosystems's revenue in fiscal 2024 quarter 2?",
+          "gold_chunks": [
+            "HBS_2024Q2_IS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "HBS-10Q-FY2024Q2#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-18",
+          "question": "What was Helix Biosystems's operating income in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "HBS_2024Q1_IS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "HBS-10Q-FY2024Q1#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-20",
+          "question": "What was MSI's total revenue in fiscal 2022 quarter 4?",
+          "gold_chunks": [
+            "MSI_2022Q4_IS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "MSI-10K-FY2022#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        }
+      ],
       "injected_chunk_count": 0,
       "injected_chunk_rate_pct": 0.0,
       "tenant_leak_count": 0,
-      "configuration_label": "Hybrid (Vector + FTS) + Filters"
+      "configuration_label": "Hybrid (Vector + FTS) + Gold Filters"
     },
     {
       "mode": "hybrid",
-      "use_filters": true,
+      "filter_mode": "gold",
       "split": "dev",
       "total_queries": 34,
       "answerable_queries": 27,
-      "latency_p50_ms": 19.01,
-      "latency_p95_ms": 21.8205,
-      "latency_mean_ms": 19.431470588235292,
-      "recall_at_1": 11.11,
-      "recall_at_3": 66.67,
-      "recall_at_5": 92.59,
-      "recall_at_10": 100.0,
-      "mrr": 0.4272,
+      "latency_p50_ms": 10.33,
+      "latency_p95_ms": 12.687999999999997,
+      "recall_at_1": 70.4,
+      "recall_at_1_ci95": [
+        51.5,
+        84.1
+      ],
+      "recall_at_5": 100.0,
+      "recall_at_5_ci95": [
+        87.5,
+        100.0
+      ],
+      "mrr": 0.8364,
+      "rank_distribution": {
+        "rank_1": 19,
+        "rank_2": 6,
+        "rank_3": 1,
+        "rank_4": 1,
+        "rank_5": 0,
+        "rank_6_10": 0,
+        "rank_gt_10": 0
+      },
+      "failure_cases": [
+        {
+          "id": "dev-03",
+          "question": "What was Cobalt Energy Partners's interest coverage in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "CEP_2024Q1_IS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "CEP-10Q-FY2024Q1#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-06",
+          "question": "What was Cobalt Energy Partners's operating margin in fiscal 2023 quarter 1?",
+          "gold_chunks": [
+            "CEP_2023Q1_IS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "CEP-10Q-FY2023Q1#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-08",
+          "question": "What was Cobalt Energy Partners's gross margin in fiscal 2023 quarter 2?",
+          "gold_chunks": [
+            "CEP_2023Q2_IS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "CEP-10Q-FY2023Q2#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-10",
+          "question": "What was Cobalt Energy Partners's gross margin in fiscal 2022 quarter 3?",
+          "gold_chunks": [
+            "CEP_2022Q3_IS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "CEP-10Q-FY2022Q3#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-13",
+          "question": "What was Aurora Retail Group's operating margin in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "ARG_2024Q1_IS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "ARG-10Q-FY2024Q1#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-15",
+          "question": "According to the filings what drove the revenue change at Aurora Retail Group in fiscal 2022 quarter 4?",
+          "gold_chunks": [
+            "ARG-10K-FY2022#c2"
+          ],
+          "gold_rank": 3,
+          "top1_chunk_id": "ARG-10K-FY2022#c4",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-18",
+          "question": "What was Helix Biosystems's operating income in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "HBS_2024Q1_IS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "HBS-10Q-FY2024Q1#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-20",
+          "question": "What was MSI's total revenue in fiscal 2022 quarter 4?",
+          "gold_chunks": [
+            "MSI_2022Q4_IS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "MSI-10K-FY2022#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        }
+      ],
       "injected_chunk_count": 0,
       "injected_chunk_rate_pct": 0.0,
       "tenant_leak_count": 0,
-      "configuration_label": "Hybrid (Vector + FTS) + Filters"
+      "configuration_label": "Hybrid (Vector + FTS) + Gold Filters"
     },
     {
       "mode": "hybrid",
-      "use_filters": true,
+      "filter_mode": "gold",
       "split": "held_out",
       "total_queries": 15,
       "answerable_queries": 11,
-      "latency_p50_ms": 20.04,
-      "latency_p95_ms": 23.701999999999995,
-      "latency_mean_ms": 20.552666666666667,
-      "recall_at_1": 9.09,
-      "recall_at_3": 81.82,
-      "recall_at_5": 81.82,
-      "recall_at_10": 81.82,
-      "mrr": 0.3939,
+      "latency_p50_ms": 11.17,
+      "latency_p95_ms": 15.602999999999998,
+      "recall_at_1": 63.6,
+      "recall_at_1_ci95": [
+        35.4,
+        84.8
+      ],
+      "recall_at_5": 81.8,
+      "recall_at_5_ci95": [
+        52.3,
+        94.9
+      ],
+      "mrr": 0.7273,
+      "rank_distribution": {
+        "rank_1": 7,
+        "rank_2": 2,
+        "rank_3": 0,
+        "rank_4": 0,
+        "rank_5": 0,
+        "rank_6_10": 0,
+        "rank_gt_10": 2
+      },
+      "failure_cases": [
+        {
+          "id": "eval-02",
+          "question": "What reasons did Northwind provide in Notes to Financial Statements for restating third quarter fiscal 2023?",
+          "gold_chunks": [
+            "NWI-10Q-FY2024Q3#c4"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "NWI_2024Q3_IS#t1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-05",
+          "question": "What does Cobalt Energy Partners state regarding its dividend policy in investor communications?",
+          "gold_chunks": [
+            "CEP_investor_faq#c1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "CEP-10K-FY2022#c1",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-10",
+          "question": "What did Helix Biosystems disclose about supply chain disruptions in fiscal 2023?",
+          "gold_chunks": [
+            "HBS-10K-FY2023#c3"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "HBS-10K-FY2023#c4",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-11",
+          "question": "What was Helix Biosystems's revenue in fiscal 2024 quarter 2?",
+          "gold_chunks": [
+            "HBS_2024Q2_IS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "HBS-10Q-FY2024Q2#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        }
+      ],
       "injected_chunk_count": 0,
       "injected_chunk_rate_pct": 0.0,
       "tenant_leak_count": 0,
-      "configuration_label": "Hybrid (Vector + FTS) + Filters"
+      "configuration_label": "Hybrid (Vector + FTS) + Gold Filters"
     },
     {
       "mode": "hybrid",
-      "use_filters": false,
+      "filter_mode": "deterministic",
       "split": "all",
       "total_queries": 49,
       "answerable_queries": 38,
-      "latency_p50_ms": 22.8,
-      "latency_p95_ms": 24.881999999999998,
-      "latency_mean_ms": 22.816530612244897,
-      "recall_at_1": 13.16,
-      "recall_at_3": 13.16,
-      "recall_at_5": 18.42,
-      "recall_at_10": 28.95,
-      "mrr": 0.1581,
+      "latency_p50_ms": 10.71,
+      "latency_p95_ms": 15.18199999999999,
+      "recall_at_1": 63.2,
+      "recall_at_1_ci95": [
+        47.3,
+        76.6
+      ],
+      "recall_at_5": 86.8,
+      "recall_at_5_ci95": [
+        72.7,
+        94.2
+      ],
+      "mrr": 0.7452,
+      "rank_distribution": {
+        "rank_1": 24,
+        "rank_2": 7,
+        "rank_3": 1,
+        "rank_4": 1,
+        "rank_5": 0,
+        "rank_6_10": 2,
+        "rank_gt_10": 3
+      },
+      "failure_cases": [
+        {
+          "id": "dev-03",
+          "question": "What was Cobalt Energy Partners's interest coverage in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "CEP_2024Q1_IS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "CEP-10Q-FY2024Q1#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-06",
+          "question": "What was Cobalt Energy Partners's operating margin in fiscal 2023 quarter 1?",
+          "gold_chunks": [
+            "CEP_2023Q1_IS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "CEP-10Q-FY2023Q1#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-08",
+          "question": "What was Cobalt Energy Partners's gross margin in fiscal 2023 quarter 2?",
+          "gold_chunks": [
+            "CEP_2023Q2_IS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "CEP-10Q-FY2023Q2#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-10",
+          "question": "What was Cobalt Energy Partners's gross margin in fiscal 2022 quarter 3?",
+          "gold_chunks": [
+            "CEP_2022Q3_IS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "CEP-10Q-FY2022Q3#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-13",
+          "question": "What was Aurora Retail Group's operating margin in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "ARG_2024Q1_IS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "ARG-10Q-FY2024Q1#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-15",
+          "question": "According to the filings what drove the revenue change at Aurora Retail Group in fiscal 2022 quarter 4?",
+          "gold_chunks": [
+            "ARG-10K-FY2022#c2"
+          ],
+          "gold_rank": 3,
+          "top1_chunk_id": "ARG-10K-FY2022#c4",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-01",
+          "question": "What risks did Helix Biosystems disclose regarding academic funding cycles?",
+          "gold_chunks": [
+            "HBS-10K-FY2023#c3"
+          ],
+          "gold_rank": 9,
+          "top1_chunk_id": "HBS-10Q-FY2022Q1#c3",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-02",
+          "question": "What reasons did Northwind provide in Notes to Financial Statements for restating third quarter fiscal 2023?",
+          "gold_chunks": [
+            "NWI-10Q-FY2024Q3#c4"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "NWI_2023Q3_IS#t1",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-05",
+          "question": "What does Cobalt Energy Partners state regarding its dividend policy in investor communications?",
+          "gold_chunks": [
+            "CEP_investor_faq#c1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "CEP-10K-FY2022#c1",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-09",
+          "question": "What risks did ZLG disclose regarding its competitive landscape?",
+          "gold_chunks": [
+            "ZLG-10K-FY2023#c3"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "ZLG-10K-FY2022#c3",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-10",
+          "question": "What did Helix Biosystems disclose about supply chain disruptions in fiscal 2023?",
+          "gold_chunks": [
+            "HBS-10K-FY2023#c3"
+          ],
+          "gold_rank": 8,
+          "top1_chunk_id": "HBS-10Q-FY2023Q3#c4",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-11",
+          "question": "What was Helix Biosystems's revenue in fiscal 2024 quarter 2?",
+          "gold_chunks": [
+            "HBS_2024Q2_IS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "HBS-10Q-FY2024Q2#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-18",
+          "question": "What was Helix Biosystems's operating income in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "HBS_2024Q1_IS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "HBS-10Q-FY2024Q1#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-20",
+          "question": "What was MSI's total revenue in fiscal 2022 quarter 4?",
+          "gold_chunks": [
+            "MSI_2022Q4_IS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "MSI-10K-FY2022#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        }
+      ],
       "injected_chunk_count": 0,
       "injected_chunk_rate_pct": 0.0,
       "tenant_leak_count": 0,
-      "configuration_label": "Hybrid (Vector + FTS) - No Filters"
+      "configuration_label": "Hybrid (Vector + FTS) + Deterministic Filters"
     },
     {
       "mode": "hybrid",
-      "use_filters": false,
+      "filter_mode": "deterministic",
       "split": "dev",
       "total_queries": 34,
       "answerable_queries": 27,
-      "latency_p50_ms": 23.064999999999998,
-      "latency_p95_ms": 24.939499999999995,
-      "latency_mean_ms": 23.090294117647062,
-      "recall_at_1": 11.11,
-      "recall_at_3": 11.11,
-      "recall_at_5": 18.52,
-      "recall_at_10": 29.63,
-      "mrr": 0.1448,
-      "injected_chunk_count": 0,
-      "injected_chunk_rate_pct": 0.0,
-      "tenant_leak_count": 0,
-      "configuration_label": "Hybrid (Vector + FTS) - No Filters"
-    },
-    {
-      "mode": "hybrid",
-      "use_filters": false,
-      "split": "held_out",
-      "total_queries": 15,
-      "answerable_queries": 11,
-      "latency_p50_ms": 22.94,
-      "latency_p95_ms": 25.029,
-      "latency_mean_ms": 22.726666666666667,
-      "recall_at_1": 18.18,
-      "recall_at_3": 18.18,
-      "recall_at_5": 18.18,
-      "recall_at_10": 27.27,
-      "mrr": 0.1909,
-      "injected_chunk_count": 0,
-      "injected_chunk_rate_pct": 0.0,
-      "tenant_leak_count": 0,
-      "configuration_label": "Hybrid (Vector + FTS) - No Filters"
-    },
-    {
-      "mode": "vector_only",
-      "use_filters": true,
-      "split": "all",
-      "total_queries": 49,
-      "answerable_queries": 38,
-      "latency_p50_ms": 13.64,
-      "latency_p95_ms": 15.777999999999997,
-      "latency_mean_ms": 13.79673469387755,
-      "recall_at_1": 10.53,
-      "recall_at_3": 60.53,
-      "recall_at_5": 92.11,
-      "recall_at_10": 94.74,
-      "mrr": 0.3982,
-      "injected_chunk_count": 0,
-      "injected_chunk_rate_pct": 0.0,
-      "tenant_leak_count": 0,
-      "configuration_label": "Vector-Only + Filters"
-    },
-    {
-      "mode": "vector_only",
-      "use_filters": true,
-      "split": "dev",
-      "total_queries": 34,
-      "answerable_queries": 27,
-      "latency_p50_ms": 13.735,
-      "latency_p95_ms": 15.06,
-      "latency_mean_ms": 13.798529411764708,
-      "recall_at_1": 11.11,
-      "recall_at_3": 51.85,
+      "latency_p50_ms": 11.094999999999999,
+      "latency_p95_ms": 13.348,
+      "recall_at_1": 66.7,
+      "recall_at_1_ci95": [
+        47.8,
+        81.4
+      ],
       "recall_at_5": 96.3,
-      "recall_at_10": 100.0,
-      "mrr": 0.4062,
+      "recall_at_5_ci95": [
+        81.7,
+        99.3
+      ],
+      "mrr": 0.7994,
+      "rank_distribution": {
+        "rank_1": 18,
+        "rank_2": 6,
+        "rank_3": 1,
+        "rank_4": 1,
+        "rank_5": 0,
+        "rank_6_10": 0,
+        "rank_gt_10": 1
+      },
+      "failure_cases": [
+        {
+          "id": "dev-03",
+          "question": "What was Cobalt Energy Partners's interest coverage in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "CEP_2024Q1_IS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "CEP-10Q-FY2024Q1#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-06",
+          "question": "What was Cobalt Energy Partners's operating margin in fiscal 2023 quarter 1?",
+          "gold_chunks": [
+            "CEP_2023Q1_IS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "CEP-10Q-FY2023Q1#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-08",
+          "question": "What was Cobalt Energy Partners's gross margin in fiscal 2023 quarter 2?",
+          "gold_chunks": [
+            "CEP_2023Q2_IS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "CEP-10Q-FY2023Q2#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-10",
+          "question": "What was Cobalt Energy Partners's gross margin in fiscal 2022 quarter 3?",
+          "gold_chunks": [
+            "CEP_2022Q3_IS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "CEP-10Q-FY2022Q3#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-13",
+          "question": "What was Aurora Retail Group's operating margin in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "ARG_2024Q1_IS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "ARG-10Q-FY2024Q1#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-15",
+          "question": "According to the filings what drove the revenue change at Aurora Retail Group in fiscal 2022 quarter 4?",
+          "gold_chunks": [
+            "ARG-10K-FY2022#c2"
+          ],
+          "gold_rank": 3,
+          "top1_chunk_id": "ARG-10K-FY2022#c4",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-09",
+          "question": "What risks did ZLG disclose regarding its competitive landscape?",
+          "gold_chunks": [
+            "ZLG-10K-FY2023#c3"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "ZLG-10K-FY2022#c3",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-18",
+          "question": "What was Helix Biosystems's operating income in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "HBS_2024Q1_IS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "HBS-10Q-FY2024Q1#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-20",
+          "question": "What was MSI's total revenue in fiscal 2022 quarter 4?",
+          "gold_chunks": [
+            "MSI_2022Q4_IS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "MSI-10K-FY2022#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        }
+      ],
       "injected_chunk_count": 0,
       "injected_chunk_rate_pct": 0.0,
       "tenant_leak_count": 0,
-      "configuration_label": "Vector-Only + Filters"
+      "configuration_label": "Hybrid (Vector + FTS) + Deterministic Filters"
     },
     {
-      "mode": "vector_only",
-      "use_filters": true,
+      "mode": "hybrid",
+      "filter_mode": "deterministic",
       "split": "held_out",
       "total_queries": 15,
       "answerable_queries": 11,
-      "latency_p50_ms": 13.67,
-      "latency_p95_ms": 14.708999999999998,
-      "latency_mean_ms": 13.624666666666666,
-      "recall_at_1": 9.09,
-      "recall_at_3": 81.82,
-      "recall_at_5": 81.82,
-      "recall_at_10": 81.82,
-      "mrr": 0.3788,
+      "latency_p50_ms": 11.59,
+      "latency_p95_ms": 14.722,
+      "recall_at_1": 54.5,
+      "recall_at_1_ci95": [
+        28.0,
+        78.7
+      ],
+      "recall_at_5": 63.6,
+      "recall_at_5_ci95": [
+        35.4,
+        84.8
+      ],
+      "mrr": 0.6124,
+      "rank_distribution": {
+        "rank_1": 6,
+        "rank_2": 1,
+        "rank_3": 0,
+        "rank_4": 0,
+        "rank_5": 0,
+        "rank_6_10": 2,
+        "rank_gt_10": 2
+      },
+      "failure_cases": [
+        {
+          "id": "eval-01",
+          "question": "What risks did Helix Biosystems disclose regarding academic funding cycles?",
+          "gold_chunks": [
+            "HBS-10K-FY2023#c3"
+          ],
+          "gold_rank": 9,
+          "top1_chunk_id": "HBS-10Q-FY2022Q1#c3",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-02",
+          "question": "What reasons did Northwind provide in Notes to Financial Statements for restating third quarter fiscal 2023?",
+          "gold_chunks": [
+            "NWI-10Q-FY2024Q3#c4"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "NWI_2023Q3_IS#t1",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-05",
+          "question": "What does Cobalt Energy Partners state regarding its dividend policy in investor communications?",
+          "gold_chunks": [
+            "CEP_investor_faq#c1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "CEP-10K-FY2022#c1",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-10",
+          "question": "What did Helix Biosystems disclose about supply chain disruptions in fiscal 2023?",
+          "gold_chunks": [
+            "HBS-10K-FY2023#c3"
+          ],
+          "gold_rank": 8,
+          "top1_chunk_id": "HBS-10Q-FY2023Q3#c4",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-11",
+          "question": "What was Helix Biosystems's revenue in fiscal 2024 quarter 2?",
+          "gold_chunks": [
+            "HBS_2024Q2_IS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "HBS-10Q-FY2024Q2#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        }
+      ],
       "injected_chunk_count": 0,
       "injected_chunk_rate_pct": 0.0,
       "tenant_leak_count": 0,
-      "configuration_label": "Vector-Only + Filters"
+      "configuration_label": "Hybrid (Vector + FTS) + Deterministic Filters"
     },
     {
-      "mode": "vector_only",
-      "use_filters": false,
+      "mode": "hybrid",
+      "filter_mode": "none",
       "split": "all",
       "total_queries": 49,
       "answerable_queries": 38,
-      "latency_p50_ms": 15.04,
-      "latency_p95_ms": 16.586,
-      "latency_mean_ms": 15.120204081632652,
-      "recall_at_1": 5.26,
-      "recall_at_3": 10.53,
-      "recall_at_5": 10.53,
-      "recall_at_10": 10.53,
-      "mrr": 0.0702,
+      "latency_p50_ms": 13.58,
+      "latency_p95_ms": 17.213999999999995,
+      "recall_at_1": 42.1,
+      "recall_at_1_ci95": [
+        27.9,
+        57.8
+      ],
+      "recall_at_5": 84.2,
+      "recall_at_5_ci95": [
+        69.6,
+        92.6
+      ],
+      "mrr": 0.5882,
+      "rank_distribution": {
+        "rank_1": 16,
+        "rank_2": 9,
+        "rank_3": 3,
+        "rank_4": 1,
+        "rank_5": 3,
+        "rank_6_10": 0,
+        "rank_gt_10": 6
+      },
+      "failure_cases": [
+        {
+          "id": "dev-03",
+          "question": "What was Cobalt Energy Partners's interest coverage in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "CEP_2024Q1_IS#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "CEP-10Q-FY2024Q1#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-04",
+          "question": "What was Aurora Retail Group's current ratio in fiscal 2022 quarter 3?",
+          "gold_chunks": [
+            "ARG_2022Q3_BS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "ARG-10Q-FY2022Q3#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-06",
+          "question": "What was Cobalt Energy Partners's operating margin in fiscal 2023 quarter 1?",
+          "gold_chunks": [
+            "CEP_2023Q1_IS#t1"
+          ],
+          "gold_rank": 3,
+          "top1_chunk_id": "CEP-10Q-FY2023Q1#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-08",
+          "question": "What was Cobalt Energy Partners's gross margin in fiscal 2023 quarter 2?",
+          "gold_chunks": [
+            "CEP_2023Q2_IS#t1"
+          ],
+          "gold_rank": 5,
+          "top1_chunk_id": "CEP-10Q-FY2023Q2#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-10",
+          "question": "What was Cobalt Energy Partners's gross margin in fiscal 2022 quarter 3?",
+          "gold_chunks": [
+            "CEP_2022Q3_IS#t1"
+          ],
+          "gold_rank": 3,
+          "top1_chunk_id": "CEP-10Q-FY2022Q3#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-11",
+          "question": "What was Cobalt Energy Partners's return on equity in fiscal 2023 quarter 2?",
+          "gold_chunks": [
+            "CEP_2023Q2_IS#t1",
+            "CEP_2023Q2_BS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "CEP-10Q-FY2023Q2#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-13",
+          "question": "What was Aurora Retail Group's operating margin in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "ARG_2024Q1_IS#t1"
+          ],
+          "gold_rank": 3,
+          "top1_chunk_id": "ARG-10Q-FY2024Q1#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-14",
+          "question": "What was Cobalt Energy Partners's current ratio in fiscal 2022 quarter 1?",
+          "gold_chunks": [
+            "CEP_2022Q1_BS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "CEP-10Q-FY2022Q1#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-16",
+          "question": "According to the filings what drove the revenue change at Cobalt Energy Partners in fiscal 2022 quarter 3?",
+          "gold_chunks": [
+            "CEP-10Q-FY2022Q3#c2"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "CEP-10Q-FY2022Q3#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-01",
+          "question": "What risks did Helix Biosystems disclose regarding academic funding cycles?",
+          "gold_chunks": [
+            "HBS-10K-FY2023#c3"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "HBS-10Q-FY2022Q3#c3",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-02",
+          "question": "What reasons did Northwind provide in Notes to Financial Statements for restating third quarter fiscal 2023?",
+          "gold_chunks": [
+            "NWI-10Q-FY2024Q3#c4"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "NWI_2024Q3_IS#t1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-05",
+          "question": "What does Cobalt Energy Partners state regarding its dividend policy in investor communications?",
+          "gold_chunks": [
+            "CEP_investor_faq#c1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "CEP-10K-FY2024#c1",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-06",
+          "question": "What business risks did MSI disclose in its annual report?",
+          "gold_chunks": [
+            "MSI-10K-FY2023#c3"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "MSI-10K-FY2024#c3",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-07",
+          "question": "How did promotional discounting affect Aurora Retail Group inventory clearance in fiscal 2023?",
+          "gold_chunks": [
+            "ARG-10K-FY2023#c2"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "ARG-10Q-FY2023Q3#c1",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-09",
+          "question": "What risks did ZLG disclose regarding its competitive landscape?",
+          "gold_chunks": [
+            "ZLG-10K-FY2023#c3"
+          ],
+          "gold_rank": 5,
+          "top1_chunk_id": "ZLG-10Q-FY2022Q1#c3",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-10",
+          "question": "What did Helix Biosystems disclose about supply chain disruptions in fiscal 2023?",
+          "gold_chunks": [
+            "HBS-10K-FY2023#c3"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "HBS-10Q-FY2023Q3#c4",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-11",
+          "question": "What was Helix Biosystems's revenue in fiscal 2024 quarter 2?",
+          "gold_chunks": [
+            "HBS_2024Q2_IS#t1"
+          ],
+          "gold_rank": 5,
+          "top1_chunk_id": "HBS-10Q-FY2024Q2#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-13",
+          "question": "What was Cobalt Energy Partners's net income in fiscal 2024 quarter 2 as restated?",
+          "gold_chunks": [
+            "CEP_2024Q2_IS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "CEP-10Q-FY2022Q2#c1",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-16",
+          "question": "What was Aurora Retail Group's cash and cash equivalents in fiscal 2023 quarter 4?",
+          "gold_chunks": [
+            "ARG_2023Q4_BS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "ARG-10K-FY2023#c4",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-17",
+          "question": "What was Cobalt Energy Partners's total liabilities in fiscal 2023 quarter 4?",
+          "gold_chunks": [
+            "CEP_2023Q4_BS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "CEP-10Q-FY2022Q3#c1",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-18",
+          "question": "What was Helix Biosystems's operating income in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "HBS_2024Q1_IS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "HBS-10Q-FY2024Q1#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-20",
+          "question": "What was MSI's total revenue in fiscal 2022 quarter 4?",
+          "gold_chunks": [
+            "MSI_2022Q4_IS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "MSI-10K-FY2022#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        }
+      ],
       "injected_chunk_count": 0,
       "injected_chunk_rate_pct": 0.0,
       "tenant_leak_count": 0,
-      "configuration_label": "Vector-Only - No Filters"
+      "configuration_label": "Hybrid (Vector + FTS) - No Filters"
     },
     {
-      "mode": "vector_only",
-      "use_filters": false,
+      "mode": "hybrid",
+      "filter_mode": "none",
       "split": "dev",
       "total_queries": 34,
       "answerable_queries": 27,
-      "latency_p50_ms": 14.825,
-      "latency_p95_ms": 15.51,
-      "latency_mean_ms": 14.780000000000001,
-      "recall_at_1": 3.7,
-      "recall_at_3": 11.11,
-      "recall_at_5": 11.11,
-      "recall_at_10": 11.11,
-      "mrr": 0.0617,
+      "latency_p50_ms": 13.71,
+      "latency_p95_ms": 17.232499999999998,
+      "recall_at_1": 44.4,
+      "recall_at_1_ci95": [
+        27.6,
+        62.7
+      ],
+      "recall_at_5": 92.6,
+      "recall_at_5_ci95": [
+        76.6,
+        97.9
+      ],
+      "mrr": 0.6352,
+      "rank_distribution": {
+        "rank_1": 12,
+        "rank_2": 7,
+        "rank_3": 3,
+        "rank_4": 1,
+        "rank_5": 2,
+        "rank_6_10": 0,
+        "rank_gt_10": 2
+      },
+      "failure_cases": [
+        {
+          "id": "dev-03",
+          "question": "What was Cobalt Energy Partners's interest coverage in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "CEP_2024Q1_IS#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "CEP-10Q-FY2024Q1#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-04",
+          "question": "What was Aurora Retail Group's current ratio in fiscal 2022 quarter 3?",
+          "gold_chunks": [
+            "ARG_2022Q3_BS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "ARG-10Q-FY2022Q3#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-06",
+          "question": "What was Cobalt Energy Partners's operating margin in fiscal 2023 quarter 1?",
+          "gold_chunks": [
+            "CEP_2023Q1_IS#t1"
+          ],
+          "gold_rank": 3,
+          "top1_chunk_id": "CEP-10Q-FY2023Q1#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-08",
+          "question": "What was Cobalt Energy Partners's gross margin in fiscal 2023 quarter 2?",
+          "gold_chunks": [
+            "CEP_2023Q2_IS#t1"
+          ],
+          "gold_rank": 5,
+          "top1_chunk_id": "CEP-10Q-FY2023Q2#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-10",
+          "question": "What was Cobalt Energy Partners's gross margin in fiscal 2022 quarter 3?",
+          "gold_chunks": [
+            "CEP_2022Q3_IS#t1"
+          ],
+          "gold_rank": 3,
+          "top1_chunk_id": "CEP-10Q-FY2022Q3#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-11",
+          "question": "What was Cobalt Energy Partners's return on equity in fiscal 2023 quarter 2?",
+          "gold_chunks": [
+            "CEP_2023Q2_IS#t1",
+            "CEP_2023Q2_BS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "CEP-10Q-FY2023Q2#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-13",
+          "question": "What was Aurora Retail Group's operating margin in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "ARG_2024Q1_IS#t1"
+          ],
+          "gold_rank": 3,
+          "top1_chunk_id": "ARG-10Q-FY2024Q1#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-14",
+          "question": "What was Cobalt Energy Partners's current ratio in fiscal 2022 quarter 1?",
+          "gold_chunks": [
+            "CEP_2022Q1_BS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "CEP-10Q-FY2022Q1#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-16",
+          "question": "According to the filings what drove the revenue change at Cobalt Energy Partners in fiscal 2022 quarter 3?",
+          "gold_chunks": [
+            "CEP-10Q-FY2022Q3#c2"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "CEP-10Q-FY2022Q3#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-06",
+          "question": "What business risks did MSI disclose in its annual report?",
+          "gold_chunks": [
+            "MSI-10K-FY2023#c3"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "MSI-10K-FY2024#c3",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-07",
+          "question": "How did promotional discounting affect Aurora Retail Group inventory clearance in fiscal 2023?",
+          "gold_chunks": [
+            "ARG-10K-FY2023#c2"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "ARG-10Q-FY2023Q3#c1",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-09",
+          "question": "What risks did ZLG disclose regarding its competitive landscape?",
+          "gold_chunks": [
+            "ZLG-10K-FY2023#c3"
+          ],
+          "gold_rank": 5,
+          "top1_chunk_id": "ZLG-10Q-FY2022Q1#c3",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-16",
+          "question": "What was Aurora Retail Group's cash and cash equivalents in fiscal 2023 quarter 4?",
+          "gold_chunks": [
+            "ARG_2023Q4_BS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "ARG-10K-FY2023#c4",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-18",
+          "question": "What was Helix Biosystems's operating income in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "HBS_2024Q1_IS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "HBS-10Q-FY2024Q1#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-20",
+          "question": "What was MSI's total revenue in fiscal 2022 quarter 4?",
+          "gold_chunks": [
+            "MSI_2022Q4_IS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "MSI-10K-FY2022#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        }
+      ],
       "injected_chunk_count": 0,
       "injected_chunk_rate_pct": 0.0,
       "tenant_leak_count": 0,
-      "configuration_label": "Vector-Only - No Filters"
+      "configuration_label": "Hybrid (Vector + FTS) - No Filters"
     },
     {
-      "mode": "vector_only",
-      "use_filters": false,
+      "mode": "hybrid",
+      "filter_mode": "none",
       "split": "held_out",
       "total_queries": 15,
       "answerable_queries": 11,
-      "latency_p50_ms": 14.76,
-      "latency_p95_ms": 16.875999999999998,
-      "latency_mean_ms": 14.968,
-      "recall_at_1": 9.09,
-      "recall_at_3": 9.09,
-      "recall_at_5": 9.09,
-      "recall_at_10": 9.09,
-      "mrr": 0.0909,
+      "latency_p50_ms": 14.73,
+      "latency_p95_ms": 16.423,
+      "recall_at_1": 36.4,
+      "recall_at_1_ci95": [
+        15.2,
+        64.6
+      ],
+      "recall_at_5": 63.6,
+      "recall_at_5_ci95": [
+        35.4,
+        84.8
+      ],
+      "mrr": 0.4727,
+      "rank_distribution": {
+        "rank_1": 4,
+        "rank_2": 2,
+        "rank_3": 0,
+        "rank_4": 0,
+        "rank_5": 1,
+        "rank_6_10": 0,
+        "rank_gt_10": 4
+      },
+      "failure_cases": [
+        {
+          "id": "eval-01",
+          "question": "What risks did Helix Biosystems disclose regarding academic funding cycles?",
+          "gold_chunks": [
+            "HBS-10K-FY2023#c3"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "HBS-10Q-FY2022Q3#c3",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-02",
+          "question": "What reasons did Northwind provide in Notes to Financial Statements for restating third quarter fiscal 2023?",
+          "gold_chunks": [
+            "NWI-10Q-FY2024Q3#c4"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "NWI_2024Q3_IS#t1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-05",
+          "question": "What does Cobalt Energy Partners state regarding its dividend policy in investor communications?",
+          "gold_chunks": [
+            "CEP_investor_faq#c1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "CEP-10K-FY2024#c1",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-10",
+          "question": "What did Helix Biosystems disclose about supply chain disruptions in fiscal 2023?",
+          "gold_chunks": [
+            "HBS-10K-FY2023#c3"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "HBS-10Q-FY2023Q3#c4",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-11",
+          "question": "What was Helix Biosystems's revenue in fiscal 2024 quarter 2?",
+          "gold_chunks": [
+            "HBS_2024Q2_IS#t1"
+          ],
+          "gold_rank": 5,
+          "top1_chunk_id": "HBS-10Q-FY2024Q2#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-13",
+          "question": "What was Cobalt Energy Partners's net income in fiscal 2024 quarter 2 as restated?",
+          "gold_chunks": [
+            "CEP_2024Q2_IS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "CEP-10Q-FY2022Q2#c1",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-17",
+          "question": "What was Cobalt Energy Partners's total liabilities in fiscal 2023 quarter 4?",
+          "gold_chunks": [
+            "CEP_2023Q4_BS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "CEP-10Q-FY2022Q3#c1",
+          "failure_classification": "right_company_wrong_period"
+        }
+      ],
       "injected_chunk_count": 0,
       "injected_chunk_rate_pct": 0.0,
       "tenant_leak_count": 0,
-      "configuration_label": "Vector-Only - No Filters"
+      "configuration_label": "Hybrid (Vector + FTS) - No Filters"
     },
     {
       "mode": "fts_only",
-      "use_filters": true,
+      "filter_mode": "gold",
       "split": "all",
       "total_queries": 49,
       "answerable_queries": 38,
+      "latency_p50_ms": 5.57,
+      "latency_p95_ms": 7.21,
+      "recall_at_1": 73.7,
+      "recall_at_1_ci95": [
+        58.0,
+        85.0
+      ],
+      "recall_at_5": 92.1,
+      "recall_at_5_ci95": [
+        79.2,
+        97.3
+      ],
+      "mrr": 0.8158,
+      "rank_distribution": {
+        "rank_1": 28,
+        "rank_2": 4,
+        "rank_3": 3,
+        "rank_4": 0,
+        "rank_5": 0,
+        "rank_6_10": 0,
+        "rank_gt_10": 3
+      },
+      "failure_cases": [
+        {
+          "id": "dev-03",
+          "question": "What was Cobalt Energy Partners's interest coverage in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "CEP_2024Q1_IS#t1"
+          ],
+          "gold_rank": 3,
+          "top1_chunk_id": "CEP-10Q-FY2024Q1#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-15",
+          "question": "According to the filings what drove the revenue change at Aurora Retail Group in fiscal 2022 quarter 4?",
+          "gold_chunks": [
+            "ARG-10K-FY2022#c2"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "ARG-10K-FY2022#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-16",
+          "question": "According to the filings what drove the revenue change at Cobalt Energy Partners in fiscal 2022 quarter 3?",
+          "gold_chunks": [
+            "CEP-10Q-FY2022Q3#c2"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "CEP-10Q-FY2022Q3#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-18",
+          "question": "What was Cobalt Energy Partners's gross margin in fiscal 2023 quarter 3 and what explains it?",
+          "gold_chunks": [
+            "CEP_2023Q3_IS#t1",
+            "CEP-10Q-FY2023Q3#c2"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "CEP-10Q-FY2023Q3#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-01",
+          "question": "What risks did Helix Biosystems disclose regarding academic funding cycles?",
+          "gold_chunks": [
+            "HBS-10K-FY2023#c3"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "HBS-10K-FY2023#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-02",
+          "question": "What reasons did Northwind provide in Notes to Financial Statements for restating third quarter fiscal 2023?",
+          "gold_chunks": [
+            "NWI-10Q-FY2024Q3#c4"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "NWI_2024Q3_IS#t1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-05",
+          "question": "What does Cobalt Energy Partners state regarding its dividend policy in investor communications?",
+          "gold_chunks": [
+            "CEP_investor_faq#c1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "CEP-10Q-FY2023Q2#c1",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-07",
+          "question": "How did promotional discounting affect Aurora Retail Group inventory clearance in fiscal 2023?",
+          "gold_chunks": [
+            "ARG-10K-FY2023#c2"
+          ],
+          "gold_rank": 3,
+          "top1_chunk_id": "ARG-10K-FY2023#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-10",
+          "question": "What did Helix Biosystems disclose about supply chain disruptions in fiscal 2023?",
+          "gold_chunks": [
+            "HBS-10K-FY2023#c3"
+          ],
+          "gold_rank": 3,
+          "top1_chunk_id": "HBS-10K-FY2023#c4",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-20",
+          "question": "What was MSI's total revenue in fiscal 2022 quarter 4?",
+          "gold_chunks": [
+            "MSI_2022Q4_IS#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "MSI-10K-FY2022#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        }
+      ],
+      "injected_chunk_count": 0,
+      "injected_chunk_rate_pct": 0.0,
+      "tenant_leak_count": 0,
+      "configuration_label": "FTS-Only + Gold Filters"
+    },
+    {
+      "mode": "fts_only",
+      "filter_mode": "gold",
+      "split": "dev",
+      "total_queries": 34,
+      "answerable_queries": 27,
+      "latency_p50_ms": 5.755000000000001,
+      "latency_p95_ms": 7.542,
+      "recall_at_1": 77.8,
+      "recall_at_1_ci95": [
+        59.2,
+        89.4
+      ],
+      "recall_at_5": 96.3,
+      "recall_at_5_ci95": [
+        81.7,
+        99.3
+      ],
+      "mrr": 0.858,
+      "rank_distribution": {
+        "rank_1": 21,
+        "rank_2": 3,
+        "rank_3": 2,
+        "rank_4": 0,
+        "rank_5": 0,
+        "rank_6_10": 0,
+        "rank_gt_10": 1
+      },
+      "failure_cases": [
+        {
+          "id": "dev-03",
+          "question": "What was Cobalt Energy Partners's interest coverage in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "CEP_2024Q1_IS#t1"
+          ],
+          "gold_rank": 3,
+          "top1_chunk_id": "CEP-10Q-FY2024Q1#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-15",
+          "question": "According to the filings what drove the revenue change at Aurora Retail Group in fiscal 2022 quarter 4?",
+          "gold_chunks": [
+            "ARG-10K-FY2022#c2"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "ARG-10K-FY2022#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-16",
+          "question": "According to the filings what drove the revenue change at Cobalt Energy Partners in fiscal 2022 quarter 3?",
+          "gold_chunks": [
+            "CEP-10Q-FY2022Q3#c2"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "CEP-10Q-FY2022Q3#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-18",
+          "question": "What was Cobalt Energy Partners's gross margin in fiscal 2023 quarter 3 and what explains it?",
+          "gold_chunks": [
+            "CEP_2023Q3_IS#t1",
+            "CEP-10Q-FY2023Q3#c2"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "CEP-10Q-FY2023Q3#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-07",
+          "question": "How did promotional discounting affect Aurora Retail Group inventory clearance in fiscal 2023?",
+          "gold_chunks": [
+            "ARG-10K-FY2023#c2"
+          ],
+          "gold_rank": 3,
+          "top1_chunk_id": "ARG-10K-FY2023#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-20",
+          "question": "What was MSI's total revenue in fiscal 2022 quarter 4?",
+          "gold_chunks": [
+            "MSI_2022Q4_IS#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "MSI-10K-FY2022#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        }
+      ],
+      "injected_chunk_count": 0,
+      "injected_chunk_rate_pct": 0.0,
+      "tenant_leak_count": 0,
+      "configuration_label": "FTS-Only + Gold Filters"
+    },
+    {
+      "mode": "fts_only",
+      "filter_mode": "gold",
+      "split": "held_out",
+      "total_queries": 15,
+      "answerable_queries": 11,
       "latency_p50_ms": 5.79,
-      "latency_p95_ms": 6.478,
-      "latency_mean_ms": 5.847346938775511,
-      "recall_at_1": 23.68,
-      "recall_at_3": 60.53,
-      "recall_at_5": 89.47,
-      "recall_at_10": 94.74,
-      "mrr": 0.4658,
+      "latency_p95_ms": 7.395,
+      "recall_at_1": 63.6,
+      "recall_at_1_ci95": [
+        35.4,
+        84.8
+      ],
+      "recall_at_5": 81.8,
+      "recall_at_5_ci95": [
+        52.3,
+        94.9
+      ],
+      "mrr": 0.7121,
+      "rank_distribution": {
+        "rank_1": 7,
+        "rank_2": 1,
+        "rank_3": 1,
+        "rank_4": 0,
+        "rank_5": 0,
+        "rank_6_10": 0,
+        "rank_gt_10": 2
+      },
+      "failure_cases": [
+        {
+          "id": "eval-01",
+          "question": "What risks did Helix Biosystems disclose regarding academic funding cycles?",
+          "gold_chunks": [
+            "HBS-10K-FY2023#c3"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "HBS-10K-FY2023#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-02",
+          "question": "What reasons did Northwind provide in Notes to Financial Statements for restating third quarter fiscal 2023?",
+          "gold_chunks": [
+            "NWI-10Q-FY2024Q3#c4"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "NWI_2024Q3_IS#t1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-05",
+          "question": "What does Cobalt Energy Partners state regarding its dividend policy in investor communications?",
+          "gold_chunks": [
+            "CEP_investor_faq#c1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "CEP-10Q-FY2023Q2#c1",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-10",
+          "question": "What did Helix Biosystems disclose about supply chain disruptions in fiscal 2023?",
+          "gold_chunks": [
+            "HBS-10K-FY2023#c3"
+          ],
+          "gold_rank": 3,
+          "top1_chunk_id": "HBS-10K-FY2023#c4",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        }
+      ],
       "injected_chunk_count": 0,
       "injected_chunk_rate_pct": 0.0,
       "tenant_leak_count": 0,
-      "configuration_label": "FTS-Only + Filters"
+      "configuration_label": "FTS-Only + Gold Filters"
     },
     {
       "mode": "fts_only",
-      "use_filters": true,
-      "split": "dev",
-      "total_queries": 34,
-      "answerable_queries": 27,
-      "latency_p50_ms": 5.8,
-      "latency_p95_ms": 6.751999999999998,
-      "latency_mean_ms": 5.98735294117647,
-      "recall_at_1": 18.52,
-      "recall_at_3": 55.56,
-      "recall_at_5": 92.59,
-      "recall_at_10": 100.0,
-      "mrr": 0.4364,
-      "injected_chunk_count": 0,
-      "injected_chunk_rate_pct": 0.0,
-      "tenant_leak_count": 0,
-      "configuration_label": "FTS-Only + Filters"
-    },
-    {
-      "mode": "fts_only",
-      "use_filters": true,
-      "split": "held_out",
-      "total_queries": 15,
-      "answerable_queries": 11,
-      "latency_p50_ms": 6.22,
-      "latency_p95_ms": 6.608,
-      "latency_mean_ms": 6.115333333333334,
-      "recall_at_1": 36.36,
-      "recall_at_3": 72.73,
-      "recall_at_5": 81.82,
-      "recall_at_10": 81.82,
-      "mrr": 0.5379,
-      "injected_chunk_count": 0,
-      "injected_chunk_rate_pct": 0.0,
-      "tenant_leak_count": 0,
-      "configuration_label": "FTS-Only + Filters"
-    },
-    {
-      "mode": "fts_only",
-      "use_filters": false,
+      "filter_mode": "deterministic",
       "split": "all",
       "total_queries": 49,
       "answerable_queries": 38,
-      "latency_p50_ms": 8.0,
-      "latency_p95_ms": 9.834,
-      "latency_mean_ms": 8.176530612244898,
-      "recall_at_1": 2.63,
-      "recall_at_3": 13.16,
-      "recall_at_5": 15.79,
-      "recall_at_10": 23.68,
-      "mrr": 0.0836,
+      "latency_p50_ms": 5.52,
+      "latency_p95_ms": 7.404,
+      "recall_at_1": 68.4,
+      "recall_at_1_ci95": [
+        52.5,
+        80.9
+      ],
+      "recall_at_5": 81.6,
+      "recall_at_5_ci95": [
+        66.6,
+        90.8
+      ],
+      "mrr": 0.7446,
+      "rank_distribution": {
+        "rank_1": 26,
+        "rank_2": 3,
+        "rank_3": 1,
+        "rank_4": 1,
+        "rank_5": 0,
+        "rank_6_10": 2,
+        "rank_gt_10": 5
+      },
+      "failure_cases": [
+        {
+          "id": "dev-03",
+          "question": "What was Cobalt Energy Partners's interest coverage in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "CEP_2024Q1_IS#t1"
+          ],
+          "gold_rank": 3,
+          "top1_chunk_id": "CEP-10Q-FY2024Q1#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-15",
+          "question": "According to the filings what drove the revenue change at Aurora Retail Group in fiscal 2022 quarter 4?",
+          "gold_chunks": [
+            "ARG-10K-FY2022#c2"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "ARG-10K-FY2022#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-16",
+          "question": "According to the filings what drove the revenue change at Cobalt Energy Partners in fiscal 2022 quarter 3?",
+          "gold_chunks": [
+            "CEP-10Q-FY2022Q3#c2"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "CEP-10Q-FY2022Q3#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-18",
+          "question": "What was Cobalt Energy Partners's gross margin in fiscal 2023 quarter 3 and what explains it?",
+          "gold_chunks": [
+            "CEP_2023Q3_IS#t1",
+            "CEP-10Q-FY2023Q3#c2"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "CEP-10Q-FY2023Q3#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-01",
+          "question": "What risks did Helix Biosystems disclose regarding academic funding cycles?",
+          "gold_chunks": [
+            "HBS-10K-FY2023#c3"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "HBS-10Q-FY2023Q1#c3",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-02",
+          "question": "What reasons did Northwind provide in Notes to Financial Statements for restating third quarter fiscal 2023?",
+          "gold_chunks": [
+            "NWI-10Q-FY2024Q3#c4"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "NWI_2023Q3_IS#t1",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-05",
+          "question": "What does Cobalt Energy Partners state regarding its dividend policy in investor communications?",
+          "gold_chunks": [
+            "CEP_investor_faq#c1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "CEP-10Q-FY2023Q2#c1",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-06",
+          "question": "What business risks did MSI disclose in its annual report?",
+          "gold_chunks": [
+            "MSI-10K-FY2023#c3"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "MSI-10Q-FY2022Q1#c3",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-07",
+          "question": "How did promotional discounting affect Aurora Retail Group inventory clearance in fiscal 2023?",
+          "gold_chunks": [
+            "ARG-10K-FY2023#c2"
+          ],
+          "gold_rank": 9,
+          "top1_chunk_id": "ARG-10K-FY2023#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-09",
+          "question": "What risks did ZLG disclose regarding its competitive landscape?",
+          "gold_chunks": [
+            "ZLG-10K-FY2023#c3"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "ZLG-10K-FY2022#c3",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-10",
+          "question": "What did Helix Biosystems disclose about supply chain disruptions in fiscal 2023?",
+          "gold_chunks": [
+            "HBS-10K-FY2023#c3"
+          ],
+          "gold_rank": 10,
+          "top1_chunk_id": "HBS-10Q-FY2023Q1#c1",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-20",
+          "question": "What was MSI's total revenue in fiscal 2022 quarter 4?",
+          "gold_chunks": [
+            "MSI_2022Q4_IS#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "MSI-10K-FY2022#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        }
+      ],
       "injected_chunk_count": 0,
       "injected_chunk_rate_pct": 0.0,
       "tenant_leak_count": 0,
-      "configuration_label": "FTS-Only - No Filters"
+      "configuration_label": "FTS-Only + Deterministic Filters"
     },
     {
       "mode": "fts_only",
-      "use_filters": false,
+      "filter_mode": "deterministic",
       "split": "dev",
       "total_queries": 34,
       "answerable_queries": 27,
-      "latency_p50_ms": 7.9399999999999995,
-      "latency_p95_ms": 8.764,
-      "latency_mean_ms": 7.838529411764705,
-      "recall_at_1": 0.0,
-      "recall_at_3": 7.41,
-      "recall_at_5": 11.11,
-      "recall_at_10": 22.22,
-      "mrr": 0.0559,
+      "latency_p50_ms": 5.609999999999999,
+      "latency_p95_ms": 7.379499999999998,
+      "recall_at_1": 70.4,
+      "recall_at_1_ci95": [
+        51.5,
+        84.1
+      ],
+      "recall_at_5": 88.9,
+      "recall_at_5_ci95": [
+        71.9,
+        96.1
+      ],
+      "mrr": 0.785,
+      "rank_distribution": {
+        "rank_1": 19,
+        "rank_2": 3,
+        "rank_3": 1,
+        "rank_4": 1,
+        "rank_5": 0,
+        "rank_6_10": 1,
+        "rank_gt_10": 2
+      },
+      "failure_cases": [
+        {
+          "id": "dev-03",
+          "question": "What was Cobalt Energy Partners's interest coverage in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "CEP_2024Q1_IS#t1"
+          ],
+          "gold_rank": 3,
+          "top1_chunk_id": "CEP-10Q-FY2024Q1#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-15",
+          "question": "According to the filings what drove the revenue change at Aurora Retail Group in fiscal 2022 quarter 4?",
+          "gold_chunks": [
+            "ARG-10K-FY2022#c2"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "ARG-10K-FY2022#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-16",
+          "question": "According to the filings what drove the revenue change at Cobalt Energy Partners in fiscal 2022 quarter 3?",
+          "gold_chunks": [
+            "CEP-10Q-FY2022Q3#c2"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "CEP-10Q-FY2022Q3#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-18",
+          "question": "What was Cobalt Energy Partners's gross margin in fiscal 2023 quarter 3 and what explains it?",
+          "gold_chunks": [
+            "CEP_2023Q3_IS#t1",
+            "CEP-10Q-FY2023Q3#c2"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "CEP-10Q-FY2023Q3#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-06",
+          "question": "What business risks did MSI disclose in its annual report?",
+          "gold_chunks": [
+            "MSI-10K-FY2023#c3"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "MSI-10Q-FY2022Q1#c3",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-07",
+          "question": "How did promotional discounting affect Aurora Retail Group inventory clearance in fiscal 2023?",
+          "gold_chunks": [
+            "ARG-10K-FY2023#c2"
+          ],
+          "gold_rank": 9,
+          "top1_chunk_id": "ARG-10K-FY2023#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-09",
+          "question": "What risks did ZLG disclose regarding its competitive landscape?",
+          "gold_chunks": [
+            "ZLG-10K-FY2023#c3"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "ZLG-10K-FY2022#c3",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-20",
+          "question": "What was MSI's total revenue in fiscal 2022 quarter 4?",
+          "gold_chunks": [
+            "MSI_2022Q4_IS#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "MSI-10K-FY2022#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        }
+      ],
+      "injected_chunk_count": 0,
+      "injected_chunk_rate_pct": 0.0,
+      "tenant_leak_count": 0,
+      "configuration_label": "FTS-Only + Deterministic Filters"
+    },
+    {
+      "mode": "fts_only",
+      "filter_mode": "deterministic",
+      "split": "held_out",
+      "total_queries": 15,
+      "answerable_queries": 11,
+      "latency_p50_ms": 6.11,
+      "latency_p95_ms": 7.628999999999999,
+      "recall_at_1": 63.6,
+      "recall_at_1_ci95": [
+        35.4,
+        84.8
+      ],
+      "recall_at_5": 63.6,
+      "recall_at_5_ci95": [
+        35.4,
+        84.8
+      ],
+      "mrr": 0.6455,
+      "rank_distribution": {
+        "rank_1": 7,
+        "rank_2": 0,
+        "rank_3": 0,
+        "rank_4": 0,
+        "rank_5": 0,
+        "rank_6_10": 1,
+        "rank_gt_10": 3
+      },
+      "failure_cases": [
+        {
+          "id": "eval-01",
+          "question": "What risks did Helix Biosystems disclose regarding academic funding cycles?",
+          "gold_chunks": [
+            "HBS-10K-FY2023#c3"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "HBS-10Q-FY2023Q1#c3",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-02",
+          "question": "What reasons did Northwind provide in Notes to Financial Statements for restating third quarter fiscal 2023?",
+          "gold_chunks": [
+            "NWI-10Q-FY2024Q3#c4"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "NWI_2023Q3_IS#t1",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-05",
+          "question": "What does Cobalt Energy Partners state regarding its dividend policy in investor communications?",
+          "gold_chunks": [
+            "CEP_investor_faq#c1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "CEP-10Q-FY2023Q2#c1",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-10",
+          "question": "What did Helix Biosystems disclose about supply chain disruptions in fiscal 2023?",
+          "gold_chunks": [
+            "HBS-10K-FY2023#c3"
+          ],
+          "gold_rank": 10,
+          "top1_chunk_id": "HBS-10Q-FY2023Q1#c1",
+          "failure_classification": "right_company_wrong_period"
+        }
+      ],
+      "injected_chunk_count": 0,
+      "injected_chunk_rate_pct": 0.0,
+      "tenant_leak_count": 0,
+      "configuration_label": "FTS-Only + Deterministic Filters"
+    },
+    {
+      "mode": "fts_only",
+      "filter_mode": "none",
+      "split": "all",
+      "total_queries": 49,
+      "answerable_queries": 38,
+      "latency_p50_ms": 6.99,
+      "latency_p95_ms": 9.995999999999999,
+      "recall_at_1": 68.4,
+      "recall_at_1_ci95": [
+        52.5,
+        80.9
+      ],
+      "recall_at_5": 78.9,
+      "recall_at_5_ci95": [
+        63.7,
+        88.9
+      ],
+      "mrr": 0.7215,
+      "rank_distribution": {
+        "rank_1": 26,
+        "rank_2": 1,
+        "rank_3": 0,
+        "rank_4": 3,
+        "rank_5": 0,
+        "rank_6_10": 1,
+        "rank_gt_10": 7
+      },
+      "failure_cases": [
+        {
+          "id": "dev-03",
+          "question": "What was Cobalt Energy Partners's interest coverage in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "CEP_2024Q1_IS#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "CEP-10Q-FY2024Q2#c1",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "dev-15",
+          "question": "According to the filings what drove the revenue change at Aurora Retail Group in fiscal 2022 quarter 4?",
+          "gold_chunks": [
+            "ARG-10K-FY2022#c2"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "ARG-10K-FY2022#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-16",
+          "question": "According to the filings what drove the revenue change at Cobalt Energy Partners in fiscal 2022 quarter 3?",
+          "gold_chunks": [
+            "CEP-10Q-FY2022Q3#c2"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "CEP-10Q-FY2022Q3#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-18",
+          "question": "What was Cobalt Energy Partners's gross margin in fiscal 2023 quarter 3 and what explains it?",
+          "gold_chunks": [
+            "CEP_2023Q3_IS#t1",
+            "CEP-10Q-FY2023Q3#c2"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "CEP-10Q-FY2023Q1#c1",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-01",
+          "question": "What risks did Helix Biosystems disclose regarding academic funding cycles?",
+          "gold_chunks": [
+            "HBS-10K-FY2023#c3"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "HBS-10Q-FY2022Q3#c3",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-02",
+          "question": "What reasons did Northwind provide in Notes to Financial Statements for restating third quarter fiscal 2023?",
+          "gold_chunks": [
+            "NWI-10Q-FY2024Q3#c4"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "NWI_2024Q3_IS#t1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-05",
+          "question": "What does Cobalt Energy Partners state regarding its dividend policy in investor communications?",
+          "gold_chunks": [
+            "CEP_investor_faq#c1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "CEP-10Q-FY2024Q3#c1",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-06",
+          "question": "What business risks did MSI disclose in its annual report?",
+          "gold_chunks": [
+            "MSI-10K-FY2023#c3"
+          ],
+          "gold_rank": 6,
+          "top1_chunk_id": "MSI-10Q-FY2022Q2#c3",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-07",
+          "question": "How did promotional discounting affect Aurora Retail Group inventory clearance in fiscal 2023?",
+          "gold_chunks": [
+            "ARG-10K-FY2023#c2"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "ARG-10K-FY2023#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-09",
+          "question": "What risks did ZLG disclose regarding its competitive landscape?",
+          "gold_chunks": [
+            "ZLG-10K-FY2023#c3"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "ZLG-10Q-FY2024Q3#c3",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-10",
+          "question": "What did Helix Biosystems disclose about supply chain disruptions in fiscal 2023?",
+          "gold_chunks": [
+            "HBS-10K-FY2023#c3"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "HBS-10Q-FY2023Q1#c1",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-20",
+          "question": "What was MSI's total revenue in fiscal 2022 quarter 4?",
+          "gold_chunks": [
+            "MSI_2022Q4_IS#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "MSI-10K-FY2022#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        }
+      ],
       "injected_chunk_count": 0,
       "injected_chunk_rate_pct": 0.0,
       "tenant_leak_count": 0,
@@ -335,22 +2104,2181 @@
     },
     {
       "mode": "fts_only",
-      "use_filters": false,
-      "split": "held_out",
-      "total_queries": 15,
-      "answerable_queries": 11,
-      "latency_p50_ms": 7.76,
-      "latency_p95_ms": 9.411000000000001,
-      "latency_mean_ms": 7.864000000000002,
-      "recall_at_1": 9.09,
-      "recall_at_3": 27.27,
-      "recall_at_5": 27.27,
-      "recall_at_10": 27.27,
-      "mrr": 0.1515,
+      "filter_mode": "none",
+      "split": "dev",
+      "total_queries": 34,
+      "answerable_queries": 27,
+      "latency_p50_ms": 6.665,
+      "latency_p95_ms": 9.3195,
+      "recall_at_1": 70.4,
+      "recall_at_1_ci95": [
+        51.5,
+        84.1
+      ],
+      "recall_at_5": 85.2,
+      "recall_at_5_ci95": [
+        67.5,
+        94.1
+      ],
+      "mrr": 0.7562,
+      "rank_distribution": {
+        "rank_1": 19,
+        "rank_2": 1,
+        "rank_3": 0,
+        "rank_4": 3,
+        "rank_5": 0,
+        "rank_6_10": 1,
+        "rank_gt_10": 3
+      },
+      "failure_cases": [
+        {
+          "id": "dev-03",
+          "question": "What was Cobalt Energy Partners's interest coverage in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "CEP_2024Q1_IS#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "CEP-10Q-FY2024Q2#c1",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "dev-15",
+          "question": "According to the filings what drove the revenue change at Aurora Retail Group in fiscal 2022 quarter 4?",
+          "gold_chunks": [
+            "ARG-10K-FY2022#c2"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "ARG-10K-FY2022#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-16",
+          "question": "According to the filings what drove the revenue change at Cobalt Energy Partners in fiscal 2022 quarter 3?",
+          "gold_chunks": [
+            "CEP-10Q-FY2022Q3#c2"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "CEP-10Q-FY2022Q3#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-18",
+          "question": "What was Cobalt Energy Partners's gross margin in fiscal 2023 quarter 3 and what explains it?",
+          "gold_chunks": [
+            "CEP_2023Q3_IS#t1",
+            "CEP-10Q-FY2023Q3#c2"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "CEP-10Q-FY2023Q1#c1",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-06",
+          "question": "What business risks did MSI disclose in its annual report?",
+          "gold_chunks": [
+            "MSI-10K-FY2023#c3"
+          ],
+          "gold_rank": 6,
+          "top1_chunk_id": "MSI-10Q-FY2022Q2#c3",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-07",
+          "question": "How did promotional discounting affect Aurora Retail Group inventory clearance in fiscal 2023?",
+          "gold_chunks": [
+            "ARG-10K-FY2023#c2"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "ARG-10K-FY2023#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-09",
+          "question": "What risks did ZLG disclose regarding its competitive landscape?",
+          "gold_chunks": [
+            "ZLG-10K-FY2023#c3"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "ZLG-10Q-FY2024Q3#c3",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-20",
+          "question": "What was MSI's total revenue in fiscal 2022 quarter 4?",
+          "gold_chunks": [
+            "MSI_2022Q4_IS#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "MSI-10K-FY2022#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        }
+      ],
       "injected_chunk_count": 0,
       "injected_chunk_rate_pct": 0.0,
       "tenant_leak_count": 0,
       "configuration_label": "FTS-Only - No Filters"
+    },
+    {
+      "mode": "fts_only",
+      "filter_mode": "none",
+      "split": "held_out",
+      "total_queries": 15,
+      "answerable_queries": 11,
+      "latency_p50_ms": 7.42,
+      "latency_p95_ms": 10.249,
+      "recall_at_1": 63.6,
+      "recall_at_1_ci95": [
+        35.4,
+        84.8
+      ],
+      "recall_at_5": 63.6,
+      "recall_at_5_ci95": [
+        35.4,
+        84.8
+      ],
+      "mrr": 0.6364,
+      "rank_distribution": {
+        "rank_1": 7,
+        "rank_2": 0,
+        "rank_3": 0,
+        "rank_4": 0,
+        "rank_5": 0,
+        "rank_6_10": 0,
+        "rank_gt_10": 4
+      },
+      "failure_cases": [
+        {
+          "id": "eval-01",
+          "question": "What risks did Helix Biosystems disclose regarding academic funding cycles?",
+          "gold_chunks": [
+            "HBS-10K-FY2023#c3"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "HBS-10Q-FY2022Q3#c3",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-02",
+          "question": "What reasons did Northwind provide in Notes to Financial Statements for restating third quarter fiscal 2023?",
+          "gold_chunks": [
+            "NWI-10Q-FY2024Q3#c4"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "NWI_2024Q3_IS#t1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-05",
+          "question": "What does Cobalt Energy Partners state regarding its dividend policy in investor communications?",
+          "gold_chunks": [
+            "CEP_investor_faq#c1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "CEP-10Q-FY2024Q3#c1",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-10",
+          "question": "What did Helix Biosystems disclose about supply chain disruptions in fiscal 2023?",
+          "gold_chunks": [
+            "HBS-10K-FY2023#c3"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "HBS-10Q-FY2023Q1#c1",
+          "failure_classification": "right_company_wrong_period"
+        }
+      ],
+      "injected_chunk_count": 0,
+      "injected_chunk_rate_pct": 0.0,
+      "tenant_leak_count": 0,
+      "configuration_label": "FTS-Only - No Filters"
+    },
+    {
+      "mode": "vector_only",
+      "filter_mode": "gold",
+      "split": "all",
+      "total_queries": 49,
+      "answerable_queries": 38,
+      "latency_p50_ms": 5.22,
+      "latency_p95_ms": 6.528,
+      "recall_at_1": 34.2,
+      "recall_at_1_ci95": [
+        21.2,
+        50.1
+      ],
+      "recall_at_5": 94.7,
+      "recall_at_5_ci95": [
+        82.7,
+        98.5
+      ],
+      "mrr": 0.5316,
+      "rank_distribution": {
+        "rank_1": 13,
+        "rank_2": 5,
+        "rank_3": 3,
+        "rank_4": 14,
+        "rank_5": 1,
+        "rank_6_10": 0,
+        "rank_gt_10": 2
+      },
+      "failure_cases": [
+        {
+          "id": "dev-01",
+          "question": "What was Aurora Retail Group's free cash flow in fiscal 2022 quarter 2?",
+          "gold_chunks": [
+            "ARG_2022Q2_CF#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "ARG-10Q-FY2022Q2#c4",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-02",
+          "question": "What was Cobalt Energy Partners's debt to equity in fiscal 2022 quarter 3?",
+          "gold_chunks": [
+            "CEP_2022Q3_BS#t1"
+          ],
+          "gold_rank": 3,
+          "top1_chunk_id": "CEP-10Q-FY2022Q3#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-03",
+          "question": "What was Cobalt Energy Partners's interest coverage in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "CEP_2024Q1_IS#t1"
+          ],
+          "gold_rank": 5,
+          "top1_chunk_id": "CEP-10Q-FY2024Q1#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-04",
+          "question": "What was Aurora Retail Group's current ratio in fiscal 2022 quarter 3?",
+          "gold_chunks": [
+            "ARG_2022Q3_BS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "ARG-10Q-FY2022Q3#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-05",
+          "question": "What was Cobalt Energy Partners's debt to equity in fiscal 2024 quarter 3?",
+          "gold_chunks": [
+            "CEP_2024Q3_BS#t1"
+          ],
+          "gold_rank": 3,
+          "top1_chunk_id": "CEP-10Q-FY2024Q3#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-06",
+          "question": "What was Cobalt Energy Partners's operating margin in fiscal 2023 quarter 1?",
+          "gold_chunks": [
+            "CEP_2023Q1_IS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "CEP-10Q-FY2023Q1#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-07",
+          "question": "What was Aurora Retail Group's current ratio in fiscal 2022 quarter 1?",
+          "gold_chunks": [
+            "ARG_2022Q1_BS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "ARG-10Q-FY2022Q1#c4",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-08",
+          "question": "What was Cobalt Energy Partners's gross margin in fiscal 2023 quarter 2?",
+          "gold_chunks": [
+            "CEP_2023Q2_IS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "CEP-10Q-FY2023Q2#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-09",
+          "question": "What was Aurora Retail Group's current ratio in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "ARG_2024Q1_BS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "ARG-10Q-FY2024Q1#c4",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-10",
+          "question": "What was Cobalt Energy Partners's gross margin in fiscal 2022 quarter 3?",
+          "gold_chunks": [
+            "CEP_2022Q3_IS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "CEP-10Q-FY2022Q3#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-11",
+          "question": "What was Cobalt Energy Partners's return on equity in fiscal 2023 quarter 2?",
+          "gold_chunks": [
+            "CEP_2023Q2_IS#t1",
+            "CEP_2023Q2_BS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "CEP-10Q-FY2023Q2#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-12",
+          "question": "What was Aurora Retail Group's return on equity in fiscal 2023 quarter 1?",
+          "gold_chunks": [
+            "ARG_2023Q1_IS#t1",
+            "ARG_2023Q1_BS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "ARG-10Q-FY2023Q1#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-13",
+          "question": "What was Aurora Retail Group's operating margin in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "ARG_2024Q1_IS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "ARG-10Q-FY2024Q1#c4",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-14",
+          "question": "What was Cobalt Energy Partners's current ratio in fiscal 2022 quarter 1?",
+          "gold_chunks": [
+            "CEP_2022Q1_BS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "CEP-10Q-FY2022Q1#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-15",
+          "question": "According to the filings what drove the revenue change at Aurora Retail Group in fiscal 2022 quarter 4?",
+          "gold_chunks": [
+            "ARG-10K-FY2022#c2"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "ARG-10K-FY2022#c4",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-02",
+          "question": "What reasons did Northwind provide in Notes to Financial Statements for restating third quarter fiscal 2023?",
+          "gold_chunks": [
+            "NWI-10Q-FY2024Q3#c4"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "NWI_2024Q3_BS#t1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-05",
+          "question": "What does Cobalt Energy Partners state regarding its dividend policy in investor communications?",
+          "gold_chunks": [
+            "CEP_investor_faq#c1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "CEP-10Q-FY2023Q2#c2",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-11",
+          "question": "What was Helix Biosystems's revenue in fiscal 2024 quarter 2?",
+          "gold_chunks": [
+            "HBS_2024Q2_IS#t1"
+          ],
+          "gold_rank": 3,
+          "top1_chunk_id": "HBS-10Q-FY2024Q2#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-13",
+          "question": "What was Cobalt Energy Partners's net income in fiscal 2024 quarter 2 as restated?",
+          "gold_chunks": [
+            "CEP_2024Q2_IS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "CEP-10Q-FY2024Q2#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-15",
+          "question": "What was ZLG's research and development expense in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "ZLG_2024Q1_IS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "ZLG-10Q-FY2024Q1#c4",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-16",
+          "question": "What was Aurora Retail Group's cash and cash equivalents in fiscal 2023 quarter 4?",
+          "gold_chunks": [
+            "ARG_2023Q4_BS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "ARG-10K-FY2023#c4",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-17",
+          "question": "What was Cobalt Energy Partners's total liabilities in fiscal 2023 quarter 4?",
+          "gold_chunks": [
+            "CEP_2023Q4_BS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "CEP-10K-FY2023#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-18",
+          "question": "What was Helix Biosystems's operating income in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "HBS_2024Q1_IS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "HBS-10Q-FY2024Q1#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-19",
+          "question": "What was Northwind's gross profit in fiscal 2024 quarter 3?",
+          "gold_chunks": [
+            "NWI_2024Q3_IS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "NWI-10Q-FY2024Q3#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-20",
+          "question": "What was MSI's total revenue in fiscal 2022 quarter 4?",
+          "gold_chunks": [
+            "MSI_2022Q4_IS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "MSI-10K-FY2022#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        }
+      ],
+      "injected_chunk_count": 0,
+      "injected_chunk_rate_pct": 0.0,
+      "tenant_leak_count": 0,
+      "configuration_label": "Vector-Only + Gold Filters"
+    },
+    {
+      "mode": "vector_only",
+      "filter_mode": "gold",
+      "split": "dev",
+      "total_queries": 34,
+      "answerable_queries": 27,
+      "latency_p50_ms": 5.17,
+      "latency_p95_ms": 7.405999999999995,
+      "recall_at_1": 33.3,
+      "recall_at_1_ci95": [
+        18.6,
+        52.2
+      ],
+      "recall_at_5": 100.0,
+      "recall_at_5_ci95": [
+        87.5,
+        100.0
+      ],
+      "mrr": 0.5321,
+      "rank_distribution": {
+        "rank_1": 9,
+        "rank_2": 3,
+        "rank_3": 2,
+        "rank_4": 12,
+        "rank_5": 1,
+        "rank_6_10": 0,
+        "rank_gt_10": 0
+      },
+      "failure_cases": [
+        {
+          "id": "dev-01",
+          "question": "What was Aurora Retail Group's free cash flow in fiscal 2022 quarter 2?",
+          "gold_chunks": [
+            "ARG_2022Q2_CF#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "ARG-10Q-FY2022Q2#c4",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-02",
+          "question": "What was Cobalt Energy Partners's debt to equity in fiscal 2022 quarter 3?",
+          "gold_chunks": [
+            "CEP_2022Q3_BS#t1"
+          ],
+          "gold_rank": 3,
+          "top1_chunk_id": "CEP-10Q-FY2022Q3#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-03",
+          "question": "What was Cobalt Energy Partners's interest coverage in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "CEP_2024Q1_IS#t1"
+          ],
+          "gold_rank": 5,
+          "top1_chunk_id": "CEP-10Q-FY2024Q1#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-04",
+          "question": "What was Aurora Retail Group's current ratio in fiscal 2022 quarter 3?",
+          "gold_chunks": [
+            "ARG_2022Q3_BS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "ARG-10Q-FY2022Q3#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-05",
+          "question": "What was Cobalt Energy Partners's debt to equity in fiscal 2024 quarter 3?",
+          "gold_chunks": [
+            "CEP_2024Q3_BS#t1"
+          ],
+          "gold_rank": 3,
+          "top1_chunk_id": "CEP-10Q-FY2024Q3#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-06",
+          "question": "What was Cobalt Energy Partners's operating margin in fiscal 2023 quarter 1?",
+          "gold_chunks": [
+            "CEP_2023Q1_IS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "CEP-10Q-FY2023Q1#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-07",
+          "question": "What was Aurora Retail Group's current ratio in fiscal 2022 quarter 1?",
+          "gold_chunks": [
+            "ARG_2022Q1_BS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "ARG-10Q-FY2022Q1#c4",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-08",
+          "question": "What was Cobalt Energy Partners's gross margin in fiscal 2023 quarter 2?",
+          "gold_chunks": [
+            "CEP_2023Q2_IS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "CEP-10Q-FY2023Q2#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-09",
+          "question": "What was Aurora Retail Group's current ratio in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "ARG_2024Q1_BS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "ARG-10Q-FY2024Q1#c4",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-10",
+          "question": "What was Cobalt Energy Partners's gross margin in fiscal 2022 quarter 3?",
+          "gold_chunks": [
+            "CEP_2022Q3_IS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "CEP-10Q-FY2022Q3#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-11",
+          "question": "What was Cobalt Energy Partners's return on equity in fiscal 2023 quarter 2?",
+          "gold_chunks": [
+            "CEP_2023Q2_IS#t1",
+            "CEP_2023Q2_BS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "CEP-10Q-FY2023Q2#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-12",
+          "question": "What was Aurora Retail Group's return on equity in fiscal 2023 quarter 1?",
+          "gold_chunks": [
+            "ARG_2023Q1_IS#t1",
+            "ARG_2023Q1_BS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "ARG-10Q-FY2023Q1#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-13",
+          "question": "What was Aurora Retail Group's operating margin in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "ARG_2024Q1_IS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "ARG-10Q-FY2024Q1#c4",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-14",
+          "question": "What was Cobalt Energy Partners's current ratio in fiscal 2022 quarter 1?",
+          "gold_chunks": [
+            "CEP_2022Q1_BS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "CEP-10Q-FY2022Q1#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-15",
+          "question": "According to the filings what drove the revenue change at Aurora Retail Group in fiscal 2022 quarter 4?",
+          "gold_chunks": [
+            "ARG-10K-FY2022#c2"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "ARG-10K-FY2022#c4",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-16",
+          "question": "What was Aurora Retail Group's cash and cash equivalents in fiscal 2023 quarter 4?",
+          "gold_chunks": [
+            "ARG_2023Q4_BS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "ARG-10K-FY2023#c4",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-18",
+          "question": "What was Helix Biosystems's operating income in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "HBS_2024Q1_IS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "HBS-10Q-FY2024Q1#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-20",
+          "question": "What was MSI's total revenue in fiscal 2022 quarter 4?",
+          "gold_chunks": [
+            "MSI_2022Q4_IS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "MSI-10K-FY2022#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        }
+      ],
+      "injected_chunk_count": 0,
+      "injected_chunk_rate_pct": 0.0,
+      "tenant_leak_count": 0,
+      "configuration_label": "Vector-Only + Gold Filters"
+    },
+    {
+      "mode": "vector_only",
+      "filter_mode": "gold",
+      "split": "held_out",
+      "total_queries": 15,
+      "answerable_queries": 11,
+      "latency_p50_ms": 5.23,
+      "latency_p95_ms": 6.212,
+      "recall_at_1": 36.4,
+      "recall_at_1_ci95": [
+        15.2,
+        64.6
+      ],
+      "recall_at_5": 81.8,
+      "recall_at_5_ci95": [
+        52.3,
+        94.9
+      ],
+      "mrr": 0.5303,
+      "rank_distribution": {
+        "rank_1": 4,
+        "rank_2": 2,
+        "rank_3": 1,
+        "rank_4": 2,
+        "rank_5": 0,
+        "rank_6_10": 0,
+        "rank_gt_10": 2
+      },
+      "failure_cases": [
+        {
+          "id": "eval-02",
+          "question": "What reasons did Northwind provide in Notes to Financial Statements for restating third quarter fiscal 2023?",
+          "gold_chunks": [
+            "NWI-10Q-FY2024Q3#c4"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "NWI_2024Q3_BS#t1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-05",
+          "question": "What does Cobalt Energy Partners state regarding its dividend policy in investor communications?",
+          "gold_chunks": [
+            "CEP_investor_faq#c1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "CEP-10Q-FY2023Q2#c2",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-11",
+          "question": "What was Helix Biosystems's revenue in fiscal 2024 quarter 2?",
+          "gold_chunks": [
+            "HBS_2024Q2_IS#t1"
+          ],
+          "gold_rank": 3,
+          "top1_chunk_id": "HBS-10Q-FY2024Q2#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-13",
+          "question": "What was Cobalt Energy Partners's net income in fiscal 2024 quarter 2 as restated?",
+          "gold_chunks": [
+            "CEP_2024Q2_IS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "CEP-10Q-FY2024Q2#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-15",
+          "question": "What was ZLG's research and development expense in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "ZLG_2024Q1_IS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "ZLG-10Q-FY2024Q1#c4",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-17",
+          "question": "What was Cobalt Energy Partners's total liabilities in fiscal 2023 quarter 4?",
+          "gold_chunks": [
+            "CEP_2023Q4_BS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "CEP-10K-FY2023#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-19",
+          "question": "What was Northwind's gross profit in fiscal 2024 quarter 3?",
+          "gold_chunks": [
+            "NWI_2024Q3_IS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "NWI-10Q-FY2024Q3#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        }
+      ],
+      "injected_chunk_count": 0,
+      "injected_chunk_rate_pct": 0.0,
+      "tenant_leak_count": 0,
+      "configuration_label": "Vector-Only + Gold Filters"
+    },
+    {
+      "mode": "vector_only",
+      "filter_mode": "deterministic",
+      "split": "all",
+      "total_queries": 49,
+      "answerable_queries": 38,
+      "latency_p50_ms": 4.96,
+      "latency_p95_ms": 7.219999999999997,
+      "recall_at_1": 26.3,
+      "recall_at_1_ci95": [
+        15.0,
+        42.0
+      ],
+      "recall_at_5": 89.5,
+      "recall_at_5_ci95": [
+        75.9,
+        95.8
+      ],
+      "mrr": 0.467,
+      "rank_distribution": {
+        "rank_1": 10,
+        "rank_2": 5,
+        "rank_3": 4,
+        "rank_4": 14,
+        "rank_5": 1,
+        "rank_6_10": 2,
+        "rank_gt_10": 2
+      },
+      "failure_cases": [
+        {
+          "id": "dev-01",
+          "question": "What was Aurora Retail Group's free cash flow in fiscal 2022 quarter 2?",
+          "gold_chunks": [
+            "ARG_2022Q2_CF#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "ARG-10Q-FY2022Q2#c4",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-02",
+          "question": "What was Cobalt Energy Partners's debt to equity in fiscal 2022 quarter 3?",
+          "gold_chunks": [
+            "CEP_2022Q3_BS#t1"
+          ],
+          "gold_rank": 3,
+          "top1_chunk_id": "CEP-10Q-FY2022Q3#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-03",
+          "question": "What was Cobalt Energy Partners's interest coverage in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "CEP_2024Q1_IS#t1"
+          ],
+          "gold_rank": 5,
+          "top1_chunk_id": "CEP-10Q-FY2024Q1#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-04",
+          "question": "What was Aurora Retail Group's current ratio in fiscal 2022 quarter 3?",
+          "gold_chunks": [
+            "ARG_2022Q3_BS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "ARG-10Q-FY2022Q3#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-05",
+          "question": "What was Cobalt Energy Partners's debt to equity in fiscal 2024 quarter 3?",
+          "gold_chunks": [
+            "CEP_2024Q3_BS#t1"
+          ],
+          "gold_rank": 3,
+          "top1_chunk_id": "CEP-10Q-FY2024Q3#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-06",
+          "question": "What was Cobalt Energy Partners's operating margin in fiscal 2023 quarter 1?",
+          "gold_chunks": [
+            "CEP_2023Q1_IS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "CEP-10Q-FY2023Q1#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-07",
+          "question": "What was Aurora Retail Group's current ratio in fiscal 2022 quarter 1?",
+          "gold_chunks": [
+            "ARG_2022Q1_BS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "ARG-10Q-FY2022Q1#c4",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-08",
+          "question": "What was Cobalt Energy Partners's gross margin in fiscal 2023 quarter 2?",
+          "gold_chunks": [
+            "CEP_2023Q2_IS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "CEP-10Q-FY2023Q2#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-09",
+          "question": "What was Aurora Retail Group's current ratio in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "ARG_2024Q1_BS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "ARG-10Q-FY2024Q1#c4",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-10",
+          "question": "What was Cobalt Energy Partners's gross margin in fiscal 2022 quarter 3?",
+          "gold_chunks": [
+            "CEP_2022Q3_IS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "CEP-10Q-FY2022Q3#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-11",
+          "question": "What was Cobalt Energy Partners's return on equity in fiscal 2023 quarter 2?",
+          "gold_chunks": [
+            "CEP_2023Q2_IS#t1",
+            "CEP_2023Q2_BS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "CEP-10Q-FY2023Q2#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-12",
+          "question": "What was Aurora Retail Group's return on equity in fiscal 2023 quarter 1?",
+          "gold_chunks": [
+            "ARG_2023Q1_IS#t1",
+            "ARG_2023Q1_BS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "ARG-10Q-FY2023Q1#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-13",
+          "question": "What was Aurora Retail Group's operating margin in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "ARG_2024Q1_IS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "ARG-10Q-FY2024Q1#c4",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-14",
+          "question": "What was Cobalt Energy Partners's current ratio in fiscal 2022 quarter 1?",
+          "gold_chunks": [
+            "CEP_2022Q1_BS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "CEP-10Q-FY2022Q1#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-15",
+          "question": "According to the filings what drove the revenue change at Aurora Retail Group in fiscal 2022 quarter 4?",
+          "gold_chunks": [
+            "ARG-10K-FY2022#c2"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "ARG-10K-FY2022#c4",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-01",
+          "question": "What risks did Helix Biosystems disclose regarding academic funding cycles?",
+          "gold_chunks": [
+            "HBS-10K-FY2023#c3"
+          ],
+          "gold_rank": 10,
+          "top1_chunk_id": "HBS-10K-FY2022#c3",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-02",
+          "question": "What reasons did Northwind provide in Notes to Financial Statements for restating third quarter fiscal 2023?",
+          "gold_chunks": [
+            "NWI-10Q-FY2024Q3#c4"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "NWI-10Q-FY2023Q3#c4",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-05",
+          "question": "What does Cobalt Energy Partners state regarding its dividend policy in investor communications?",
+          "gold_chunks": [
+            "CEP_investor_faq#c1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "CEP-10Q-FY2023Q2#c2",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-09",
+          "question": "What risks did ZLG disclose regarding its competitive landscape?",
+          "gold_chunks": [
+            "ZLG-10K-FY2023#c3"
+          ],
+          "gold_rank": 9,
+          "top1_chunk_id": "ZLG-10Q-FY2022Q1#c3",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-10",
+          "question": "What did Helix Biosystems disclose about supply chain disruptions in fiscal 2023?",
+          "gold_chunks": [
+            "HBS-10K-FY2023#c3"
+          ],
+          "gold_rank": 3,
+          "top1_chunk_id": "HBS-10Q-FY2023Q3#c3",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-11",
+          "question": "What was Helix Biosystems's revenue in fiscal 2024 quarter 2?",
+          "gold_chunks": [
+            "HBS_2024Q2_IS#t1"
+          ],
+          "gold_rank": 3,
+          "top1_chunk_id": "HBS-10Q-FY2024Q2#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-13",
+          "question": "What was Cobalt Energy Partners's net income in fiscal 2024 quarter 2 as restated?",
+          "gold_chunks": [
+            "CEP_2024Q2_IS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "CEP-10Q-FY2024Q2#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-15",
+          "question": "What was ZLG's research and development expense in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "ZLG_2024Q1_IS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "ZLG-10Q-FY2024Q1#c4",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-16",
+          "question": "What was Aurora Retail Group's cash and cash equivalents in fiscal 2023 quarter 4?",
+          "gold_chunks": [
+            "ARG_2023Q4_BS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "ARG-10K-FY2023#c4",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-17",
+          "question": "What was Cobalt Energy Partners's total liabilities in fiscal 2023 quarter 4?",
+          "gold_chunks": [
+            "CEP_2023Q4_BS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "CEP-10K-FY2023#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-18",
+          "question": "What was Helix Biosystems's operating income in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "HBS_2024Q1_IS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "HBS-10Q-FY2024Q1#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-19",
+          "question": "What was Northwind's gross profit in fiscal 2024 quarter 3?",
+          "gold_chunks": [
+            "NWI_2024Q3_IS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "NWI-10Q-FY2024Q3#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-20",
+          "question": "What was MSI's total revenue in fiscal 2022 quarter 4?",
+          "gold_chunks": [
+            "MSI_2022Q4_IS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "MSI-10K-FY2022#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        }
+      ],
+      "injected_chunk_count": 0,
+      "injected_chunk_rate_pct": 0.0,
+      "tenant_leak_count": 0,
+      "configuration_label": "Vector-Only + Deterministic Filters"
+    },
+    {
+      "mode": "vector_only",
+      "filter_mode": "deterministic",
+      "split": "dev",
+      "total_queries": 34,
+      "answerable_queries": 27,
+      "latency_p50_ms": 5.38,
+      "latency_p95_ms": 7.152,
+      "recall_at_1": 29.6,
+      "recall_at_1_ci95": [
+        15.9,
+        48.5
+      ],
+      "recall_at_5": 96.3,
+      "recall_at_5_ci95": [
+        81.7,
+        99.3
+      ],
+      "mrr": 0.4992,
+      "rank_distribution": {
+        "rank_1": 8,
+        "rank_2": 3,
+        "rank_3": 2,
+        "rank_4": 12,
+        "rank_5": 1,
+        "rank_6_10": 1,
+        "rank_gt_10": 0
+      },
+      "failure_cases": [
+        {
+          "id": "dev-01",
+          "question": "What was Aurora Retail Group's free cash flow in fiscal 2022 quarter 2?",
+          "gold_chunks": [
+            "ARG_2022Q2_CF#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "ARG-10Q-FY2022Q2#c4",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-02",
+          "question": "What was Cobalt Energy Partners's debt to equity in fiscal 2022 quarter 3?",
+          "gold_chunks": [
+            "CEP_2022Q3_BS#t1"
+          ],
+          "gold_rank": 3,
+          "top1_chunk_id": "CEP-10Q-FY2022Q3#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-03",
+          "question": "What was Cobalt Energy Partners's interest coverage in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "CEP_2024Q1_IS#t1"
+          ],
+          "gold_rank": 5,
+          "top1_chunk_id": "CEP-10Q-FY2024Q1#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-04",
+          "question": "What was Aurora Retail Group's current ratio in fiscal 2022 quarter 3?",
+          "gold_chunks": [
+            "ARG_2022Q3_BS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "ARG-10Q-FY2022Q3#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-05",
+          "question": "What was Cobalt Energy Partners's debt to equity in fiscal 2024 quarter 3?",
+          "gold_chunks": [
+            "CEP_2024Q3_BS#t1"
+          ],
+          "gold_rank": 3,
+          "top1_chunk_id": "CEP-10Q-FY2024Q3#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-06",
+          "question": "What was Cobalt Energy Partners's operating margin in fiscal 2023 quarter 1?",
+          "gold_chunks": [
+            "CEP_2023Q1_IS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "CEP-10Q-FY2023Q1#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-07",
+          "question": "What was Aurora Retail Group's current ratio in fiscal 2022 quarter 1?",
+          "gold_chunks": [
+            "ARG_2022Q1_BS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "ARG-10Q-FY2022Q1#c4",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-08",
+          "question": "What was Cobalt Energy Partners's gross margin in fiscal 2023 quarter 2?",
+          "gold_chunks": [
+            "CEP_2023Q2_IS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "CEP-10Q-FY2023Q2#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-09",
+          "question": "What was Aurora Retail Group's current ratio in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "ARG_2024Q1_BS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "ARG-10Q-FY2024Q1#c4",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-10",
+          "question": "What was Cobalt Energy Partners's gross margin in fiscal 2022 quarter 3?",
+          "gold_chunks": [
+            "CEP_2022Q3_IS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "CEP-10Q-FY2022Q3#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-11",
+          "question": "What was Cobalt Energy Partners's return on equity in fiscal 2023 quarter 2?",
+          "gold_chunks": [
+            "CEP_2023Q2_IS#t1",
+            "CEP_2023Q2_BS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "CEP-10Q-FY2023Q2#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-12",
+          "question": "What was Aurora Retail Group's return on equity in fiscal 2023 quarter 1?",
+          "gold_chunks": [
+            "ARG_2023Q1_IS#t1",
+            "ARG_2023Q1_BS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "ARG-10Q-FY2023Q1#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-13",
+          "question": "What was Aurora Retail Group's operating margin in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "ARG_2024Q1_IS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "ARG-10Q-FY2024Q1#c4",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-14",
+          "question": "What was Cobalt Energy Partners's current ratio in fiscal 2022 quarter 1?",
+          "gold_chunks": [
+            "CEP_2022Q1_BS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "CEP-10Q-FY2022Q1#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-15",
+          "question": "According to the filings what drove the revenue change at Aurora Retail Group in fiscal 2022 quarter 4?",
+          "gold_chunks": [
+            "ARG-10K-FY2022#c2"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "ARG-10K-FY2022#c4",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-09",
+          "question": "What risks did ZLG disclose regarding its competitive landscape?",
+          "gold_chunks": [
+            "ZLG-10K-FY2023#c3"
+          ],
+          "gold_rank": 9,
+          "top1_chunk_id": "ZLG-10Q-FY2022Q1#c3",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-16",
+          "question": "What was Aurora Retail Group's cash and cash equivalents in fiscal 2023 quarter 4?",
+          "gold_chunks": [
+            "ARG_2023Q4_BS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "ARG-10K-FY2023#c4",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-18",
+          "question": "What was Helix Biosystems's operating income in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "HBS_2024Q1_IS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "HBS-10Q-FY2024Q1#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-20",
+          "question": "What was MSI's total revenue in fiscal 2022 quarter 4?",
+          "gold_chunks": [
+            "MSI_2022Q4_IS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "MSI-10K-FY2022#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        }
+      ],
+      "injected_chunk_count": 0,
+      "injected_chunk_rate_pct": 0.0,
+      "tenant_leak_count": 0,
+      "configuration_label": "Vector-Only + Deterministic Filters"
+    },
+    {
+      "mode": "vector_only",
+      "filter_mode": "deterministic",
+      "split": "held_out",
+      "total_queries": 15,
+      "answerable_queries": 11,
+      "latency_p50_ms": 5.5,
+      "latency_p95_ms": 6.267,
+      "recall_at_1": 18.2,
+      "recall_at_1_ci95": [
+        5.1,
+        47.7
+      ],
+      "recall_at_5": 72.7,
+      "recall_at_5_ci95": [
+        43.4,
+        90.3
+      ],
+      "mrr": 0.3879,
+      "rank_distribution": {
+        "rank_1": 2,
+        "rank_2": 2,
+        "rank_3": 2,
+        "rank_4": 2,
+        "rank_5": 0,
+        "rank_6_10": 1,
+        "rank_gt_10": 2
+      },
+      "failure_cases": [
+        {
+          "id": "eval-01",
+          "question": "What risks did Helix Biosystems disclose regarding academic funding cycles?",
+          "gold_chunks": [
+            "HBS-10K-FY2023#c3"
+          ],
+          "gold_rank": 10,
+          "top1_chunk_id": "HBS-10K-FY2022#c3",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-02",
+          "question": "What reasons did Northwind provide in Notes to Financial Statements for restating third quarter fiscal 2023?",
+          "gold_chunks": [
+            "NWI-10Q-FY2024Q3#c4"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "NWI-10Q-FY2023Q3#c4",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-05",
+          "question": "What does Cobalt Energy Partners state regarding its dividend policy in investor communications?",
+          "gold_chunks": [
+            "CEP_investor_faq#c1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "CEP-10Q-FY2023Q2#c2",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-10",
+          "question": "What did Helix Biosystems disclose about supply chain disruptions in fiscal 2023?",
+          "gold_chunks": [
+            "HBS-10K-FY2023#c3"
+          ],
+          "gold_rank": 3,
+          "top1_chunk_id": "HBS-10Q-FY2023Q3#c3",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-11",
+          "question": "What was Helix Biosystems's revenue in fiscal 2024 quarter 2?",
+          "gold_chunks": [
+            "HBS_2024Q2_IS#t1"
+          ],
+          "gold_rank": 3,
+          "top1_chunk_id": "HBS-10Q-FY2024Q2#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-13",
+          "question": "What was Cobalt Energy Partners's net income in fiscal 2024 quarter 2 as restated?",
+          "gold_chunks": [
+            "CEP_2024Q2_IS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "CEP-10Q-FY2024Q2#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-15",
+          "question": "What was ZLG's research and development expense in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "ZLG_2024Q1_IS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "ZLG-10Q-FY2024Q1#c4",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-17",
+          "question": "What was Cobalt Energy Partners's total liabilities in fiscal 2023 quarter 4?",
+          "gold_chunks": [
+            "CEP_2023Q4_BS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "CEP-10K-FY2023#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-19",
+          "question": "What was Northwind's gross profit in fiscal 2024 quarter 3?",
+          "gold_chunks": [
+            "NWI_2024Q3_IS#t1"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "NWI-10Q-FY2024Q3#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        }
+      ],
+      "injected_chunk_count": 0,
+      "injected_chunk_rate_pct": 0.0,
+      "tenant_leak_count": 0,
+      "configuration_label": "Vector-Only + Deterministic Filters"
+    },
+    {
+      "mode": "vector_only",
+      "filter_mode": "none",
+      "split": "all",
+      "total_queries": 49,
+      "answerable_queries": 38,
+      "latency_p50_ms": 6.51,
+      "latency_p95_ms": 7.977999999999998,
+      "recall_at_1": 21.1,
+      "recall_at_1_ci95": [
+        11.1,
+        36.3
+      ],
+      "recall_at_5": 34.2,
+      "recall_at_5_ci95": [
+        21.2,
+        50.1
+      ],
+      "mrr": 0.2629,
+      "rank_distribution": {
+        "rank_1": 8,
+        "rank_2": 1,
+        "rank_3": 2,
+        "rank_4": 2,
+        "rank_5": 0,
+        "rank_6_10": 3,
+        "rank_gt_10": 22
+      },
+      "failure_cases": [
+        {
+          "id": "dev-01",
+          "question": "What was Aurora Retail Group's free cash flow in fiscal 2022 quarter 2?",
+          "gold_chunks": [
+            "ARG_2022Q2_CF#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "ARG-10Q-FY2022Q2#c4",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-02",
+          "question": "What was Cobalt Energy Partners's debt to equity in fiscal 2022 quarter 3?",
+          "gold_chunks": [
+            "CEP_2022Q3_BS#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "CEP-10Q-FY2022Q3#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-03",
+          "question": "What was Cobalt Energy Partners's interest coverage in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "CEP_2024Q1_IS#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "CEP-10Q-FY2022Q1#c1",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "dev-04",
+          "question": "What was Aurora Retail Group's current ratio in fiscal 2022 quarter 3?",
+          "gold_chunks": [
+            "ARG_2022Q3_BS#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "ARG-10Q-FY2022Q3#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-05",
+          "question": "What was Cobalt Energy Partners's debt to equity in fiscal 2024 quarter 3?",
+          "gold_chunks": [
+            "CEP_2024Q3_BS#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "CEP-10Q-FY2022Q3#c1",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "dev-06",
+          "question": "What was Cobalt Energy Partners's operating margin in fiscal 2023 quarter 1?",
+          "gold_chunks": [
+            "CEP_2023Q1_IS#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "CEP-10Q-FY2023Q3#c2",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "dev-07",
+          "question": "What was Aurora Retail Group's current ratio in fiscal 2022 quarter 1?",
+          "gold_chunks": [
+            "ARG_2022Q1_BS#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "ARG-10Q-FY2022Q2#c2",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "dev-08",
+          "question": "What was Cobalt Energy Partners's gross margin in fiscal 2023 quarter 2?",
+          "gold_chunks": [
+            "CEP_2023Q2_IS#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "CEP-10Q-FY2023Q2#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-09",
+          "question": "What was Aurora Retail Group's current ratio in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "ARG_2024Q1_BS#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "ARG-10Q-FY2022Q1#c4",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "dev-10",
+          "question": "What was Cobalt Energy Partners's gross margin in fiscal 2022 quarter 3?",
+          "gold_chunks": [
+            "CEP_2022Q3_IS#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "CEP-10Q-FY2023Q2#c2",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "dev-11",
+          "question": "What was Cobalt Energy Partners's return on equity in fiscal 2023 quarter 2?",
+          "gold_chunks": [
+            "CEP_2023Q2_IS#t1",
+            "CEP_2023Q2_BS#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "CEP-10Q-FY2023Q2#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-12",
+          "question": "What was Aurora Retail Group's return on equity in fiscal 2023 quarter 1?",
+          "gold_chunks": [
+            "ARG_2023Q1_IS#t1",
+            "ARG_2023Q1_BS#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "ARG-10Q-FY2023Q1#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-13",
+          "question": "What was Aurora Retail Group's operating margin in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "ARG_2024Q1_IS#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "ARG-10Q-FY2024Q1#c4",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-14",
+          "question": "What was Cobalt Energy Partners's current ratio in fiscal 2022 quarter 1?",
+          "gold_chunks": [
+            "CEP_2022Q1_BS#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "CEP-10Q-FY2022Q1#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-15",
+          "question": "According to the filings what drove the revenue change at Aurora Retail Group in fiscal 2022 quarter 4?",
+          "gold_chunks": [
+            "ARG-10K-FY2022#c2"
+          ],
+          "gold_rank": 3,
+          "top1_chunk_id": "ARG-10Q-FY2024Q2#c2",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "dev-16",
+          "question": "According to the filings what drove the revenue change at Cobalt Energy Partners in fiscal 2022 quarter 3?",
+          "gold_chunks": [
+            "CEP-10Q-FY2022Q3#c2"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "CEP-10Q-FY2023Q2#c2",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-01",
+          "question": "What risks did Helix Biosystems disclose regarding academic funding cycles?",
+          "gold_chunks": [
+            "HBS-10K-FY2023#c3"
+          ],
+          "gold_rank": 10,
+          "top1_chunk_id": "HBS-10K-FY2022#c3",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-02",
+          "question": "What reasons did Northwind provide in Notes to Financial Statements for restating third quarter fiscal 2023?",
+          "gold_chunks": [
+            "NWI-10Q-FY2024Q3#c4"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "NWI-10Q-FY2023Q3#c4",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-05",
+          "question": "What does Cobalt Energy Partners state regarding its dividend policy in investor communications?",
+          "gold_chunks": [
+            "CEP_investor_faq#c1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "CEP-10Q-FY2023Q2#c2",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-09",
+          "question": "What risks did ZLG disclose regarding its competitive landscape?",
+          "gold_chunks": [
+            "ZLG-10K-FY2023#c3"
+          ],
+          "gold_rank": 9,
+          "top1_chunk_id": "ZLG-10Q-FY2022Q1#c3",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-10",
+          "question": "What did Helix Biosystems disclose about supply chain disruptions in fiscal 2023?",
+          "gold_chunks": [
+            "HBS-10K-FY2023#c3"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "HBS-10Q-FY2022Q3#c1",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-11",
+          "question": "What was Helix Biosystems's revenue in fiscal 2024 quarter 2?",
+          "gold_chunks": [
+            "HBS_2024Q2_IS#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "HBS-10Q-FY2024Q2#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-12",
+          "question": "What was Northwind's net income in fiscal 2023 quarter 3 as restated?",
+          "gold_chunks": [
+            "NWI_2023Q3_IS#t1"
+          ],
+          "gold_rank": 3,
+          "top1_chunk_id": "NWI_2022Q3_IS#t1",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-13",
+          "question": "What was Cobalt Energy Partners's net income in fiscal 2024 quarter 2 as restated?",
+          "gold_chunks": [
+            "CEP_2024Q2_IS#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "CEP-10Q-FY2022Q2#c1",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-15",
+          "question": "What was ZLG's research and development expense in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "ZLG_2024Q1_IS#t1"
+          ],
+          "gold_rank": 9,
+          "top1_chunk_id": "ZLG-10K-FY2024#c4",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-16",
+          "question": "What was Aurora Retail Group's cash and cash equivalents in fiscal 2023 quarter 4?",
+          "gold_chunks": [
+            "ARG_2023Q4_BS#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "ARG-10K-FY2023#c4",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-17",
+          "question": "What was Cobalt Energy Partners's total liabilities in fiscal 2023 quarter 4?",
+          "gold_chunks": [
+            "CEP_2023Q4_BS#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "CEP-10Q-FY2022Q3#c1",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-18",
+          "question": "What was Helix Biosystems's operating income in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "HBS_2024Q1_IS#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "HBS-10Q-FY2024Q2#c2",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-19",
+          "question": "What was Northwind's gross profit in fiscal 2024 quarter 3?",
+          "gold_chunks": [
+            "NWI_2024Q3_IS#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "NWI-10Q-FY2024Q3#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-20",
+          "question": "What was MSI's total revenue in fiscal 2022 quarter 4?",
+          "gold_chunks": [
+            "MSI_2022Q4_IS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "MSI-10Q-FY2024Q2#c2",
+          "failure_classification": "right_company_wrong_period"
+        }
+      ],
+      "injected_chunk_count": 0,
+      "injected_chunk_rate_pct": 0.0,
+      "tenant_leak_count": 0,
+      "configuration_label": "Vector-Only - No Filters"
+    },
+    {
+      "mode": "vector_only",
+      "filter_mode": "none",
+      "split": "dev",
+      "total_queries": 34,
+      "answerable_queries": 27,
+      "latency_p50_ms": 6.75,
+      "latency_p95_ms": 7.9005,
+      "recall_at_1": 22.2,
+      "recall_at_1_ci95": [
+        10.6,
+        40.8
+      ],
+      "recall_at_5": 37.0,
+      "recall_at_5_ci95": [
+        21.5,
+        55.8
+      ],
+      "mrr": 0.2788,
+      "rank_distribution": {
+        "rank_1": 6,
+        "rank_2": 1,
+        "rank_3": 2,
+        "rank_4": 1,
+        "rank_5": 0,
+        "rank_6_10": 1,
+        "rank_gt_10": 16
+      },
+      "failure_cases": [
+        {
+          "id": "dev-01",
+          "question": "What was Aurora Retail Group's free cash flow in fiscal 2022 quarter 2?",
+          "gold_chunks": [
+            "ARG_2022Q2_CF#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "ARG-10Q-FY2022Q2#c4",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-02",
+          "question": "What was Cobalt Energy Partners's debt to equity in fiscal 2022 quarter 3?",
+          "gold_chunks": [
+            "CEP_2022Q3_BS#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "CEP-10Q-FY2022Q3#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-03",
+          "question": "What was Cobalt Energy Partners's interest coverage in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "CEP_2024Q1_IS#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "CEP-10Q-FY2022Q1#c1",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "dev-04",
+          "question": "What was Aurora Retail Group's current ratio in fiscal 2022 quarter 3?",
+          "gold_chunks": [
+            "ARG_2022Q3_BS#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "ARG-10Q-FY2022Q3#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-05",
+          "question": "What was Cobalt Energy Partners's debt to equity in fiscal 2024 quarter 3?",
+          "gold_chunks": [
+            "CEP_2024Q3_BS#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "CEP-10Q-FY2022Q3#c1",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "dev-06",
+          "question": "What was Cobalt Energy Partners's operating margin in fiscal 2023 quarter 1?",
+          "gold_chunks": [
+            "CEP_2023Q1_IS#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "CEP-10Q-FY2023Q3#c2",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "dev-07",
+          "question": "What was Aurora Retail Group's current ratio in fiscal 2022 quarter 1?",
+          "gold_chunks": [
+            "ARG_2022Q1_BS#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "ARG-10Q-FY2022Q2#c2",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "dev-08",
+          "question": "What was Cobalt Energy Partners's gross margin in fiscal 2023 quarter 2?",
+          "gold_chunks": [
+            "CEP_2023Q2_IS#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "CEP-10Q-FY2023Q2#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-09",
+          "question": "What was Aurora Retail Group's current ratio in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "ARG_2024Q1_BS#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "ARG-10Q-FY2022Q1#c4",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "dev-10",
+          "question": "What was Cobalt Energy Partners's gross margin in fiscal 2022 quarter 3?",
+          "gold_chunks": [
+            "CEP_2022Q3_IS#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "CEP-10Q-FY2023Q2#c2",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "dev-11",
+          "question": "What was Cobalt Energy Partners's return on equity in fiscal 2023 quarter 2?",
+          "gold_chunks": [
+            "CEP_2023Q2_IS#t1",
+            "CEP_2023Q2_BS#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "CEP-10Q-FY2023Q2#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-12",
+          "question": "What was Aurora Retail Group's return on equity in fiscal 2023 quarter 1?",
+          "gold_chunks": [
+            "ARG_2023Q1_IS#t1",
+            "ARG_2023Q1_BS#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "ARG-10Q-FY2023Q1#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-13",
+          "question": "What was Aurora Retail Group's operating margin in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "ARG_2024Q1_IS#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "ARG-10Q-FY2024Q1#c4",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-14",
+          "question": "What was Cobalt Energy Partners's current ratio in fiscal 2022 quarter 1?",
+          "gold_chunks": [
+            "CEP_2022Q1_BS#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "CEP-10Q-FY2022Q1#c1",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "dev-15",
+          "question": "According to the filings what drove the revenue change at Aurora Retail Group in fiscal 2022 quarter 4?",
+          "gold_chunks": [
+            "ARG-10K-FY2022#c2"
+          ],
+          "gold_rank": 3,
+          "top1_chunk_id": "ARG-10Q-FY2024Q2#c2",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "dev-16",
+          "question": "According to the filings what drove the revenue change at Cobalt Energy Partners in fiscal 2022 quarter 3?",
+          "gold_chunks": [
+            "CEP-10Q-FY2022Q3#c2"
+          ],
+          "gold_rank": 2,
+          "top1_chunk_id": "CEP-10Q-FY2023Q2#c2",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-09",
+          "question": "What risks did ZLG disclose regarding its competitive landscape?",
+          "gold_chunks": [
+            "ZLG-10K-FY2023#c3"
+          ],
+          "gold_rank": 9,
+          "top1_chunk_id": "ZLG-10Q-FY2022Q1#c3",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-12",
+          "question": "What was Northwind's net income in fiscal 2023 quarter 3 as restated?",
+          "gold_chunks": [
+            "NWI_2023Q3_IS#t1"
+          ],
+          "gold_rank": 3,
+          "top1_chunk_id": "NWI_2022Q3_IS#t1",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-16",
+          "question": "What was Aurora Retail Group's cash and cash equivalents in fiscal 2023 quarter 4?",
+          "gold_chunks": [
+            "ARG_2023Q4_BS#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "ARG-10K-FY2023#c4",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-18",
+          "question": "What was Helix Biosystems's operating income in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "HBS_2024Q1_IS#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "HBS-10Q-FY2024Q2#c2",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-20",
+          "question": "What was MSI's total revenue in fiscal 2022 quarter 4?",
+          "gold_chunks": [
+            "MSI_2022Q4_IS#t1"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "MSI-10Q-FY2024Q2#c2",
+          "failure_classification": "right_company_wrong_period"
+        }
+      ],
+      "injected_chunk_count": 0,
+      "injected_chunk_rate_pct": 0.0,
+      "tenant_leak_count": 0,
+      "configuration_label": "Vector-Only - No Filters"
+    },
+    {
+      "mode": "vector_only",
+      "filter_mode": "none",
+      "split": "held_out",
+      "total_queries": 15,
+      "answerable_queries": 11,
+      "latency_p50_ms": 6.23,
+      "latency_p95_ms": 7.835999999999999,
+      "recall_at_1": 18.2,
+      "recall_at_1_ci95": [
+        5.1,
+        47.7
+      ],
+      "recall_at_5": 27.3,
+      "recall_at_5_ci95": [
+        9.7,
+        56.6
+      ],
+      "mrr": 0.2237,
+      "rank_distribution": {
+        "rank_1": 2,
+        "rank_2": 0,
+        "rank_3": 0,
+        "rank_4": 1,
+        "rank_5": 0,
+        "rank_6_10": 2,
+        "rank_gt_10": 6
+      },
+      "failure_cases": [
+        {
+          "id": "eval-01",
+          "question": "What risks did Helix Biosystems disclose regarding academic funding cycles?",
+          "gold_chunks": [
+            "HBS-10K-FY2023#c3"
+          ],
+          "gold_rank": 10,
+          "top1_chunk_id": "HBS-10K-FY2022#c3",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-02",
+          "question": "What reasons did Northwind provide in Notes to Financial Statements for restating third quarter fiscal 2023?",
+          "gold_chunks": [
+            "NWI-10Q-FY2024Q3#c4"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "NWI-10Q-FY2023Q3#c4",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-05",
+          "question": "What does Cobalt Energy Partners state regarding its dividend policy in investor communications?",
+          "gold_chunks": [
+            "CEP_investor_faq#c1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "CEP-10Q-FY2023Q2#c2",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-10",
+          "question": "What did Helix Biosystems disclose about supply chain disruptions in fiscal 2023?",
+          "gold_chunks": [
+            "HBS-10K-FY2023#c3"
+          ],
+          "gold_rank": 4,
+          "top1_chunk_id": "HBS-10Q-FY2022Q3#c1",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-11",
+          "question": "What was Helix Biosystems's revenue in fiscal 2024 quarter 2?",
+          "gold_chunks": [
+            "HBS_2024Q2_IS#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "HBS-10Q-FY2024Q2#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        },
+        {
+          "id": "eval-13",
+          "question": "What was Cobalt Energy Partners's net income in fiscal 2024 quarter 2 as restated?",
+          "gold_chunks": [
+            "CEP_2024Q2_IS#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "CEP-10Q-FY2022Q2#c1",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-15",
+          "question": "What was ZLG's research and development expense in fiscal 2024 quarter 1?",
+          "gold_chunks": [
+            "ZLG_2024Q1_IS#t1"
+          ],
+          "gold_rank": 9,
+          "top1_chunk_id": "ZLG-10K-FY2024#c4",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-17",
+          "question": "What was Cobalt Energy Partners's total liabilities in fiscal 2023 quarter 4?",
+          "gold_chunks": [
+            "CEP_2023Q4_BS#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "CEP-10Q-FY2022Q3#c1",
+          "failure_classification": "right_company_wrong_period"
+        },
+        {
+          "id": "eval-19",
+          "question": "What was Northwind's gross profit in fiscal 2024 quarter 3?",
+          "gold_chunks": [
+            "NWI_2024Q3_IS#t1"
+          ],
+          "gold_rank": null,
+          "top1_chunk_id": "NWI-10Q-FY2024Q3#c2",
+          "failure_classification": "right_company_period_wrong_statement_or_header"
+        }
+      ],
+      "injected_chunk_count": 0,
+      "injected_chunk_rate_pct": 0.0,
+      "tenant_leak_count": 0,
+      "configuration_label": "Vector-Only - No Filters"
     }
   ]
 }

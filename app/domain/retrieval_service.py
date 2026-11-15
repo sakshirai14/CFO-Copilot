@@ -27,6 +27,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from app.core.config import get_settings
+from app.core.errors import DatabaseUnavailableError
 from app.data.chunker import CHUNKER_VERSION
 from app.data.retrieval import (
     execute_fts_search,
@@ -126,17 +127,49 @@ class RetrievalService:
         self.is_test = is_test
         self.settings = get_settings()
         self._model = TextEmbedding(model_name=embedding_model_name)
+        self._embedding_cache: Dict[Tuple[str, str], List[float]] = {}
+        self._cache_hits: int = 0
+        self._cache_misses: int = 0
 
     def _get_connection(self, role: str = "ro"):
         params = self.settings.get_connection_params(role=role, is_test=self.is_test)
-        return psycopg2.connect(**params)
+        try:
+            return psycopg2.connect(**params)
+        except (psycopg2.OperationalError, psycopg2.Error) as exc:
+            raise DatabaseUnavailableError(f"Database unavailable for role '{role}': {exc}") from exc
 
-    def embed_query(self, query: str) -> List[float]:
-        """Generates query embedding with model-specific search prefix."""
+    def embed_query(self, query: str, tenant_id: Optional[str] = None) -> List[float]:
+        """Generates query embedding with model-specific search prefix, cached per tenant."""
+        cache_key = (tenant_id or "public", query)
+        if cache_key in self._embedding_cache:
+            self._cache_hits += 1
+            return self._embedding_cache[cache_key]
+
+        self._cache_misses += 1
         prefix = BGE_QUERY_PREFIX if "bge" in self.embedding_model_name.lower() else ""
         formatted_query = prefix + query
         embeddings = list(self._model.embed([formatted_query]))
-        return [float(x) for x in embeddings[0]]
+        emb = [float(x) for x in embeddings[0]]
+        self._embedding_cache[cache_key] = emb
+        return emb
+
+    def get_cache_stats(self) -> Dict[str, Any]:
+        """Returns query embedding cache statistics."""
+        total = self._cache_hits + self._cache_misses
+        hit_rate = (self._cache_hits / total) if total > 0 else 0.0
+        return {
+            "hits": self._cache_hits,
+            "misses": self._cache_misses,
+            "total": total,
+            "hit_rate": hit_rate,
+            "size": len(self._embedding_cache),
+        }
+
+    def clear_cache(self) -> None:
+        """Clears the query embedding cache."""
+        self._embedding_cache.clear()
+        self._cache_hits = 0
+        self._cache_misses = 0
 
     def compute_rrf(
         self,
@@ -231,7 +264,7 @@ class RetrievalService:
             degraded_reason = "FTS-only mode requested" if mode == "fts_only" else "Vector search simulated failure (Foundation Lock 7 test)"
         else:
             try:
-                q_emb = self.embed_query(query)
+                q_emb = self.embed_query(query, tenant_id=tenant_id)
                 conn_ro = self._get_connection(role="ro")
                 try:
                     vector_hits = execute_vector_search(

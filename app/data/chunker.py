@@ -35,6 +35,21 @@ STATEMENT_NAMES = {
     "CF": "Cash Flow Statement",
 }
 
+COMPANY_FULL_NAMES = {
+    "ARG": "Aurora Retail Group",
+    "CEP": "Cobalt Energy Partners",
+    "HBS": "Helix BioSystems",
+    "MSI": "Meridian Software Inc.",
+    "NWI": "Northwind Industrial Corp",
+    "ZLG": "Zephyr Logistics Ltd.",
+}
+
+STATEMENT_KEYWORDS = {
+    "IS": "revenue, gross margin, operating margin, net margin, ebitda, gross profit, operating income, net income, tax, interest, opex, rd intensity",
+    "BS": "current ratio, debt to equity, return on equity roe, current assets, current liabilities, total debt, total equity, cash, working capital",
+    "CF": "free cash flow, operating cash flow, capital expenditures capex",
+}
+
 
 @dataclass
 class Chunk:
@@ -108,9 +123,11 @@ def build_text_chunks_from_documents(conn) -> List[Chunk]:
                 sections.append((current_section, sec_body))
 
         # Build chunks for each section
+        comp_name = COMPANY_FULL_NAMES.get(company_id, company_id or "")
         for idx, (section_name, section_body) in enumerate(sections, start=1):
             chunk_id = f"{doc_id}#c{idx}"
-            header_prefix = f"[{company_id} {doc_id} | {section_name}]:\n"
+            period_part = f" | fiscal {fiscal_year} quarter {fiscal_quarter}" if fiscal_year and fiscal_quarter else ""
+            header_prefix = f"[{comp_name} ({company_id}) {doc_id}{period_part} | {section_name}]:\n"
             chunk_text = header_prefix + section_body
 
             # Chunk-level injection detection
@@ -176,14 +193,16 @@ def build_table_chunks_from_effective_line_items(conn, policy_version: str = "v1
         })
 
     for (comp, fy, fq, stmt), items in groups.items():
+        comp_name = COMPANY_FULL_NAMES.get(comp, comp)
+        metric_keywords = STATEMENT_KEYWORDS.get(stmt, "")
         stmt_full = STATEMENT_NAMES.get(stmt, stmt)
         chunk_id = f"{comp}_{fy}Q{fq}_{stmt}#t1"
         primary_filing = items[0]["filing_id"] if items else f"{comp}-FY{fy}Q{fq}"
 
-        # Build clean markdown table
+        # Build clean markdown table with distinctive statement and period identification
         md_lines = [
             f"[{comp} {primary_filing} | {stmt_full} Table (as_restated)]:",
-            f"Company: {comp} | Period: FY{fy} Q{fq} | Statement: {stmt_full} | Basis: as_restated",
+            f"Company: {comp_name} ({comp}) | Period: fiscal {fy} quarter {fq} (FY{fy} Q{fq}) | Statement: {stmt_full} Table | Key Metrics: {metric_keywords} | Basis: as_restated",
             "",
             "| Canonical Item | Normalized Value (USD) | Units | Restatement Note |",
             "|:---|---:|:---|:---|",

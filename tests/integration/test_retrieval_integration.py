@@ -12,6 +12,7 @@ Integration tests for Phase 3 Hybrid Retrieval System:
 
 import json
 import pytest
+from app.core.errors import DatabaseUnavailableError
 from app.data.chunker import run_chunking_pipeline
 from app.domain.retrieval_service import RetrievalFilter, RetrievalService
 
@@ -144,3 +145,82 @@ class TestRetrievalIntegration:
         )
         quarantined_returned_inc = [c.chunk_id for c in res_included.chunks if c.quarantined]
         assert "NWI-10Q-FY2024Q3#c4" in quarantined_returned_inc
+
+    def test_tenant_isolation_connection_reuse(self, retrieval_service):
+        """Foundation Lock 6: SET LOCAL is transaction-scoped; reused connection does NOT leak tenant context."""
+        conn = retrieval_service._get_connection(role="ro")
+        try:
+            # Transaction 1: Set tenant to acme and query
+            with conn:
+                with conn.cursor() as cur:
+                    cur.execute("SET LOCAL app.current_tenant = 'acme';")
+                    cur.execute("SELECT chunk_id, tenant_id FROM chunks WHERE tenant_id IS NOT NULL;")
+                    rows1 = cur.fetchall()
+                    cids1 = [r[0] for r in rows1]
+                    assert any("acme" in c for c in cids1), "Transaction 1 must see acme tenant chunk"
+
+            # Transaction 2 (same physical connection, new transaction): No tenant set
+            with conn:
+                with conn.cursor() as cur:
+                    # Query without setting tenant
+                    cur.execute("SELECT chunk_id, tenant_id FROM chunks WHERE tenant_id IS NOT NULL;")
+                    rows2 = cur.fetchall()
+                    cids2 = [r[0] for r in rows2]
+                    assert not any("acme" in c for c in cids2), "Connection reuse LEAK! Acme tenant visible in new transaction"
+                    assert not any("borealis" in c for c in cids2), "Connection reuse LEAK! Borealis tenant visible in new transaction"
+                    assert len(cids2) == 0, "No tenant chunks should be visible without tenant context"
+        finally:
+            conn.close()
+
+    def test_connection_without_tenant_sees_only_public_chunks(self, retrieval_service):
+        """A query executed without tenant context (tenant_id=None) sees only public chunks (tenant_id IS NULL)."""
+        res = retrieval_service.retrieve(
+            query="Aurora Retail Group revenue",
+            tenant_id=None,
+            top_k=10,
+        )
+        assert len(res.chunks) > 0
+        for c in res.chunks:
+            assert c.tenant_id is None, f"Chunk {c.chunk_id} with tenant_id '{c.tenant_id}' leaked to unauthenticated caller"
+
+    def test_query_embedding_cache_hit_rate(self, retrieval_service):
+        """Query-embedding cache is keyed by tenant and correctly tracks hits, misses, and hit rate."""
+        retrieval_service.clear_cache()
+        query = "What was operating income for Aurora Retail Group?"
+
+        # 1. First call under acme -> cache miss
+        emb1 = retrieval_service.embed_query(query, tenant_id="acme")
+        stats = retrieval_service.get_cache_stats()
+        assert stats["misses"] == 1
+        assert stats["hits"] == 0
+
+        # 2. Second call under acme -> cache hit
+        emb2 = retrieval_service.embed_query(query, tenant_id="acme")
+        stats = retrieval_service.get_cache_stats()
+        assert stats["hits"] == 1
+        assert stats["misses"] == 1
+        assert emb1 == emb2
+
+        # 3. Third call under borealis -> cache miss (isolated tenant key)
+        emb3 = retrieval_service.embed_query(query, tenant_id="borealis")
+        stats = retrieval_service.get_cache_stats()
+        assert stats["hits"] == 1
+        assert stats["misses"] == 2
+
+        # 4. Fourth call under borealis -> cache hit
+        emb4 = retrieval_service.embed_query(query, tenant_id="borealis")
+        stats = retrieval_service.get_cache_stats()
+        assert stats["hits"] == 2
+        assert stats["misses"] == 2
+        assert stats["hit_rate"] == 0.50
+
+    def test_unreachable_db_returns_typed_exception(self):
+        """An unreachable database returns typed DatabaseUnavailableError, not a raw psycopg2 crash."""
+        from unittest.mock import patch
+        import psycopg2
+        service = RetrievalService(is_test=True)
+        with patch("app.domain.retrieval_service.psycopg2.connect", side_effect=psycopg2.OperationalError("Could not connect to server: Connection refused")):
+            with pytest.raises(DatabaseUnavailableError) as exc_info:
+                service._get_connection(role="ro")
+            assert "Database unavailable" in str(exc_info.value)
+

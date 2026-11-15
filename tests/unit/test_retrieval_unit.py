@@ -133,3 +133,4 @@ class TestRRFLogic:
         assert c.fiscal_year == 2023
         assert c.fiscal_quarter == 4
         assert c.section is not None
+
