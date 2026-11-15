@@ -284,3 +284,16 @@
      3. All future schema modifications must be implemented as forward, numbered migrations (`migrations/002_tenant_documents.sql`, `migrations/003_...`). Applied migrations are frozen forever.
      4. An automated test (`test_migration_checksum_mismatch_fails`) verifies that tampering with an applied migration halts the runner immediately.
 
+---
+
+### [2026-11-15] DECISION 24: Phase 4 Held-Out Test Set Contamination & Reset
+- **Context**: During initial Phase 4 eval, the 21 held-out cases were inspected and iterated on alongside dev cases while troubleshooting JSON schema validation and verifier behaviors. This compromised the statistical independence of the held-out set.
+- **Why It Is Wrong in a Real System**: In production ML systems, evaluating repeatedly on a held-out set leaks test distribution details into prompt engineering and hyperparameter tuning, destroying the validity of out-of-sample error estimates.
+- **Resolution (Phase 4b Step 4)**:
+  1. All previous 65 test cases (44 dev + 21 former held-out) were folded entirely into DEV (`split='dev'`).
+  2. A brand-new held-out evaluation set of 28 cases (8 normal, 7 counterfactual, 7 missing-data, 6 hostile) was synthesized, covering all 6 companies and novel prompt injection vectors.
+  3. Selection rules and hard failure gates were pre-committed in `docs/SELECTION_RULE.md` BEFORE running held-out evaluation.
+  4. The held-out set is frozen with SHA-256 hash in `docs/evidence/heldout_hash.txt`.
+  5. The evaluation harness asserts the hash before execution and records every held-out run to an append-only audit log `docs/evidence/heldout_runs.log` (timestamp, model, prompt, commit, score). Held-out evaluation is executed exactly once on the winning candidate.
+
+
