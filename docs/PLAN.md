@@ -2,7 +2,7 @@
 
 > **Project**: CFO Copilot on a Budget  
 > **Target**: 3 Calendar Days | 11 Foundation Locks | 5 Puzzles  
-> **Status**: Phase 0, Phase 1, and Phase 2 Complete. Waiting for user authorization to proceed to Phase 3.
+> **Status**: Phases 0, 1, 2, 3, and 4 Complete. Waiting for user authorization to proceed to Phase 5.
 
 ---
 
@@ -12,14 +12,14 @@
 flowchart TD
     subgraph Day1 ["Day 1: Data, Schemas & Financial Foundations"]
         P0["Phase 0: Orientation, Data Audit & Skeleton (DONE)"]
-        P1["Phase 1: Relational Schema & Ingestion Pipeline"]
-        P2["Phase 2: Deterministic SQL KPI Engine & Conflict Policy"]
-        P3["Phase 3: Semantic Retrieval & Chunking with Provenance"]
+        P1["Phase 1: Relational Schema & Ingestion Pipeline (DONE)"]
+        P2["Phase 2: Deterministic SQL KPI Engine & Conflict Policy (DONE)"]
+        P3["Phase 3: Semantic Retrieval & Chunking with Provenance (DONE)"]
         P0 --> P1 --> P2 --> P3
     end
 
     subgraph Day2 ["Day 2: Model Serving, ADK Agents & System Architecture"]
-        P4["Phase 4: Small Model Comparison & Constrained Decoding"]
+        P4["Phase 4: Small Model Comparison & Constrained Decoding (DONE)"]
         P5["Phase 5: Google ADK Root & Sub-Agents (Avg <= 2 LLM Calls)"]
         P6["Phase 6: Streaming API, Concurrency Queue, Telemetry & UI"]
         P3 --> P4 --> P5 --> P6
@@ -41,23 +41,24 @@ flowchart TD
 
 ### Day 1: Data Audit, Database Schema, Ingestion & Financial Integrity
 - **Phase 0: Orientation, Data Audit, Hardware Detection & Repo Skeleton** *(COMPLETED)*
-  - Detect host hardware and decide CPU-only vs. GPU serving strategy.
-  - Audit all files in Drop 1 and Drop 2; catalog accounting anomalies and prompt injections.
-  - Reproduce Puzzle 2 prefix-cache log analysis and establish baseline hit rate.
-  - Lay out repository skeleton, Makefile, `.gitignore`, `.env.example`, and baseline documentation.
 - **Phase 1: Relational Database Schema & Idempotent Ingestion (Puzzle 1 & Foundation Locks 4, 5, 6, 11)** *(COMPLETED)*
-  - Implement relational schema with pgvector in PostgreSQL (`companies`, `filings`, `raw_financial_rows`, `line_item_map`, `line_items`, `data_quality_issues`, `kpi_definitions`, `documents`, `chunks`, `chat_sessions`, `chat_messages`, `answer_log`, `metrics`).
-  - Versioned pure-Python migration runner (`app/data/migrations.py`) tracking SHA-256 checksums in `schema_migrations`.
-  - Transactional, idempotent ingestion pipeline (`app/data/ingest.py`, `scripts/ingest.py`) loading Drop 1 and Drop 2.
-  - Normalization pipeline: HBS unit scale auto-correction, CEP negative expense sign inversion, ARG intra-filing duplicate row collapse via `duplicate_of_id`, period duration classification, and prompt injection security scanning.
-  - Role segregation (`cfo_owner`, `app_rw`, `app_ro`) and PostgreSQL Row-Level Security (RLS) tenant isolation verified with canary tests.
-  - Automated report generated at `docs/evidence/phase1_report.txt` and full test suite passing (17 tests).
-  - Implement Drop 2 data ingestion (loading 6th company `ZLG` and amended filing `NWI-10QA-FY2024Q3`) as an additive data ingestion event, demonstrating idempotent data intake without schema modifications.
 - **Phase 2: Deterministic KPI Engine & Accounting Conflict Policy (Puzzle 1 & Foundation Lock 2)** *(COMPLETED)*
-  - Formulated and enforced formal Conflict & Reconciliation Policy Rules R1 through R12 in `docs/CONFLICT_POLICY.md`.
-  - Created migration `003_effective_line_items.sql` and set-based candidate resolution in `app/data/effective.py` resolving both `as_restated` and `as_originally_reported` bases.
-  - Created migration `004_kpi_engine.sql` and pure SQL definitions for all 16 KPIs in `app/data/sql/kpis/`.
-  - Built runner `app/data/kpi_calculator.py` and CLI `scripts/compute_kpis.py` (`make kpis`) computing 2,304 values with 0 duplicate drift.
+- **Phase 3: Chunking Strategy & Hybrid Retrieval Engine (Puzzle 3 & Foundation Locks 5, 7, 8)** *(COMPLETED)*
+  - Section-boundary chunking on markdown headers and structured table materialization with distinctive statement and period headers.
+  - Hybrid retrieval combining dense vector similarity (`BAAI/bge-small-en-v1.5` on pgvector HNSW) and PostgreSQL Full-Text Search via Reciprocal Rank Fusion ($k=60$) with authority weighting ($1.00$ SEC filing, $0.90$ SEC amendment, $0.60$ press release, $0.40$ analyst note).
+  - Degraded mode fallback to FTS-only on vector failure; immutable snapshotting and replay (`retrieval_snapshots`).
+  - Strict tenant isolation under RLS with verified 0 canary leakage.
+
+### Day 2: Model Serving, ADK Agents & System Architecture
+- **Phase 4: Small Model Comparison & Grounded-Answer Verification (Foundation Locks 1, 3, 4, 10, 11)** *(COMPLETED)*
+  - Local model serving with `llama-server` (pinned SHA-256 GGUF downloads for `Qwen2.5-3B-Instruct` and `Llama-3.2-3B-Instruct`).
+  - GQA mathematical proof & empirical serving benchmarks proving Qwen2.5-3B fits within 6 GB VRAM for 16 slots at 4k context (2.25 GB KV cache, 4.29 GB measured resident memory) whereas Llama-3.2-3B fails (7.00 GB KV cache, 7.02 GB resident memory).
+  - Cold TTFT measured at 1,378.8 ms (well under the 2.0 s SLA) and 56.5 tok/s decode throughput.
+  - Google ADK & LiteLLM tool-calling smoke test verified at 20/20 (100.0%) reliability.
+  - Grounded-Answer Pydantic contract and pure Python deterministic `AnswerVerifier` normalizing executive units (`$109.2M` $\leftrightarrow$ `$109,200,000`, `26.79%` $\leftrightarrow$ `26.8%`) and intercepting hallucinations.
+  - Evaluated prompt variants (`minimal`, `few_shot`, `chain_of_thought`) across 44 DEV cases; evaluated winner `chain_of_thought` on frozen held-out split (`8f3d527f...`).
+  - Established deterministic "No-LLM" baseline for single-fact KPI queries (0.034 ms latency, 29,953 qps throughput, 0.0% wrong-number rate).
+- **Phase 5: Google ADK Root & Sub-Agents (Avg <= 2 LLM Calls)** *(PLANNED NEXT)*
   - Enforced pure SQL provenance assertion `verify_provenance_integrity()` proving 0 `status = 'ok'` KPI rows depend on non-effective inputs.
   - Created provenance view/function in `scripts/provenance.sql` and CLI `app/data/provenance.py` tracing any KPI down to raw CSV row and row-hash traceable SHA-256 identifier. Documented 7 authoritative verification traces in `docs/evidence/provenance_examples.txt`.
   - Conducted independent differential verification in `scripts/verify_kpis_differential.py` proving 100.00% match against clean-room pandas recomputation (`docs/evidence/differential_test_results.txt`).

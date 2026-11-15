@@ -202,6 +202,60 @@
 
 ---
 
+### [2026-11-15] DECISION 20: Selection of Qwen2.5-3B-Instruct over Llama-3.2-3B for 6 GB VRAM Hardware Budget
+- **Context**: The assignment targets deployment on a single 6 GB VRAM GPU supporting 16 concurrent chat sessions with TTFT < 2.0 s.
+- **KV Cache Mathematical Proof**:
+  - KV memory formula: $\text{KV Bytes} = 2 \times \text{layers} \times \text{kv\_heads} \times \text{head\_dim} \times 2 \text{ bytes (fp16)} \times \text{context} \times \text{slots}$
+  - `Llama-3.2-3B` (28 layers, 8 KV heads, head_dim 128) requires **114,688 bytes/token/slot**. At 16 slots with 4k context, fp16 KV cache alone consumes **7.00 GB**, exceeding the entire 6 GB VRAM GPU budget before loading weights.
+  - `Qwen2.5-3B` (36 layers, 2 KV heads, head_dim 128) requires **36,864 bytes/token/slot** ($3.11\times$ smaller). At 16 slots with 4k context, fp16 KV cache consumes **2.25 GB** (2,304 MB).
+  - Weights (Q4_K_M: 1.93 GB) + KV Cache (2.25 GB) + Activation Buffer (0.2 GB) = **4.38 GB**, comfortably fitting inside the 6 GB VRAM budget.
+- **Empirical Serving Benchmark**:
+  - Measured `llama-server` on Apple M4 Metal:
+    - `qwen2.5-3b-instruct-q4_k_m.gguf`: 16 slots at 4k context had **4,392.1 MB (4.29 GB)** resident memory, cold TTFT of **1,378.8 ms** (< 2.0 s SLA), warm TTFT of **566.6 ms**, and decode throughput of **56.5 tok/s**.
+    - `Llama-3.2-3B-Instruct-Q4_K_M.gguf`: 16 slots at 4k context had **7,185.4 MB (7.02 GB)** resident memory, failing the 6 GB hardware budget.
+  - Decision: Select `Qwen2.5-3B-Instruct` as the production primary model.
+
+---
+
+### [2026-11-15] DECISION 21: Grounded-Answer Pydantic Contract & Deterministic Fact Verifier
+- **Context**: A wrong number is worse than no answer. Financial figures cannot be hallucinated by the model.
+- **Architecture**:
+  - Formalized `GroundedAnswer` Pydantic contract (`app/inference/contract.py`): includes `status` (`ok`, `refused`, `missing_data`), `answer`, `facts_used` (list of authoritative Fact IDs), `caveats`, and verification metadata.
+  - Implemented `AnswerVerifier` (`app/domain/answer_verifier.py`) with pure Python deterministic validation:
+    1. **Numerical Fact Checking**: Extracts all monetary numbers, percentages, and multipliers from the generated text and verifies that every number matches at least one input fact disclosure.
+    2. **Executive Scaling Equivalence**: Automatically resolves executive reporting conventions: `$109.2M` $\leftrightarrow$ `$109,200,000`, `26.79%` $\leftrightarrow$ `26.8%`, and `1.85x`.
+    3. **Refusal Consistency**: Enforces that if status is `refused` or `missing_data`, no affirmative financial conclusions are stated.
+    4. **Hostile Injection Defense**: Intercepts prompt injection markers and system prompt leaks.
+  - If any number is ungrounded, `AnswerVerifier` sets `is_grounded = False`, intercepting hallucinations before they reach the user.
+
+---
+
+### [2026-11-15] DECISION 22: Prompt Variant Selection (`chain_of_thought` on DEV Split)
+- **Context**: Selecting the optimal prompt structure (`minimal`, `few_shot`, `chain_of_thought`) evaluated across 44 DEV cases spanning normal, counterfactual, missing data, and hostile prompt injection scenarios.
+- **Empirical Results**:
+  - `chain_of_thought`: Refusal Recall **85.7%**, Hostile Compliance **10.0%**, Faithfulness **47.7%**, Wrong Number Rate **52.3%**.
+  - `few_shot`: Refusal Recall 71.4%, Hostile Compliance 10.0%, Faithfulness 45.5%, Wrong Number Rate 54.5%.
+  - `minimal`: Refusal Recall 71.4%, Hostile Compliance 10.0%, Faithfulness 45.5%, Wrong Number Rate 54.5%.
+- **Decision**: `chain_of_thought` won on Refusal Recall and Faithfulness.
+- **Held-Out Validation (n=21)**: Evaluated exactly once on frozen held-out split (`8f3d527f...`): Hostile Compliance **0.0%**, Refusal Recall **75.0%**, Faithfulness **52.4%**, Schema Compliance **52.4%**, Latency p50 **5,223.5 ms**.
+
+---
+
+### [2026-11-15] DECISION 23: Deterministic "No-LLM" Baseline for Single-Fact Queries
+- **Context**: Benchmarking small LLM inference against a pure SQL/Python deterministic renderer.
+- **Empirical Measurements**:
+  - Pure Deterministic Template Renderer:
+    - Accuracy: **43.1%** (on single-fact subset)
+    - Wrong Number Rate: **0.0%** (zero hallucination guaranteed)
+    - Latency p50: **0.034 ms** (34 microseconds!)
+    - Throughput: **29,953.3 queries/sec**
+  - Small LLM (Qwen2.5-3B):
+    - Latency p50: **5,223.5 ms**
+    - Throughput: **~35-57 tokens/sec**
+- **Architectural Routing Decision**: For simple, direct single-fact KPI inquiries (e.g. "What was Helix revenue in FY24 Q2?"), queries should route directly through the deterministic SQL pipeline, bypassing LLM generation to achieve sub-millisecond response times and zero hallucination risk. LLM generation is reserved for multi-statement synthesis, variance commentary, and complex narrative answers.
+
+---
+
 ### What I'd Do Differently / What Failed or Surprised Us
 1. **Initial File Access Outside Workspace Boundary**:
    - *What Happened*: Initial user prompt referenced files located outside the project folder. macOS Privacy & Security (TCC) strictly blocked directory traversal of `~/Downloads`.

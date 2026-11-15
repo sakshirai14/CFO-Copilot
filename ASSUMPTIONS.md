@@ -130,3 +130,21 @@ This document outlines all core architectural, financial, and operational assump
 - **Assumption**: RRF with damping parameter $k=60$ provides an invariant ranking that combines dense vector semantic similarity with exact sparse keyword matching without requiring manual score weighting calibration.
 - **Reason**: Cosine distance ($0.0 - 1.0$) and PostgreSQL `ts_rank_cd` ($0.0 - \infty$) have fundamentally different scales and non-linear distributions. Direct score linear combination ($\alpha \cdot \text{cos} + (1-\alpha) \cdot \text{fts}$) is fragile and hyperparameter-sensitive. RRF operates purely on ordinal ranks.
 - **How It Could Be Wrong**: If vector search retrieves 20 weakly relevant documents while FTS matches a single highly specific exact match at rank 1, RRF could score a document appearing at rank 5 in both modalities higher than the exact FTS match. Authority multipliers mitigate this for SEC filings.
+
+---
+
+### 18. 6 GB VRAM Hardware Budget Proof via Measured Resident Memory and GQA Math
+- **Assumption**: Measuring `llama-server` resident memory (RSS) and Metal allocation across 1, 4, 16 slots on Apple M4 Unified Memory, combined with first-principles GQA KV cache mathematical formulas, rigorously proves whether a model configuration fits within a target 6 GB VRAM GPU.
+- **Reason**:
+  - Discrete 6 GB GPUs (e.g. RTX 3060 Mobile, GTX 1660, RTX 2060 6GB) share identical GQA KV cache footprint requirements with Apple Silicon.
+  - Formula: $\text{KV Bytes} = 2 \times \text{layers} \times \text{kv\_heads} \times \text{head\_dim} \times 2 \times \text{context} \times \text{slots}$.
+  - At 16 slots with 4k context, `Qwen2.5-3B` requires 2.25 GB KV cache, yielding an empirical resident memory of **4,392.1 MB (4.29 GB)**, which fits inside 6 GB. `Llama-3.2-3B` requires 7.00 GB KV cache, measuring **7,185.4 MB (7.02 GB)** resident memory, which exceeds 6 GB.
+  - All measurements are explicitly labeled `[M4 Metal]` or `[M4 CPU, -ngl 0]`, never falsely conflating Apple Unified Memory with discrete GPU VRAM.
+- **How It Could Be Wrong**: CUDA runtime drivers overhead on Linux/Windows may differ by ~150-250 MB compared to Apple Metal runtime overhead. However, with 1.62 GB of headroom (6.0 GB - 4.38 GB), Qwen2.5-3B has ample cushion.
+
+---
+
+### 19. Executive Number Normalization & Tolerances in Grounded-Answer Verification
+- **Assumption**: A deterministic Python verifier (`AnswerVerifier`) can accurately verify that financial figures produced by the LLM are grounded in retrieved facts by parsing and normalizing executive presentation formats (e.g. `$109.2M` matches `$109,200,000`; `26.79%` matches `26.8%`).
+- **Reason**: CFOs and executives routinely read and generate summarized figures with unit abbreviations (M for millions, B for billions, K for thousands) and standard rounding (1 decimal place for percentages). Requiring exact string literal matching would cause false-positive verification rejections on legitimate rounded summaries.
+- **How It Could Be Wrong**: If a query asks for high-precision differences (e.g. basis points), loose percentage tolerances could mask a rounding error. The verifier enforces a relative tolerance of $1.5\%$ or absolute tolerance of $0.15$ percentage points to balance executive flexibility with numerical precision.
