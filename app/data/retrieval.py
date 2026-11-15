@@ -78,7 +78,7 @@ def execute_vector_search(
     sql = f"""
         SELECT chunk_id, chunk_kind, company_id, doc_id, filing_id, doc_type,
                fiscal_year, fiscal_quarter, section, authority_rank,
-               trust_level, quarantined, risk_flags, text,
+               trust_level, quarantined, risk_flags, text, tenant_id,
                (1 - (embedding <=> %s::vector)) AS score
         FROM chunks
         {where_clause}
@@ -124,7 +124,7 @@ def execute_fts_search(
     sql_websearch = f"""
         SELECT chunk_id, chunk_kind, company_id, doc_id, filing_id, doc_type,
                fiscal_year, fiscal_quarter, section, authority_rank,
-               trust_level, quarantined, risk_flags, text,
+               trust_level, quarantined, risk_flags, text, tenant_id,
                ts_rank_cd(tsv, websearch_to_tsquery('english', %s)) AS score
         FROM chunks
         {where_clause} {'AND' if where_clause else 'WHERE'} tsv @@ websearch_to_tsquery('english', %s)
@@ -157,7 +157,7 @@ def execute_fts_search(
         sql_fallback = f"""
             SELECT chunk_id, chunk_kind, company_id, doc_id, filing_id, doc_type,
                    fiscal_year, fiscal_quarter, section, authority_rank,
-                   trust_level, quarantined, risk_flags, text,
+                   trust_level, quarantined, risk_flags, text, tenant_id,
                    ts_rank_cd(tsv, to_tsquery('english', %s)) AS score
             FROM chunks
             {where_clause} {'AND' if where_clause else 'WHERE'} tsv @@ to_tsquery('english', %s)

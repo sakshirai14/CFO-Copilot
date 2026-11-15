@@ -86,6 +86,7 @@ class RetrievedChunk:
     quarantined: bool
     risk_flags: List[str]
     text: str
+    tenant_id: Optional[str] = None
     vector_rank: Optional[int] = None
     fts_rank: Optional[int] = None
     rrf_score: float = 0.0
@@ -193,6 +194,7 @@ class RetrievalService:
                 quarantined=bool(data.get("quarantined", False)),
                 risk_flags=data.get("risk_flags") or [],
                 text=data.get("text", ""),
+                tenant_id=data.get("tenant_id"),
                 vector_rank=vector_ranks.get(cid),
                 fts_rank=fts_ranks.get(cid),
                 rrf_score=round(base_rrf, 6),
@@ -211,6 +213,7 @@ class RetrievalService:
         tenant_id: Optional[str] = None,
         include_quarantined: bool = False,
         force_vector_failure: bool = False,
+        mode: str = "hybrid",  # 'hybrid', 'vector_only', 'fts_only'
     ) -> RetrievalResult:
         """Executes full hybrid retrieval with RRF, snapshots, and graceful degradation."""
         t_start = time.perf_counter()
@@ -222,10 +225,10 @@ class RetrievalService:
         degraded = False
         degraded_reason = None
 
-        # 1. Vector Search (with graceful fallback to degraded FTS-only mode)
-        if force_vector_failure:
+        # 1. Vector Search
+        if mode == "fts_only" or force_vector_failure:
             degraded = True
-            degraded_reason = "Vector search simulated failure (Foundation Lock 7 test)"
+            degraded_reason = "FTS-only mode requested" if mode == "fts_only" else "Vector search simulated failure (Foundation Lock 7 test)"
         else:
             try:
                 q_emb = self.embed_query(query)
@@ -250,22 +253,23 @@ class RetrievalService:
                 degraded_reason = f"Vector search unavailable: {str(e)}"
 
         # 2. Full-Text Search
-        conn_ro = self._get_connection(role="ro")
-        try:
-            fts_hits = execute_fts_search(
-                conn=conn_ro,
-                query_text=query,
-                company_id=filters.company_id,
-                fiscal_year=filters.fiscal_year,
-                fiscal_quarter=filters.fiscal_quarter,
-                doc_type=filters.doc_type,
-                chunk_kind=filters.chunk_kind,
-                include_quarantined=inc_quarantine,
-                top_k=max(20, top_k * 2),
-                tenant_id=tenant_id,
-            )
-        finally:
-            conn_ro.close()
+        if mode != "vector_only":
+            conn_ro = self._get_connection(role="ro")
+            try:
+                fts_hits = execute_fts_search(
+                    conn=conn_ro,
+                    query_text=query,
+                    company_id=filters.company_id,
+                    fiscal_year=filters.fiscal_year,
+                    fiscal_quarter=filters.fiscal_quarter,
+                    doc_type=filters.doc_type,
+                    chunk_kind=filters.chunk_kind,
+                    include_quarantined=inc_quarantine,
+                    top_k=max(20, top_k * 2),
+                    tenant_id=tenant_id,
+                )
+            finally:
+                conn_ro.close()
 
         # 3. Reciprocal Rank Fusion & Ranking
         fused_chunks = self.compute_rrf(vector_hits, fts_hits, k=RRF_K)
