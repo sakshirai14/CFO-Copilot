@@ -19,6 +19,8 @@ from app.domain.retrieval_service import RetrievalFilter, RetrievalService
 @pytest.fixture(scope="module")
 def retrieval_service():
     """Provides a RetrievalService instance connected to the test database."""
+    from scripts.index_chunks import embed_and_store_chunks
+    embed_and_store_chunks(is_test=True)
     return RetrievalService(is_test=True)
 
 

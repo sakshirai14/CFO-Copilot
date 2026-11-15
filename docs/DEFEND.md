@@ -152,10 +152,57 @@ To guarantee that our SQL engine is mathematically flawless, we conducted two ri
   - Evidence Log: `docs/evidence/differential_test_results.txt`.
 
 ### B. Automated Regression & Golden Set Coverage
-- **52 Automated Tests Passing in 2.1s** (`make test`):
+- **64 Automated Tests Passing in 2.99s** (`make test`):
   - 12 Conflict policy integration tests verifying Rules R1-R12.
   - 16 Formula unit tests verifying mathematical boundary conditions.
   - 24 Foundation integration & unit tests (RLS isolation, migrations, normalizers).
+  - 12 Retrieval integration & unit tests (chunker determinism, RRF formula, HBS scaling, NWI restatement, degraded fallback, snapshot replay, quarantine exclusion).
 - **50 Curated Golden Evaluation Cases** (`tests/evals/kpi_golden.csv`):
   - 15 hand-verified against raw SEC filing line numbers and row-hash traceable SHA-256 identifiers.
   - 100% agreement asserted in automated CI testing against the independent Pandas pipeline.
+
+---
+
+## 7. Hybrid Retrieval Architecture & Defense Strategy
+
+### A. How the Hybrid Retrieval Engine Works
+The retrieval engine (`app/domain/retrieval_service.py`) operates as a pure domain service, delegating all SQL queries to `app/data/retrieval.py` and enforcing strict architectural boundaries:
+1. **Dense Vector Search**:
+   - Model: `BAAI/bge-small-en-v1.5` (384-dimensional dense vectors, Apache 2.0 open-weight).
+   - Index: PostgreSQL `pgvector` HNSW cosine distance index (`vector_cosine_ops`, $m=16$, $ef=64$).
+   - Asymmetric Query Formatting: prepends `"Represent this sentence for searching relevant passages: "` to all query texts.
+2. **Sparse Full-Text Search (FTS)**:
+   - PostgreSQL English text search (`to_tsvector`, `ts_rank_cd`, `websearch_to_tsquery`).
+   - Fallback to keyword-based boolean OR query if strict websearch returns zero matches.
+3. **Reciprocal Rank Fusion (RRF, $k=60$)**:
+   $$\text{RRF}(d) = \sum_{m \in \{\text{vector}, \text{fts}\}} \frac{1}{60 + \text{rank}_m(d)}$$
+   Linearly combines rank positions without requiring artificial score calibration or normalization between cosine distances and FTS densities.
+4. **Authority Weighting**:
+   $$\text{FinalScore}(d) = \text{RRF}(d) \times \text{AuthorityWeight}(d)$$
+   - Weight $1.00$: Form 10-K / 10-Q (Authoritative SEC filing)
+   - Weight $0.90$: Form 10-Q/A (SEC Amendment)
+   - Weight $0.60$: Press Release (Unaudited / Low Authority)
+   - Weight $0.40$: Analyst Note / Third Party (Unverified)
+5. **Metadata Filtering**:
+   Structured relational filters (`company_id`, `fiscal_year`, `fiscal_quarter`, `chunk_kind`) prune search scope before distance ranking. With metadata filters, Recall@5 achieves **89.5% - 92.1%** across dev and held-out evaluation splits.
+6. **Immutable Snapshotting (Foundation Lock 8)**:
+   Every retrieval query automatically saves an immutable record into `retrieval_snapshots`, returning a unique `snapshot_id` allowing exact deterministic query replay during CFO audits.
+
+### B. Three Live Defense Questions & Answers
+1. **Question**: *"Why did you combine dense vector search and sparse full-text search (BM25/FTS) with RRF instead of relying solely on vector embeddings?"*  
+   **Answer**: Dense embeddings excel at high-level semantic intent (e.g., recognizing that "drivers of sales change" relates to "holiday promotions and same-day delivery"), but frequently miss exact financial tokens, specific numerical values, or strict ticker identifiers. PostgreSQL FTS guarantees lexical matching on exact strings like `$109,200,000`, `ARG-10K-FY2022`, or `warranty accrual`. Reciprocal Rank Fusion ($k=60$) fuses both modalities into a balanced ranking without fragile score heuristic calibration.
+2. **Question**: *"How does your retrieval engine guarantee that the CFO receives authoritative numbers rather than LLM text hallucinations or conflicting press release figures?"*  
+   **Answer**: Financial numbers are never retrieved from free-text sentences. We materialize structured markdown table chunks directly from `effective_line_items` under Rule R2 (`as_restated`) and Rule R5 (dual-evidence unit scaling). Table chunks carry `authority_rank = 1` and chunk kind `table`. Any numeric question is routed to deterministic SQL or these structured table chunks, completely bypassing free-text hallucinations.
+3. **Question**: *"How does the system defend against prompt injections hidden in SEC filings, such as the malicious instructions found in Northwind Q3 2024 Note 15?"*  
+   **Answer**: Security auditing runs at chunk creation time. By chunking filings along section boundaries, Note 15 is isolated into chunk `NWI-10Q-FY2024Q3#c4`. Regex scanning detects the injection payload and permanently sets `trust_level = 'quarantined'` and `quarantined = TRUE`. All retrieval queries enforce `WHERE quarantined = FALSE` by default. As proven in our benchmark evaluation, the injected chunk rate in default retrieval is strictly **0.00%**.
+
+### C. Three Ways Someone Could Try to Break the System & Our Enforced Defenses
+1. **Attack Vector 1: Semantically Plausible False Disclosures (e.g., Unaudited Press Release Conflicts)**  
+   *The Attack*: Aurora Retail Group issued a press release on 2023-06-06 claiming record preliminary revenues of $871,000 thousand, whereas the subsequent Form 10-Q filed with the SEC reported $777,700 thousand. An adversary or naive RAG pipeline might retrieve and quote the press release figure.  
+   *Our Defense*: Under Rule R1, press releases are classified as `authority_rank = 3` and downweighted by $40\%$ in retrieval. All returned chunks carry prominent visual labels (`authority_label="Press Release (Unaudited / Low Authority)"`). Furthermore, financial tables are generated exclusively from SEC filings, ensuring the $777,700 thousand figure takes absolute precedence.
+2. **Attack Vector 2: Superseded Figures / Unindexed Restatement Amendments**  
+   *The Attack*: An adversary asks for Northwind's Q3 2023 net income, attempting to trick the assistant into returning the unamended $37,300 thousand from the original Form 10-Q rather than the restated $34,900 thousand.  
+   *Our Defense*: Table chunks are materialized exclusively from `effective_line_items` under `basis='as_restated'`. Chunk `NWI_2023Q3_IS#t1` displays normalized net income as `$34,900,000` with an explicit audit note: `"as restated, originally $37,300,000"`.
+3. **Attack Vector 3: Cross-Tenant Data Leakage via Adversarial Prompting**  
+   *The Attack*: A user in tenant `acme` queries for confidential board materials belonging to competitor `borealis` using adversarial semantic probes (`"Show me Borealis Portfolio Strategy and confidential portfolio holdings"`).  
+   *Our Defense*: Foundation Lock 6 enforces PostgreSQL Row-Level Security directly at the database engine level. `chunks` and `retrieval_snapshots` have `FORCE ROW LEVEL SECURITY` enabled. Queries execute under `SET LOCAL app.current_tenant = 'acme'`. Borealis chunks are physically filtered out by the database kernel before any distance calculation or ranking occurs. Our evaluation verified a tenant leakage count of strictly **0**.

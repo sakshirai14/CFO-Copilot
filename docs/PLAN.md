@@ -114,10 +114,10 @@ flowchart TD
 | Phase | Phase Name | Status | Evidence File | Date Completed |
 | :---: | :--- | :---: | :--- | :---: |
 | **0** | **Orientation, Data Audit & Repo Skeleton** | **COMPLETED** | [audit_output.txt](file:///Users/sakshirai/AI_RAG_Assignment/docs/evidence/audit_output.txt), [puzzle2_analysis.txt](file:///Users/sakshirai/AI_RAG_Assignment/docs/evidence/puzzle2_analysis.txt) | 2026-11-14 |
-| **1** | Database Schema, Migrations & Ingestion | PENDING | Pending Phase 1 execution | — |
-| **2** | Deterministic KPI Engine & Conflict Policy | PENDING | Pending Phase 2 execution | — |
-| **3** | RAG Retrieval Engine & Citation Provenance | PENDING | Pending Phase 3 execution | — |
-| **4** | Small Model Benchmark & Constrained Decoding | PENDING | Pending Phase 4 execution | — |
+| **1** | **Database Schema, Migrations & Ingestion** | **COMPLETED** | [phase1_report.txt](file:///Users/sakshirai/AI_RAG_Assignment/docs/evidence/phase1_report.txt) | 2026-11-15 |
+| **2** | **Deterministic KPI Engine & Conflict Policy** | **COMPLETED** | [provenance_examples.txt](file:///Users/sakshirai/AI_RAG_Assignment/docs/evidence/provenance_examples.txt), [differential_test_results.txt](file:///Users/sakshirai/AI_RAG_Assignment/docs/evidence/differential_test_results.txt) | 2026-11-15 |
+| **3** | **RAG Retrieval Engine & Citation Provenance** | **COMPLETED** | [corpus_profile.txt](file:///Users/sakshirai/AI_RAG_Assignment/docs/evidence/corpus_profile.txt), [embedding_model_benchmark.txt](file:///Users/sakshirai/AI_RAG_Assignment/docs/evidence/embedding_model_benchmark.txt), [retrieval.json](file:///Users/sakshirai/AI_RAG_Assignment/benchmarks/results/retrieval.json) | 2026-11-15 |
+| **4** | Small Model Benchmark & Constrained Decoding | **NEXT** | Pending Phase 4 execution | — |
 | **5** | Google ADK Multi-Agent Orchestration | PENDING | Pending Phase 5 execution | — |
 | **6** | Streaming API, Queue, Observability & UI | PENDING | Pending Phase 6 execution | — |
 | **7** | KV-Cache Fixes & 3-Level Benchmarks | PENDING | Pending Phase 7 execution | — |

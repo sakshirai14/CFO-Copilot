@@ -166,6 +166,42 @@
 
 ---
 
+### [2026-11-15] DECISION 17: Local Embedding Model Selection & Vector Dimension Migration
+- **Context**: Phase 3 requires selecting an open-weight, local embedding model that runs within strict latency and memory budgets on Mac Apple Silicon.
+- **Empirical Benchmark (`docs/evidence/embedding_model_benchmark.txt`)**:
+  - Benchmarked `BAAI/bge-small-en-v1.5` (384-dim, query prefix required) vs. `sentence-transformers/all-MiniLM-L6-v2` (384-dim, no prefix) using ONNX Runtime via `fastembed`.
+  - **Recall & Accuracy**: `BAAI/bge-small-en-v1.5` outperformed MiniLM with Mean Reciprocal Rank (MRR) of **0.1484** vs. 0.1156, and Recall@1 of **10.5%** vs. 5.3%.
+  - **Latency**: Single chunk embedding p50 is **10.81 ms**, batch throughput is **30.5 chunks/sec**, query embedding p50 is **4.37 ms** (well below the 50 ms retrieval budget).
+  - **Memory Footprint**: Process memory delta is **195.0 MB**, perfectly fitting local serving constraints.
+  - **License**: Apache 2.0 (commercial use permitted, zero telemetry or data egress).
+- **Migration Discipline**:
+  - The initial skeleton schema (`migrations/001_initial_schema.sql`) had `embedding vector(768)`.
+  - In adherence to strict forward-only migration discipline (never altering applied migrations), we shipped `migrations/007_embedding_dimension.sql` altering `chunks.embedding` to `vector(384)` and provisioning an HNSW index (`vector_cosine_ops`, $m=16$, $ef=64$).
+
+---
+
+### [2026-11-15] DECISION 18: Reciprocal Rank Fusion (RRF k=60) with Authority Weighting
+- **Context**: Combining dense semantic similarity search with sparse lexical matching (PostgreSQL Full-Text Search).
+- **Decisions**:
+  1. **RRF Hyperparameter $k=60$**: Standard IR hyperparameter ensures smooth rank damping without arbitrary heuristic score calibration between cosine distance ($0.0 - 1.0$) and `ts_rank_cd` ($0.0 - \infty$).
+  2. **Authority Hierarchy Multipliers**:
+     - SEC Form 10-K / 10-Q (Authoritative): $1.00$
+     - SEC Form 10-Q/A (Amendment): $0.90$
+     - Press Release (Unaudited Preliminary): $0.60$
+     - Analyst Note (Third-Party): $0.40$
+     - Non-filing chunks carry prominent visual labels (`authority_label`) to ensure CFO transparency.
+  3. **Metadata Pruning**: Relational filters (`company_id`, `fiscal_year`, `fiscal_quarter`, `chunk_kind`) prune search space prior to ranking, lifting Recall@5 from 18.4% to **89.5% - 92.1%**.
+
+---
+
+### [2026-11-15] DECISION 19: Graceful Degraded Mode Fallback (Lock 7) & Snapshotting (Lock 8)
+- **Context**: Ensuring system availability and audit reproducibility during retrieval failures.
+- **Decisions**:
+  1. **Degraded Mode Fallback (Lock 7)**: If vector search fails (e.g. timeout, vector extension failure, or simulated downtime), the retrieval service catches the exception, gracefully falls back to FTS-only search, sets `degraded = True`, and attaches the diagnostic reason. A reduced deterministic result is always preferred over an unhandled crash.
+  2. **Immutable Snapshotting (Lock 8)**: Every retrieval query writes an immutable record to `retrieval_snapshots` with a unique `snapshot_id`, full query parameters, tenant context, and retrieved chunk list. Any past query can be replayed identically via `replay_snapshot(snapshot_id)` for audit compliance.
+
+---
+
 ### What I'd Do Differently / What Failed or Surprised Us
 1. **Initial File Access Outside Workspace Boundary**:
    - *What Happened*: Initial user prompt referenced files located outside the project folder. macOS Privacy & Security (TCC) strictly blocked directory traversal of `~/Downloads`.

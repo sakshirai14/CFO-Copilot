@@ -116,3 +116,17 @@ This document outlines all core architectural, financial, and operational assump
 - **Assumption**: When a newer SEC filing includes comparative prior-period columns whose values diverge from the original filing, the newer comparative value represents an official restatement or reclassification and governs `as_restated`.
 - **Reason**: SEC reporting rules mandate that comparative columns incorporate any retrospective adjustments adopted in subsequent periods (e.g. NWI Footnote 2 tax accrual adjustment in FY2024 Q3 restating FY2023 Q3 net income).
 - **How It Could Be Wrong**: If comparative columns contain typographical errors by the filer, adopting them without human review could introduce noise. We record all discrepancies in `data_quality_issues`.
+
+---
+
+### 16. Section-Boundary Semantic Chunking over Sliding-Window Overlap
+- **Assumption**: Splitting SEC filing narrative documents strictly on markdown structural headings (`=== ... ===`) with contextual header tags (`[{company} {doc_id} | {section}]: `) is superior to fixed-size sliding character/token windows with arbitrary overlap.
+- **Reason**: The SEC filing corpus in this assignment consists of concise narrative extracts (mean 240 words, ~1,492 chars). Sliding window chunking creates artificial sentence fragments and duplicate near-identical chunks that dilute top-k retrieval precision. Section splitting preserves complete topical cohesion (Header, MD&A, Segment Tables, Risk Factors).
+- **How It Could Be Wrong**: If future filings contain very long sections exceeding the embedding model's 512-token context window (e.g. 5,000-word MD&As), section-boundary chunking would truncate content unless recursive sub-chunking is implemented.
+
+---
+
+### 17. Reciprocal Rank Fusion (k=60) Robustness
+- **Assumption**: RRF with damping parameter $k=60$ provides an invariant ranking that combines dense vector semantic similarity with exact sparse keyword matching without requiring manual score weighting calibration.
+- **Reason**: Cosine distance ($0.0 - 1.0$) and PostgreSQL `ts_rank_cd` ($0.0 - \infty$) have fundamentally different scales and non-linear distributions. Direct score linear combination ($\alpha \cdot \text{cos} + (1-\alpha) \cdot \text{fts}$) is fragile and hyperparameter-sensitive. RRF operates purely on ordinal ranks.
+- **How It Could Be Wrong**: If vector search retrieves 20 weakly relevant documents while FTS matches a single highly specific exact match at rank 1, RRF could score a document appearing at rank 5 in both modalities higher than the exact FTS match. Authority multipliers mitigate this for SEC filings.

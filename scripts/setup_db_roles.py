@@ -35,12 +35,25 @@ def setup_databases_and_roles():
     }
 
     print(f"Connecting to Postgres at {settings.POSTGRES_HOST}:{settings.POSTGRES_PORT} as {settings.POSTGRES_USER}...")
-    try:
-        conn = psycopg2.connect(**admin_params)
-    except psycopg2.OperationalError:
-        # Try connecting directly to default db
-        admin_params["dbname"] = settings.POSTGRES_DB
-        conn = psycopg2.connect(**admin_params)
+    conn = None
+    last_err = None
+    for attempt in range(15):
+        try:
+            conn = psycopg2.connect(**admin_params)
+            break
+        except psycopg2.OperationalError as e:
+            last_err = e
+            try:
+                admin_params_alt = dict(admin_params)
+                admin_params_alt["dbname"] = settings.POSTGRES_DB
+                conn = psycopg2.connect(**admin_params_alt)
+                break
+            except psycopg2.OperationalError:
+                pass
+            time.sleep(1.0)
+    
+    if conn is None:
+        raise last_err
 
     conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
     cur = conn.cursor()
