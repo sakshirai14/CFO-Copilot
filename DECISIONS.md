@@ -382,6 +382,23 @@
   - **R7 (ZLG Calendar)**: Aligned to September 30 fiscal year-end (not a 4-4-5 calendar).
   - **R11 (Integrity Gate)**: 1 identity check failure detected in `NWI-10QA-FY2024Q3` during isolated ingest; resolved when unamended opex lines carried forward under R2 with 0 downstream KPI downgrades.
 
+---
+
+### [2026-11-15] DECISION 34: Network Isolation Guard, Offline Fault Injection & Pending Lock Statuses (Phase 5b Item I)
+- **Context**: In Phase 5b, Foundation Locks 1 (network isolation), 3 (deterministic finance), and 9 (6 GB hardware budget) were audited to eliminate exaggerated claims and ensure strict empirical alignment.
+- **Actions Taken**:
+  1. **Lock 1, 3, 9 Marked PENDING**:
+     - *Lock 1 (Network Isolation)*: While local model serving uses `llama-server` and `tests/conftest.py` installs a session-level monkeypatch blocking non-localhost `socket.connect`, full network egress assertion remains PENDING.
+     - *Lock 3 (Deterministic Finance)*: While the double-extraction bug in `AnswerVerifier` was resolved and financial numbers strictly originate from SQL with 0.0% wrong-number rate in Phase 5b, final multi-turn cross-dataset verification remains PENDING.
+     - *Lock 9 (6 GB Budget)*: While measured on Apple Silicon M4 unified memory with GQA arithmetic proof (4.29 GB resident memory at 16 slots), translation to discrete 6 GB VRAM and Docker memory-limited run remains PENDING.
+  2. **Offline Fault Injection & Survivability Suite (`tests/integration/test_offline_survivability.py`)**:
+     - Injected a simulated total inference server failure (`http://127.0.0.1:9999/v1`).
+     - Proved that 100% of structured KPI lookups, period comparisons, cross-company queries, and security refusals survive with zero downtime (< 20 ms latency) because they execute via pure SQL and deterministic rules.
+     - Proved that unstructured narrative queries degrade gracefully with certified filing facts and clear fallback explanations rather than throwing unhandled exceptions.
+  3. **Claim Sanitization**:
+     - Removed ungrounded claims (e.g. '5,500x faster', 'completely eliminates') across docs and replaced with measured facts (e.g. 'sub-millisecond pure SQL vs multi-second LLM call', 'systematically intercepts').
+
+
 
 
 

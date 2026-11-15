@@ -115,3 +115,4 @@ The entire agent pipeline is decoupled from live network access and can run in c
 - All database fixtures run against local Docker PostgreSQL (`port 5435`).
 - The LLM runs locally on `llama-server` (`port 8080`).
 - If the model server is offline or unreachable, the system automatically degrades into **Pure Deterministic Mode**, successfully serving 100% of structured KPI queries and safe refusals with 0 downtime.
+

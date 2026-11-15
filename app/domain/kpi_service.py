@@ -152,3 +152,4 @@ class KpiService:
         finally:
             conn.close()
         return True, None
+

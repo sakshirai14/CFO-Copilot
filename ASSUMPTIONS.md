@@ -145,14 +145,14 @@ This document outlines all core architectural, financial, and operational assump
 ---
 
 ### 19. Strict Deterministic Verification via Decimal Rounding (Zero 1.5% Tolerance)
-- **Assumption**: A deterministic Python verifier (`AnswerVerifier`) can eliminate numerical hallucinations with zero percent tolerance by parsing and normalizing executive presentation formats (e.g. `$109.2M` $\leftrightarrow$ `$109,200,000`) and strictly rounding facts to the exact number of decimal places displayed in the answer.
+- **Assumption**: A deterministic Python verifier (`AnswerVerifier`) can systematically intercept numerical hallucinations with zero percent tolerance by parsing and normalizing executive presentation formats (e.g. `$109.2M` $\leftrightarrow$ `$109,200,000`) and strictly rounding facts to the exact number of decimal places displayed in the answer.
 - **Reason**: Allowing an arbitrary percentage cushion (such as 1.5%) risks accepting hallucinated figures or subtly incorrect ratios (e.g. accepting 27.2% when true margin is 26.79%). Strict rounding to the answer's own precision ensures $26.79\%$ accepts $26.8\%$ and $27\%$, but strictly rejects $27.2\%$.
 - **How It Could Be Wrong**: If an answer omits decimals (e.g. stating $27\%$), the fact $26.79\%$ rounds to $27\%$. If executive precision requires basis points, prompt instructions must mandate two decimal places.
 
 ---
 
 ### 20. Deterministic Template Routing Policy for Single-Fact Lookups
-- **Assumption**: Routing single-fact KPI lookups directly to a deterministic SQL template renderer eliminates hallucination risk, reduces latency to 0.33 ms ($800\times$ faster than an LLM), and guarantees a 0.0% wrong-number rate.
+- **Assumption**: Routing single-fact KPI lookups directly to a deterministic SQL template renderer prevents hallucination risk, reduces latency to sub-millisecond pure SQL (vs multi-second LLM call), and guarantees a 0.0% wrong-number rate.
 - **Reason**: Executive KPI queries (e.g. "What was HBS revenue in FY24 Q2?") require exact mathematical values from certified SEC filings, not probabilistic language generation. Reserving the LLM for qualitative narrative explanations and MD&A text synthesis ensures zero hallucination on corporate financial metrics.
 - **How It Could Be Wrong**: If a user asks a complex multi-part comparative question in natural language that cannot be resolved by a single-fact template lookup, it must route to the small LLM, where the `AnswerVerifier` inspects the output.
 

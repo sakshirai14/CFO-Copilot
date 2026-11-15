@@ -101,3 +101,4 @@ async def test_10_offline_cases_without_model_server():
         assert env.llm_calls_made == 0, f"Expected 0 LLM calls for offline execution, got {env.llm_calls_made}"
         assert env.verification.is_valid, f"Verification failed on {case['id']}: {env.verification.reasons}"
         assert env.latency_ms > 0
+

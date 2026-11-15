@@ -58,3 +58,4 @@
 ## 4. Safety & Shipped Guarantee
 In both failing cases, the model failed into **safe refusal**, NOT hallucination or false claim.  
 By construction, because the verifier intercepts all ungrounded numbers and falls back to deterministic resolution, the **shipped wrong-number rate on the held-out dataset was strictly 0.0%**.
+

@@ -49,3 +49,4 @@ These empirical results prove conclusively that **a 3B parameter open-weight mod
 1. Argument resolution must be **deterministic**: `QuestionResolver` uses regex, date math, and `GLOBAL_TAXONOMY` to parse raw questions into strongly-typed `ResolvedQuery` objects.
 2. The LLM is **never asked to write database parameters or SQL**.
 3. The only agent in the graph with an LLM is `AnswerWriter`, which has **0 tools** and strictly writes executive prose from pre-fetched, validated facts.
+

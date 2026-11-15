@@ -92,3 +92,4 @@ async def test_root_agent_refusal_zero_llm_calls():
     assert env.status == AnswerStatus.REFUSED
     assert env.llm_calls_made == 0
     assert "Refused:" in env.answer
+

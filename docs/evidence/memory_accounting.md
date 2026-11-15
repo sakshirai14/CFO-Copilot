@@ -55,3 +55,4 @@ Evaluating 16 concurrent chat sessions with $4,096$ tokens of context per slot (
   Because an edge GPU has a hard physical ceiling of 6.0 GB (4.5 GB usable), the Llama-3.2-3B 16-slot fp16 row is labeled strictly as **"COMPUTED, NOT MEASURED"**. On physical 6 GB hardware, loading 2.07 GB weights followed by a 7.00 GB KV allocation would cause an unrecoverable CUDA Out-of-Memory (`cudaErrorMemoryAllocation`) failure during initialization.
 - **Qwen2.5-3B Feasibility Proof**:  
   Qwen2.5-3B's total memory requirement under standard fp16 KV cache is **4.14 GB**, fitting comfortably within the 4.50 GB usable envelope with **360 MiB of headroom**.
+

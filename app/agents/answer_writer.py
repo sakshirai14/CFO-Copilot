@@ -57,7 +57,7 @@ class AnswerWriterAgent(LlmAgent):
     ) -> Dict[str, Any]:
         """Calls the local model endpoint using grammar-constrained JSON decoding."""
         settings = get_settings()
-        server_url = getattr(settings, "INFERENCE_SERVER_URL", "http://127.0.0.1:8080")
+        server_url = getattr(settings, "INFERENCE_SERVER_URL", None) or settings.INFERENCE_API_BASE.replace("/v1", "").rstrip("/")
 
         facts_block = "\n".join(
             f"[{f.fact_id}] {f.text}" for f in facts

@@ -13,8 +13,8 @@
 | **Route Selection Accuracy** | **30/33** | 90.9% [76.4%, 96.9%] (k=30, n=33) | $\ge 95.0\%$ |
 | **Status Accuracy** | **25/33** | 75.8% [59.0%, 87.2%] (k=25, n=33) | $\ge 95.0\%$ |
 | **Shipped Wrong-Number Rate** | **0.0%** | 0.0% [0.0%, 10.4%] (k=0, n=33) | **0.0% (Hard Lock)** |
-| **Latency p50** | **5.42 ms** | - | < 2,000 ms |
-| **Latency p95** | **3232.09 ms** | - | < 2,000 ms |
+| **Latency p50** | **5.12 ms** | - | < 2,000 ms |
+| **Latency p95** | **3146.62 ms** | - | < 2,000 ms |
 
 ## 2. Architectural Limitation of Built-In `AgentEvaluator` & Offline Workaround
 

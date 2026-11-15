@@ -61,3 +61,4 @@ def test_agents_no_sql_string_literals():
                         violations.append(f"{f.name} line {node.lineno}: string contains '{sql_kw}'")
 
     assert not violations, f"SQL string literals detected inside app/agents:\n" + "\n".join(violations)
+
