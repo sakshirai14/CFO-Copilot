@@ -119,7 +119,7 @@ async def parse_sse_stream(client: httpx.AsyncClient, question: str, session_id:
                             route = meta_json.get("route", route)
                         except Exception:
                             pass
-                    elif evt_name == "facts" and first_content_sec is None:
+                    elif evt_name in ("facts", "first_content") and first_content_sec is None:
                         first_content_sec = time.perf_counter() - t0
                     elif evt_name == "answer":
                         verified_answer_sec = time.perf_counter() - t0
@@ -339,16 +339,27 @@ async def run_part_b_saturation_test(target_url: Optional[str] = None) -> Dict[s
     all_have_retry_after = all(val is not None for val in retry_after_values)
     hung_connections = sum(1 for r in results if r["status_code"] not in (200, 429))
 
+    admitted_latencies = sorted([r["latency_ms"] for r in results if r["status_code"] == 200])
+    admitted_latency_dist = {
+        "p50_ms": percentile(admitted_latencies, 0.50),
+        "p90_ms": percentile(admitted_latencies, 0.90),
+        "p95_ms": percentile(admitted_latencies, 0.95),
+        "min_ms": min(admitted_latencies) if admitted_latencies else 0.0,
+        "max_ms": max(admitted_latencies) if admitted_latencies else 0.0
+    }
+
     stats = {
         "concurrent_dispatched": num_concurrent,
         "admitted_200_count": count_200,
         "shed_429_count": count_429,
         "all_429_carry_retry_after": all_have_retry_after,
         "hung_connections": hung_connections,
-        "system_recovered_after_burst": recovered
+        "system_recovered_after_burst": recovered,
+        "admitted_latency_distribution": admitted_latency_dist
     }
 
     print(f">> Admitted 200 OK: {count_200} (16 slots active + waiting buffer)")
+    print(f">> Admitted Latencies: p50={admitted_latency_dist['p50_ms']}ms, p95={admitted_latency_dist['p95_ms']}ms")
     print(f">> Shed 429 Too Many Requests: {count_429} (with Retry-After header)")
     print(f">> Hung Connections (Timeouts/Crashes): {hung_connections}")
     print(f">> System Recovery Status: {'SUCCESS (200 OK)' if recovered else 'FAILED'}")

@@ -10,6 +10,7 @@ from decimal import Decimal
 from typing import Any, Dict, List, Optional, Tuple
 import psycopg2
 from app.core.config import get_settings
+from app.data.pool import get_connection
 from app.domain.agent_envelope import FactItem
 
 
@@ -19,10 +20,6 @@ class KpiService:
     def __init__(self, is_test: bool = False):
         self.settings = get_settings()
         self.is_test = is_test
-        self.conn_params = self.settings.get_connection_params(role="ro", is_test=is_test)
-
-    def _get_connection(self):
-        return psycopg2.connect(**self.conn_params)
 
     def get_kpi_facts(
         self,
@@ -35,8 +32,7 @@ class KpiService:
     ) -> List[FactItem]:
         """Retrieves verified KPI fact(s) and underlying filing metadata from PostgreSQL."""
         facts: List[FactItem] = []
-        conn = self._get_connection()
-        try:
+        with get_connection(role="ro", is_test=self.is_test) as conn:
             with conn.cursor() as cur:
                 # 1. Try querying kpi_values directly
                 cur.execute("""
@@ -116,8 +112,6 @@ class KpiService:
                             source_filing=fid,
                             input_line_item_ids=[lid] if lid else []
                         ))
-        finally:
-            conn.close()
         return facts
 
     def check_cross_company_alignment(
@@ -131,25 +125,23 @@ class KpiService:
             return True, None
 
         label = f"FY{fiscal_year}Q{fiscal_quarter}"
-        conn = self._get_connection()
         try:
-            with conn.cursor() as cur:
-                cur.execute("""
-                    SELECT days_apart, aligned
-                    FROM cross_company_comparability(%s, %s);
-                """, (company_ids, label))
-                row = cur.fetchone()
-                if row:
-                    days_apart, aligned = row
-                    if not aligned:
-                        warning = (
-                            f"Rule R7 Fiscal Calendar Warning: Companies {company_ids} have misaligned reporting periods "
-                            f"({days_apart} days apart) for label {label}."
-                        )
-                        return False, warning
+            with get_connection(role="ro", is_test=self.is_test) as conn:
+                with conn.cursor() as cur:
+                    cur.execute("""
+                        SELECT days_apart, aligned
+                        FROM cross_company_comparability(%s, %s);
+                    """, (company_ids, label))
+                    row = cur.fetchone()
+                    if row:
+                        days_apart, aligned = row
+                        if not aligned:
+                            warning = (
+                                f"Rule R7 Fiscal Calendar Warning: Companies {company_ids} have misaligned reporting periods "
+                                f"({days_apart} days apart) for label {label}."
+                            )
+                            return False, warning
         except Exception:
             pass
-        finally:
-            conn.close()
         return True, None
 

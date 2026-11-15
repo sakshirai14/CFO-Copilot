@@ -15,4 +15,3 @@ ALTER TABLE answer_log
   ADD COLUMN IF NOT EXISTS degraded_reason TEXT,
   ADD COLUMN IF NOT EXISTS timings JSONB DEFAULT '{}'::jsonb,
   ADD COLUMN IF NOT EXISTS envelope JSONB DEFAULT '{}'::jsonb;
-

@@ -234,6 +234,33 @@ class RequestLifecycleManager:
             }
         }
 
+        # For narrative and mixed routes: emit immediate deterministic content block
+        # (resolved scope + top 3 retrieved passages with citations, marked 'summary pending')
+        if res_query.route in (RouteType.UNSTRUCTURED, RouteType.MIXED):
+            top_passages = [
+                {
+                    "citation": f.source_filing or f"passage_{idx}",
+                    "authority_label": "SEC Filing",
+                    "passage": (f.text[:400] + "...") if f.text and len(f.text) > 400 else (f.text or "")
+                }
+                for idx, f in enumerate(facts[:3], 1)
+            ]
+            yield {
+                "event": "first_content",
+                "data": {
+                    "scope": {
+                        "companies": res_query.company_ids,
+                        "fiscal_year": res_query.fiscal_year,
+                        "fiscal_quarter": res_query.fiscal_quarter,
+                        "kpi_id": res_query.kpi_id,
+                        "topic": res_query.text_search_query
+                    },
+                    "top_passages": top_passages,
+                    "summary_status": "summary pending",
+                    "ttft_first_content_ms": round(ttft_first_content_sec * 1000.0, 2)
+                }
+            }
+
         # Step 3 SSE Event 3: progress
         yield {
             "event": "progress",

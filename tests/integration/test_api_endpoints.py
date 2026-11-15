@@ -189,6 +189,48 @@ async def test_chat_progressive_sse_stream_event_order():
 
 
 @pytest.mark.anyio
+async def test_narrative_sse_stream_immediate_first_content():
+    """Verifies that unstructured/mixed routes emit immediate deterministic first_content block before queue/LLM."""
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.post(
+            "/v1/chat/stream",
+            json={"question": "What qualitative disclosures did Helix Biosystems provide regarding competition?"},
+            headers=AUTH_ACME
+        )
+        assert resp.status_code == 200
+        received_events = []
+        first_content_payload = None
+
+        buffer = ""
+        async for chunk in resp.aiter_text():
+            buffer += chunk
+            blocks = buffer.split("\n\n")
+            buffer = blocks.pop()
+
+            for b in blocks:
+                if not b.strip():
+                    continue
+                if b.strip() == "data: [DONE]":
+                    received_events.append("done")
+                    continue
+                lines = b.split("\n")
+                for l in lines:
+                    if l.startswith("event: "):
+                        received_events.append(l[7:].strip())
+                    elif l.startswith("data: ") and received_events and received_events[-1] == "first_content":
+                        import json
+                        first_content_payload = json.loads(l[6:].strip())
+
+        # Assert presence of first_content in event order
+        assert "first_content" in received_events
+        assert received_events == ["meta", "facts", "first_content", "progress", "answer", "final", "done"]
+        assert first_content_payload is not None
+        assert first_content_payload["summary_status"] == "summary pending"
+        assert len(first_content_payload["top_passages"]) > 0
+
+
+@pytest.mark.anyio
 async def test_session_multi_turn_slot_inheritance():
     """Verifies that resolved slots are persisted and inherited across turns on the server."""
     transport = httpx.ASGITransport(app=app)

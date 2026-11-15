@@ -11,32 +11,25 @@ import uuid
 from typing import Any, Dict, List, Optional
 import psycopg2
 from psycopg2.extras import RealDictCursor
+
 from app.core.config import get_settings
+from app.data.pool import get_connection
 from app.data.provenance import get_provenance_trace
 
 
 class SessionService:
-    """Manages chat sessions, messages, and answer audit logs."""
+    """Manages chat sessions, messages, and answer audit logs via thread-safe connection pooling."""
 
     def __init__(self, is_test: bool = False):
         self.is_test = is_test
         self.settings = get_settings()
 
-    def _get_connection(self, tenant_id: str, role: str = "rw"):
-        params = self.settings.get_connection_params(role=role, is_test=self.is_test)
-        conn = psycopg2.connect(**params)
-        # Enforce tenant isolation via session setting
-        with conn.cursor() as cur:
-            cur.execute("SET LOCAL app.current_tenant = %s;", (tenant_id,))
-        return conn
-
     def check_db_health(self) -> bool:
         """Checks if the PostgreSQL database is reachable and accepting queries."""
         try:
-            conn = self._get_connection("acme", role="ro")
-            with conn.cursor() as cur:
-                cur.execute("SELECT 1;")
-            conn.close()
+            with get_connection(role="ro", is_test=self.is_test, tenant_id="acme") as conn:
+                with conn.cursor() as cur:
+                    cur.execute("SELECT 1;")
             return True
         except Exception:
             return False
@@ -47,8 +40,7 @@ class SessionService:
         title_text = title or f"Session {datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M')}"
         now = datetime.datetime.now(datetime.timezone.utc)
 
-        conn = self._get_connection(tenant_id, role="rw")
-        try:
+        with get_connection(role="rw", is_test=self.is_test, tenant_id=tenant_id) as conn:
             with conn.cursor() as cur:
                 cur.execute(
                     """
@@ -59,20 +51,16 @@ class SessionService:
                     (session_id, tenant_id, f"user_{tenant_id}", title_text, now, now)
                 )
                 row = cur.fetchone()
-                conn.commit()
                 return {
                     "session_id": row[0],
                     "tenant_id": row[1],
                     "title": row[2],
                     "created_at": row[3].isoformat()
                 }
-        finally:
-            conn.close()
 
     def list_sessions(self, tenant_id: str) -> List[Dict[str, Any]]:
         """Lists all chat sessions belonging strictly to the authenticated tenant."""
-        conn = self._get_connection(tenant_id, role="ro")
-        try:
+        with get_connection(role="ro", is_test=self.is_test, tenant_id=tenant_id) as conn:
             with conn.cursor(cursor_factory=RealDictCursor) as cur:
                 cur.execute(
                     """
@@ -94,13 +82,10 @@ class SessionService:
                     }
                     for r in rows
                 ]
-        finally:
-            conn.close()
 
     def get_session_messages(self, tenant_id: str, session_id: str) -> List[Dict[str, Any]]:
         """Retrieves conversation history for a session."""
-        conn = self._get_connection(tenant_id, role="ro")
-        try:
+        with get_connection(role="ro", is_test=self.is_test, tenant_id=tenant_id) as conn:
             with conn.cursor(cursor_factory=RealDictCursor) as cur:
                 cur.execute(
                     """
@@ -123,13 +108,10 @@ class SessionService:
                     }
                     for r in rows
                 ]
-        finally:
-            conn.close()
 
     def get_last_resolved_slots(self, tenant_id: str, session_id: str) -> Optional[Dict[str, Any]]:
         """Retrieves resolved slots from the most recent user turn to support multi-turn inheritance."""
-        conn = self._get_connection(tenant_id, role="ro")
-        try:
+        with get_connection(role="ro", is_test=self.is_test, tenant_id=tenant_id) as conn:
             with conn.cursor() as cur:
                 cur.execute(
                     """
@@ -143,8 +125,6 @@ class SessionService:
                 )
                 row = cur.fetchone()
                 return row[0] if row else None
-        finally:
-            conn.close()
 
     def save_turn(
         self,
@@ -157,13 +137,12 @@ class SessionService:
         log_meta: Optional[Dict[str, Any]] = None
     ):
         """Atomically saves the user message, assistant answer, and immutable answer_log record."""
-        conn = self._get_connection(tenant_id, role="rw")
         now = datetime.datetime.now(datetime.timezone.utc)
         target_session_id = session_id or f"sess_adhoc_{uuid.uuid4().hex[:10]}"
         u_msg_id = f"msg_{uuid.uuid4().hex[:10]}"
         a_msg_id = f"msg_{uuid.uuid4().hex[:10]}"
 
-        try:
+        with get_connection(role="rw", is_test=self.is_test, tenant_id=tenant_id) as conn:
             with conn.cursor() as cur:
                 # 1. Ensure session exists in chat_sessions
                 cur.execute(
@@ -220,7 +199,7 @@ class SessionService:
                         user_message,
                         meta.get("routed_to", "STRUCTURED"),
                         meta.get("model_version", "qwen2.5-3b-instruct"),
-                        meta.get("prompt_template_hash", "frozen_prompt_v1"),
+                        meta.get("prompt_template_hash", "frozen_prompt_v1:composer_v1.0"),
                         assistant_message,
                         meta.get("ttft_ms", 0.0),
                         meta.get("total_time_ms", 0.0),
@@ -239,14 +218,10 @@ class SessionService:
                         now
                     )
                 )
-                conn.commit()
-        finally:
-            conn.close()
 
     def get_kpi_definitions(self) -> List[Dict[str, Any]]:
         """Returns the canonical catalog of all 16 supported financial KPIs."""
-        conn = self._get_connection("acme", role="ro")
-        try:
+        with get_connection(role="ro", is_test=self.is_test, tenant_id="acme") as conn:
             with conn.cursor(cursor_factory=RealDictCursor) as cur:
                 cur.execute(
                     """
@@ -256,13 +231,8 @@ class SessionService:
                     """
                 )
                 return [dict(r) for r in cur.fetchall()]
-        finally:
-            conn.close()
 
     def get_provenance(self, kpi_value_id: int) -> Optional[Dict[str, Any]]:
         """Retrieves forensic audit provenance for a specific calculated KPI value."""
-        conn = self._get_connection("acme", role="ro")
-        try:
+        with get_connection(role="ro", is_test=self.is_test, tenant_id="acme") as conn:
             return get_provenance_trace(conn, kpi_value_id=kpi_value_id)
-        finally:
-            conn.close()
