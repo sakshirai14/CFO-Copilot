@@ -1,0 +1,36 @@
+================================================================================
+CFO COPILOT - PHASE 3 EMBEDDING MODEL BENCHMARK REPORT
+================================================================================
+Benchmark Date:          2026-11-15 11:55:09
+Platform:                Mac Apple Silicon (Native ONNX Runtime Execution)
+Corpus Chunks Tested:    515 chunks
+Eval Queries Evaluated:  38 queries
+--------------------------------------------------------------------------------
+
+--- 1. HEAD-TO-HEAD COMPARISON TABLE ---
+Metric                           | BAAI/bge-small-en-v1.5 | all-MiniLM-L6-v2      
+--------------------------------------------------------------------------------
+Embedding Dimension              | 384                    | 384                   
+Memory Delta (MB)                | 195.0                  | 0.0                   
+Single Chunk p50 (ms)            | 10.81                  | 3.94                  
+Single Chunk p95 (ms)            | 23.23                  | 7.71                  
+Batch Throughput (chunks/sec)    | 30.5                   | 105.1                 
+Batch Latency per Chunk (ms)     | 32.80                  | 9.51                  
+Query Latency p50 (ms)           | 4.37                   | 1.35                  
+Query Latency p95 (ms)           | 6.06                   | 1.68                  
+Recall@1 (%)                     | 10.5                   | 5.3                   
+Recall@3 (%)                     | 15.8                   | 15.8                  
+Recall@5 (%)                     | 15.8                   | 15.8                  
+Recall@10 (%)                    | 15.8                   | 21.1                  
+Mean Reciprocal Rank (MRR)       | 0.1484                 | 0.1156                
+--------------------------------------------------------------------------------
+
+--- 2. SELECTION DECISION & RATIONALE ---
+Selected Winner: BAAI/bge-small-en-v1.5
+Rationale:
+  1. Accuracy: BAAI/bge-small-en-v1.5 achieved MRR of 0.1484 and Recall@5 of 15.8%.
+  2. Latency: Query p50 latency is 4.37 ms, well within the 50 ms budget.
+  3. Memory Footprint: Process memory delta is 195.0 MB, perfectly suited for local deployment.
+  4. License: Apache 2.0 (fully open-weight, permissive commercial use, zero data leakage).
+  5. Dimension: 384 dimensions. Schema vector dimension will be migrated from 768 to 384 via migration 007.
+================================================================================
