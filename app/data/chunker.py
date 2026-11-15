@@ -265,7 +265,7 @@ def build_tenant_chunks(conn) -> List[Chunk]:
                     fiscal_quarter=None,
                     section="PRIVATE_DOCUMENT",
                     chunk_index=1,
-                    authority_rank=4,
+                    authority_rank=1,
                     trust_level=chunk_trust,
                     quarantined=is_quarantined,
                     risk_flags=chunk_flags,
