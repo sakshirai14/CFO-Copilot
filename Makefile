@@ -3,7 +3,7 @@
 MODEL_FILE ?= models/qwen2.5-3b-instruct-q4_k_m.gguf
 MODEL_PORT ?= 8080
 MODEL_SLOTS ?= 16
-MODEL_CTX ?= 4096
+MODEL_CTX ?= 65536
 
 VENV_PYTHON := ./.venv/bin/python3
 PYTHON := $(shell if [ -f $(VENV_PYTHON) ]; then echo $(VENV_PYTHON); else echo python3; fi)
