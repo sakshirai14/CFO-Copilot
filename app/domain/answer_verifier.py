@@ -158,7 +158,8 @@ class AnswerVerifier:
         masked = re.sub(r"\bFY202[0-9]\b", " ", masked, flags=re.IGNORECASE)
         masked = re.sub(r"\bQ[1-4]\b", " ", masked, flags=re.IGNORECASE)
         masked = re.sub(r"\b(?:first|second|third|fourth)\s+quarter\b", " ", masked, flags=re.IGNORECASE)
-        masked = re.sub(r"\b10-[KQ](?:/A)?\b", " ", masked, flags=re.IGNORECASE)
+        masked = re.sub(r"\b[A-Z]{3,4}-10-?[KQ](?:/A)?(?:-FY\d{4}(?:Q\d)?)?\b", " ", masked, flags=re.IGNORECASE)
+        masked = re.sub(r"(?:-|\b)10-?[KQ](?:/A)?\b", " ", masked, flags=re.IGNORECASE)
         masked = re.sub(r"\bRule\s+R\d+\b", " ", masked, flags=re.IGNORECASE)
         masked = re.sub(r"\bNote\s+\d+\b", " ", masked, flags=re.IGNORECASE)
 

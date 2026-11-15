@@ -61,6 +61,11 @@ class AnswerComposer:
         return f"Refused: {reason}"
 
     @classmethod
+    def compose_extractive_summary(cls, facts: List[FactItem], query: Optional[ResolvedQuery] = None) -> str:
+        """Composes verified extractive summary directly from retrieved filing passages."""
+        return cls.compose_fallback_answer(facts, query)
+
+    @classmethod
     def compose_fallback_answer(cls, facts: List[FactItem], query: Optional[ResolvedQuery] = None) -> str:
         """Invoked when LLM response is rejected by AnswerVerifier or model server is unavailable.
         Provides an extractive fallback: deterministic metrics + verbatim retrieved filing passages with citations.

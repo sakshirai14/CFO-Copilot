@@ -1,0 +1,167 @@
+[
+  {
+    "id": "ndev-01",
+    "company_id": "ARG",
+    "fiscal_year": 2023,
+    "fiscal_quarter": 4,
+    "category": "narrative",
+    "route": "UNSTRUCTURED",
+    "question": "According to the MD&A in Aurora Retail Group's FY2023 Form 10-K, what was the reported quarterly revenue and how did it change compared with the prior-year quarter?",
+    "gold_chunk_ids": ["ARG-10K-FY2023#c2"],
+    "expected_status": "ok"
+  },
+  {
+    "id": "ndev-02",
+    "company_id": "ARG",
+    "fiscal_year": 2023,
+    "fiscal_quarter": 2,
+    "category": "narrative",
+    "route": "UNSTRUCTURED",
+    "question": "What operational and macro supply chain headwinds did Aurora Retail Group identify in Item 1A Risk Factors for fiscal 2023 quarter 2?",
+    "gold_chunk_ids": ["ARG-10Q-FY2023Q2#c3"],
+    "expected_status": "ok"
+  },
+  {
+    "id": "ndev-03",
+    "company_id": "ARG",
+    "fiscal_year": 2024,
+    "fiscal_quarter": 1,
+    "category": "narrative",
+    "route": "UNSTRUCTURED",
+    "question": "What revenue performance and growth percentage did Aurora Retail Group disclose in its MD&A for fiscal 2024 quarter 1 compared with the prior-year quarter?",
+    "gold_chunk_ids": ["ARG-10Q-FY2024Q1#c2"],
+    "expected_status": "ok"
+  },
+  {
+    "id": "ndev-04",
+    "company_id": "CEP",
+    "fiscal_year": 2022,
+    "fiscal_quarter": 4,
+    "category": "narrative",
+    "route": "UNSTRUCTURED",
+    "question": "In Cobalt Energy Partners's FY2022 Form 10-K, what did management state regarding quarterly revenue and its percentage change compared with the preceding quarter?",
+    "gold_chunk_ids": ["CEP-10K-FY2022#c2"],
+    "expected_status": "ok"
+  },
+  {
+    "id": "ndev-05",
+    "company_id": "CEP",
+    "fiscal_year": 2023,
+    "fiscal_quarter": 2,
+    "category": "narrative",
+    "route": "UNSTRUCTURED",
+    "question": "What risks regarding commodity price volatility and operations did Cobalt Energy Partners disclose in Risk Factors for fiscal 2023 quarter 2?",
+    "gold_chunk_ids": ["CEP-10Q-FY2023Q2#c3"],
+    "expected_status": "ok"
+  },
+  {
+    "id": "ndev-06",
+    "company_id": "CEP",
+    "fiscal_year": 2024,
+    "fiscal_quarter": 1,
+    "category": "narrative",
+    "route": "UNSTRUCTURED",
+    "question": "In the Notes to Financial Statements for Cobalt Energy Partners in fiscal 2024 quarter 1, what accounting policies and basis of presentation were disclosed?",
+    "gold_chunk_ids": ["CEP-10Q-FY2024Q1#c4"],
+    "expected_status": "ok"
+  },
+  {
+    "id": "ndev-07",
+    "company_id": "HBS",
+    "fiscal_year": 2023,
+    "fiscal_quarter": 3,
+    "category": "narrative",
+    "route": "UNSTRUCTURED",
+    "question": "What discussion of revenue and operating results did Helix BioSystems provide in its MD&A section for fiscal 2023 quarter 3?",
+    "gold_chunk_ids": ["HBS-10Q-FY2023Q3#c2"],
+    "expected_status": "ok"
+  },
+  {
+    "id": "ndev-08",
+    "company_id": "HBS",
+    "fiscal_year": 2024,
+    "fiscal_quarter": 4,
+    "category": "narrative",
+    "route": "UNSTRUCTURED",
+    "question": "What key risks regarding clinical trials, regulatory approvals, and competition did Helix BioSystems list in its FY2024 Form 10-K Risk Factors?",
+    "gold_chunk_ids": ["HBS-10K-FY2024#c3"],
+    "expected_status": "ok"
+  },
+  {
+    "id": "ndev-09",
+    "company_id": "HBS",
+    "fiscal_year": 2022,
+    "fiscal_quarter": 2,
+    "category": "narrative",
+    "route": "UNSTRUCTURED",
+    "question": "In fiscal 2022 quarter 2, what did Helix BioSystems report in its MD&A regarding quarterly revenue and operating performance?",
+    "gold_chunk_ids": ["HBS-10Q-FY2022Q2#c2"],
+    "expected_status": "ok"
+  },
+  {
+    "id": "ndev-10",
+    "company_id": "MSI",
+    "fiscal_year": 2023,
+    "fiscal_quarter": 1,
+    "category": "narrative",
+    "route": "UNSTRUCTURED",
+    "question": "According to the MD&A for Meridian Software Inc. in fiscal 2023 quarter 1, what revenue and operational progress were reported?",
+    "gold_chunk_ids": ["MSI-10Q-FY2023Q1#c2"],
+    "expected_status": "ok"
+  },
+  {
+    "id": "ndev-11",
+    "company_id": "MSI",
+    "fiscal_year": 2024,
+    "fiscal_quarter": 2,
+    "category": "narrative",
+    "route": "UNSTRUCTURED",
+    "question": "What market, competitive, and cyber risks did Meridian Software Inc. disclose in its Risk Factors filing for fiscal 2024 quarter 2?",
+    "gold_chunk_ids": ["MSI-10Q-FY2024Q2#c3"],
+    "expected_status": "ok"
+  },
+  {
+    "id": "ndev-12",
+    "company_id": "NWI",
+    "fiscal_year": 2023,
+    "fiscal_quarter": 3,
+    "category": "narrative",
+    "route": "UNSTRUCTURED",
+    "question": "What did Northwind Industrial Corp report in its MD&A section for fiscal 2023 quarter 3 regarding operational execution and quarterly revenue?",
+    "gold_chunk_ids": ["NWI-10Q-FY2023Q3#c2"],
+    "expected_status": "ok"
+  },
+  {
+    "id": "ndev-13",
+    "company_id": "NWI",
+    "fiscal_year": 2024,
+    "fiscal_quarter": 1,
+    "category": "narrative",
+    "route": "UNSTRUCTURED",
+    "question": "What manufacturing, raw material, and labor risks did Northwind Industrial Corp emphasize in Risk Factors for fiscal 2024 quarter 1?",
+    "gold_chunk_ids": ["NWI-10Q-FY2024Q1#c3"],
+    "expected_status": "ok"
+  },
+  {
+    "id": "ndev-14",
+    "company_id": "ZLG",
+    "fiscal_year": 2023,
+    "fiscal_quarter": 4,
+    "category": "narrative",
+    "route": "UNSTRUCTURED",
+    "question": "In Zephyr Logistics Ltd.'s FY2023 Form 10-K MD&A, what were the disclosed revenue figures and quarterly trends?",
+    "gold_chunk_ids": ["ZLG-10K-FY2023#c2"],
+    "expected_status": "ok"
+  },
+  {
+    "id": "ndev-15",
+    "company_id": "ZLG",
+    "fiscal_year": 2024,
+    "fiscal_quarter": 2,
+    "category": "narrative",
+    "route": "UNSTRUCTURED",
+    "question": "What transportation, fuel price, and network capacity headwinds did Zephyr Logistics Ltd. cite in Item 1A Risk Factors for fiscal 2024 quarter 2?",
+    "gold_chunk_ids": ["ZLG-10Q-FY2024Q2#c3"],
+    "expected_status": "ok"
+  }
+]

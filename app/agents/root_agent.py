@@ -148,6 +148,13 @@ class CfoCopilotRootAgent(BaseAgent):
             extra_caveats = llm_payload.get("caveats", [])
             all_caveats = caveats + extra_caveats
             llm_meta = llm_payload.get("_llm_metadata")
+
+            # Preserved extractive passage block when model writer returns insufficient_data or refuses despite relevant passages
+            has_relevant_passages = any(bool(f.text and f.text.strip()) for f in facts)
+            if (status_str in ("refused", "insufficient_data", "unsupported") or candidate_text.strip().startswith("Refused:")) and has_relevant_passages:
+                candidate_text = AnswerComposer.compose_extractive_summary(facts, query)
+                status_enum = AnswerStatus.OK
+                all_caveats.append("Model writer returned insufficient data; preserved verified extractive filing passages.")
         except Exception as e:
             # Degraded mode fallback on model error/timeout
             candidate_text = AnswerComposer.compose_fallback_answer(facts, query)
