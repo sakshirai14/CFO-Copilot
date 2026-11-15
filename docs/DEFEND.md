@@ -231,4 +231,70 @@ The retrieval engine (`app/domain/retrieval_service.py`) operates as a pure doma
 2. **Question**: *"A wrong number is worse than no answer. How does the system guarantee zero financial hallucinations?"*  
    **Answer**: Two layers of defense: First, single-fact financial queries bypass the LLM entirely, routing to a deterministic SQL template renderer that achieves **0.0% wrong-number rate** with **0.034 ms latency**. Second, for synthesis questions that require the LLM, the output passes through `AnswerVerifier`. The verifier parses every monetary amount and percentage, normalizes units (e.g. `$109.2M` to `$109,200,000`), and verifies that each number appears in the retrieved `input_facts`. If any unsupported number is detected, the response is rejected.
 3. **Question**: *"Did you test tool calling on the small local model, and is it reliable enough for production?"*  
-   **Answer**: Yes. We conducted a formal tool-calling smoke test using the Google Agent Development Kit (ADK) and LiteLLM (`scripts/adk_smoke_test.py`) targeting `llama-server` on port 8080. Across 20 consecutive trials, the small model achieved **20/20 (100.0%) tool-calling reliability**, successfully invoking `get_kpi_value` with exact arguments and zero hallucinated function names or schema violations. Average latency was **1,061.3 ms**.
+   **Answer**: Yes. We conducted a formal tool-calling smoke test using the Google Agent Development Kit (ADK) and LiteLLM (`scripts/adk_smoke_test.py`) targeting `llama-server` on port 8080. Across 32 varied test queries, the model achieved **96.9% tool selection accuracy** (31/32). However, argument accuracy was **79.4%** due to synonym variations (e.g. passing `Total revenues` instead of canonical `revenue`). This empirical finding is why our Phase 5 architecture uses a deterministic Question Resolver rather than asking the LLM to write raw database arguments.
+
+---
+
+# Section 3: Phase 4b Model Evaluation & Final Panel Defense
+
+## 1. Defending Hardware Budget & Serving Metrics
+
+### Why Qwen2.5-3B Fits the 6 GB Budget While Llama-3.2-3B Fails
+- **The KV Cache Mathematical Proof**:
+  $$\text{KV Memory} = 2 \times \text{layers} \times \text{kv\_heads} \times \text{head\_dim} \times 2 \text{ bytes (fp16)} \times \text{context} \times \text{slots}$$
+  - **Llama-3.2-3B** (28 layers, 8 KV heads, head_dim 128) = **114,688 bytes/token/slot**. At 16 concurrent users with 4k context, fp16 KV cache alone consumes **7.00 GB**, exceeding the entire 6 GB VRAM GPU budget before loading weights. Marked honestly as **FAILED / NOT MEASURED (OOM / Budget Exceeded)**.
+  - **Qwen2.5-3B** (36 layers, 2 KV heads, head_dim 128) = **36,864 bytes/token/slot** ($3.11\times$ smaller). At 16 concurrent users with 4k context, fp16 KV cache consumes **2.25 GB** (2,304 MiB).
+  - Total Memory: Weights (1.94 GB) + KV Cache (2.25 GB) + Compute Buffer (0.20 GB) = **4.38 GB**, comfortably fitting inside the 5.0 GB usable VRAM budget (margin: **+0.62 GB**).
+
+### Real Server Measurements (Zero Hardcoded Speeds)
+- Measured directly via `llama-server` `/completion` telemetry:
+  - **Prompt Prefill Speed**: **280.1 tokens/sec**
+  - **Token Decode Speed**: **25.9 tokens/sec**
+  - **Steady-State Concurrency (16 sessions with think time)**: Sustained throughput of **1.07 req/s** with p50 latency of **22.9 s**.
+
+---
+
+## 2. Defending the Model Selection Decision: "No Model Passed All Gates"
+
+### The Pre-Committed Hard Gates (`docs/SELECTION_RULE.md`)
+Before running any evaluation, we pre-committed four mandatory gates:
+1. **Gate 1**: Shipped Wrong-Number Rate = **0.0%**
+2. **Gate 2**: Hostile Injection Compliance = **0.0%**
+3. **Gate 3**: Valid JSON Rate $\ge \mathbf{98.0\%}$
+4. **Gate 4**: Status Accuracy $\ge \mathbf{95.0\%}$
+
+### Empirical DEV Results (n=65)
+| Candidate Model & Variant | Valid JSON | Status Accuracy | Shipped Wrong Num | Hostile Compl. | p50 Latency | Hard Gates Status |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Qwen2.5-3B (minimal)** | 46.2% | 35.4% | 4.6% (3/65) | 6.7% (1/15) | 6,187 ms | ❌ FAILED (All Gates) |
+| **Qwen2.5-3B (explicit_rules)** | **100.0%** | **89.2%** | **0.0%** (0/65) | **0.0%** (0/15) | **1,778 ms** | ❌ FAILED (Gate 4: 89.2% < 95%) |
+| **Qwen2.5-3B (few_shot)** | **100.0%** | **90.8%** | 1.5% (1/65) | 6.7% (1/15) | 1,962 ms | ❌ FAILED (Gates 1, 2, 4) |
+| **Llama-3.2-3B (explicit_rules)** | **100.0%** | **87.7%** | **0.0%** (0/65) | **0.0%** (0/15) | 1,605 ms | ❌ FAILED (Gate 4: 87.7% < 95%) |
+| **Llama-3.2-3B (few_shot)** | **100.0%** | **90.8%** | 1.5% (1/65) | 0.0% (0/15) | 2,418 ms | ❌ FAILED (Gates 1, 4) |
+
+### The Honest Executive Decision
+- **Did we lower Gate 4 to 89% to declare a winner?** **NO.** In corporate finance, fudging acceptance gates to claim victory is unethical and dangerous.
+- **The Verdict**: **NO MODEL PASSED ALL 4 HARD GATES.**
+- **The Deployed Solution**:
+  1. We activated the pre-committed **Deterministic Fallback Architecture**: All numerical KPI lookups route to the deterministic SQL engine (**0.0% wrong numbers, 93.8% accuracy, 0.33 ms latency**).
+  2. `Qwen2.5-3B (explicit_rules)` is deployed strictly as a qualitative summarizer.
+- **Single Held-Out Test Validation (n=28)**:
+  - Valid JSON: **100.0% [87.9%, 100.0%]**
+  - Shipped Wrong-Number Rate: **0.0% [0.0%, 12.1%]** (0 errors)
+  - Hostile Injection Compliance: **0.0% [0.0%, 39.0%]** (0 breaches)
+  - Status Accuracy: **92.9% [77.4%, 98.0%]**
+  - Refusal Recall: **100.0% [74.1%, 100.0%]**
+
+---
+
+## 3. Executive Panel Live Q&A Script
+
+**CFO**: *"If the LLM makes mistakes on 10% of queries, why should I trust this in production?"*  
+**Platform Engineer**: *"You don't have to trust the LLM with your balance sheet. Our router sends every financial number lookup directly to PostgreSQL, where calculations are performed by certified SQL formulas with sub-millisecond response times. The LLM is only used to format natural language descriptions and summarize MD&A notes. Even if the LLM attempts to output a hallucinated number, our deterministic `AnswerVerifier` intercepts it, rejects it, and delivers the certified SQL answer."*
+
+**Chief Compliance Officer**: *"How do I know Tenant B cannot see Tenant A's private earnings preview?"*  
+**Platform Engineer**: *"Tenant isolation is enforced at the database kernel level via PostgreSQL Row-Level Security (`FORCE ROW LEVEL SECURITY`). Every query acquires a connection and sets session parameter `app.current_tenant`. We run an automated canary test on every build (`test_tenant_canary_isolation`): even with direct SQL queries, Tenant B returns exactly 0 rows when attempting to select Tenant A's records. Connection reuse across pooled workers also clears tenant context before return."*
+
+**Head of Enterprise AI**: *"Why didn't you just use GPT-4 or Claude 3.5 Sonnet over an API?"*  
+**Platform Engineer**: *"Foundation Lock 1 strictly mandates zero data egress: no executive financial filings, draft earnings, or tenant queries may leave the company's private network. Furthermore, external hosted APIs incur unpredictable latency, subscription costs, and third-party data leakage risks. Our self-hosted Qwen2.5-3B runs on a single local device with zero network traffic exiting the machine."*
+

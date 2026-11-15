@@ -69,7 +69,7 @@
 * **Downgrade Gate**: If a filing fails an accounting identity check, the system logs a `CRITICAL` issue in `data_quality_issues`. Any KPI whose formula directly depends on the inconsistent line items is downgraded to status `unverified`, preventing corrupted inputs from generating authoritative output.
 
 ### Rule R12: Policy Versioning and Immutable Lineage
-* Every effective line item and calculated KPI record must store `policy_version` (currently `v1.1.0`).
+* Every effective line item and calculated KPI record must store `policy_version` (currently `v1.2.0`).
 * Future adjustments to rules or formulas require incrementing the semantic policy version, ensuring reproducible historic runs and auditability.
 
 ---
@@ -124,15 +124,15 @@ Counts reflect records where each rule **changed the output value or status** co
 
 | Rule ID | Rule Name | Rows Changed Outcome | Governing Action on This Dataset | Unit / Integration Test Proof |
 | :--- | :--- | :---: | :--- | :--- |
-| **R1** | Source Authority Hierarchy | **1** | Marketing press release claiming preliminary revenue of $871.0M rejected in favor of filed Form 10-Q revenue ($777.7M). | `test_r1_source_authority_press_release_ignored` |
-| **R2** | Restatement Precedence | **12** | 6 items in CEP 10-Q/A and 6 items in NWI 10-Q/A superseded unamended 10-Q values on `as_restated` basis. | `test_r2_restatement_precedence_cep_10qa`, `test_r2_restatement_precedence_nwi_10qa` |
-| **R3** | Comparative Prior Columns | **2** | Prior-period comparative columns in NWI FY2024 Q3 restated FY2023 Q3 Net Income from $37.3M to $34.9M. | `test_r3_comparative_column_restatement_nwi` |
+| **R1** | Source Authority Hierarchy | **3** | Non-filing documents (press releases, analyst notes, FAQs) excluded from financial line items. | `test_r1_source_authority_press_release_ignored` |
+| **R2** | Restatement Precedence | **24** | 12 items in CEP 10-Q/A and 12 items in NWI 10-Q/A superseded unamended 10-Q values under `as_restated`. | `test_r2_restatement_precedence_cep_10qa`, `test_r2_restatement_precedence_nwi_10qa` |
+| **R3** | Comparative Prior Columns | **4** | Prior-period comparative columns in NWI FY2024 Q3 restated FY2023 Q3 Net Income from $37.3M to $34.9M. | `test_r3_comparative_column_restatement_nwi` |
 | **R4** | Intra-Filing Deduplication | **3** | Collapsed duplicate rows within same filing (ARG Q2 2023 revenue R001447, etc.), preventing $2\times$ revenue double-count. | `test_r4_intra_filing_duplicate_collapse` |
-| **R5** | Dual-Evidence Normalization | **11** | Prevented 1,000x overstatement on HBS FY2024 Q2 (11 line items scaled by 1,000 instead of 1,000,000; revenue $109.2M, not $109.2B). | `test_r5_dual_evidence_normalization_hbs` |
-| **R6** | Missing Input Discipline | **48** | Enforced `status = 'missing_input'` and `value = NULL` for missing inputs (48 KPI values for YoY growth). Prevented silent zero imputation. | `test_rd_intensity_missing_input_when_not_reported` |
+| **R5** | Dual-Evidence Normalization | **24** | Prevented 1,000x overstatement on HBS FY2024 Q2 (line items scaled by 1,000 instead of 1,000,000; revenue $109.2M, not $109.2B). | `test_r5_dual_evidence_normalization_hbs` |
+| **R6** | Missing Input Discipline | **96** | Enforced `status = 'missing_input'` and `value = NULL` for missing inputs (48 per basis; 24 ARG non-R&D/opex + 24 YoY initial quarters). Prevented silent zero imputation. | `test_r6_missing_input_and_rd_zero_exception` |
 | **R7** | Comparability Alignment | **1** (Function) | `cross_company_comparability()` flags ZLG (91 days apart) and HBS (183 days apart) as `aligned = false` against calendar firms. | `test_r7_non_aligned_calendar_detection` |
-| **R8** | Mathematical Domain Gates | **0** (Guarded) | No filed values had zero liabilities or negative equity in historical data. Gates active to prevent division by zero or invalid ratios. | `test_debt_to_equity_negative_equity`, `test_current_ratio_zero_denominator` |
-| **R9** | Time-Horizon Asymmetry | **48** | Formally flagged first 4 quarters of YoY growth as undefined / missing input rather than estimating or wrapping. | `test_revenue_yoy_first_four_quarters_missing` |
-| **R10** | Storage Precision | **2,304** | All intermediate and calculated values preserved at full `NUMERIC(18, 6)` fixed-point precision; rounded only at output. | `test_r10_storage_precision_and_presentation` |
-| **R11** | Accounting Integrity Gate | **1** | Evaluated balance sheet and margin identities; logged issue and guarded against corrupt input propagation. | `test_isolation_hardening` |
-| **R12** | Row-Hash Provenance | **2,304** | Every calculated KPI row stamped with `policy_version = 'v1.1.0'`, `run_id`, and exact array of source `input_line_item_ids`. | `test_r12_provenance_and_policy_version` |
+| **R8** | Mathematical Domain Gates | **0** (Guarded) | No filed values had zero liabilities or negative equity in historical data. Gates active to prevent division by zero or invalid ratios. | `test_r8_mathematical_domain_gates` |
+| **R9** | Formula Canonicalization | **2,304** | All 16 KPIs strictly match canonical definitions from `kpi_glossary.csv`; 0 ad-hoc formulas allowed. | `test_r9_formula_canonicalization` |
+| **R10** | Storage Precision | **2,304** | All intermediate and calculated values preserved at full `NUMERIC(24, 6)` fixed-point precision; rounded only at output. | `test_r10_storage_precision_and_presentation` |
+| **R11** | Accounting Integrity Gate | **0** (Guarded) | Evaluated balance sheet and margin identities; guarded against corrupt input propagation to 'ok' KPIs. | `test_r11_accounting_integrity_gate` |
+| **R12** | Row-Hash Provenance | **2,304** | Every calculated KPI row stamped with `policy_version = 'v1.2.0'`, `run_id`, and exact array of source `input_line_item_ids`. | `test_r12_provenance_and_policy_version` |

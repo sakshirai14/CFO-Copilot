@@ -68,7 +68,7 @@ def run_dev_questions_audit():
     out_lines.append("=" * 100)
     out_lines.append(f"Timestamp:              {datetime.datetime.now().isoformat()}")
     out_lines.append(f"Source Benchmark:       {dev_csv}")
-    out_lines.append("Evaluation Basis:       SQL Engine (policy_version 'v1.1.0', basis 'as_restated') & Text Corpus")
+    out_lines.append("Evaluation Basis:       SQL Engine (policy_version 'v1.2.0', basis 'as_restated') & Text Corpus")
     out_lines.append("Guidance:               No rule tuning to fit. Discrepancies reported transparently.")
     out_lines.append("-" * 100)
 
@@ -96,7 +96,7 @@ def run_dev_questions_audit():
             cur.execute("""
                 SELECT value, unit, status FROM kpi_values
                 WHERE company_id = %s AND fiscal_year = %s AND fiscal_quarter = %s
-                  AND kpi_id = %s AND basis = 'as_restated' AND policy_version = 'v1.1.0';
+                  AND kpi_id = %s AND basis = 'as_restated' AND policy_version = 'v1.2.0';
             """, (comp, fy, fq, kpi))
             row = cur.fetchone()
 
@@ -138,7 +138,7 @@ def run_dev_questions_audit():
                 cur.execute("""
                     SELECT value FROM kpi_values
                     WHERE company_id = 'ARG' AND fiscal_year = 2023 AND fiscal_quarter = 4
-                      AND kpi_id = 'gross_margin_pct' AND basis = 'as_restated' AND policy_version = 'v1.1.0';
+                      AND kpi_id = 'gross_margin_pct' AND basis = 'as_restated' AND policy_version = 'v1.2.0';
                 """)
                 val = cur.fetchone()[0]
                 system_ans = f"{val:.2f}%; Heavier promotional activity to clear excess inventory"
@@ -149,7 +149,7 @@ def run_dev_questions_audit():
                 cur.execute("""
                     SELECT value FROM kpi_values
                     WHERE company_id = 'CEP' AND fiscal_year = 2023 AND fiscal_quarter = 3
-                      AND kpi_id = 'gross_margin_pct' AND basis = 'as_restated' AND policy_version = 'v1.1.0';
+                      AND kpi_id = 'gross_margin_pct' AND basis = 'as_restated' AND policy_version = 'v1.2.0';
                 """)
                 val = cur.fetchone()[0]
                 system_ans = f"{val:.2f}%; Pipeline maintenance outages and a spike in operating costs"

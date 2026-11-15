@@ -45,7 +45,7 @@ def run_broad_text_reconciliation():
     report_lines.append(f"Timestamp:              {datetime.datetime.now().isoformat()}")
     report_lines.append("Corpus Coverage:        Full Document Corpus (77 documents, 6 companies)")
     report_lines.append("Target Policy:          Conflict Policy Rule R1 (Source Authority) & Rule R2 (Precedence)")
-    report_lines.append("SQL Engine Version:     policy_version = 'v1.1.0'")
+    report_lines.append("SQL Engine Version:     policy_version = 'v1.2.0'")
     report_lines.append("-" * 80)
 
     scale_map = {
@@ -59,20 +59,20 @@ def run_broad_text_reconciliation():
         cur.execute("SELECT filing_id, reporting_unit FROM filings;")
         filing_units = dict(cur.fetchall())
 
-        # Pre-fetch all SQL KPIs (v1.1.0)
+        # Pre-fetch all SQL KPIs (v1.2.0)
         cur.execute("""
             SELECT company_id, fiscal_year, fiscal_quarter, kpi_id, basis, value
             FROM kpi_values
-            WHERE policy_version = 'v1.1.0';
+            WHERE policy_version = 'v1.2.0';
         """)
         kpi_db = {(r[0], r[1], r[2], r[3], r[4]): r[5] for r in cur.fetchall()}
 
-        # Pre-fetch all effective line items (v1.1.0)
+        # Pre-fetch all effective line items (v1.2.0)
         cur.execute("""
             SELECT eli.company_id, eli.fiscal_year, eli.fiscal_quarter, eli.canonical_item, eli.basis, li.value_normalized
             FROM effective_line_items eli
             JOIN line_items li ON eli.effective_line_item_id = li.id
-            WHERE eli.policy_version = 'v1.1.0';
+            WHERE eli.policy_version = 'v1.2.0';
         """)
         li_db = {(r[0], r[1], r[2], r[3], r[4]): r[5] for r in cur.fetchall()}
 

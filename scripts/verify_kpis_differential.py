@@ -42,7 +42,7 @@ INDEPENDENT_TAXONOMY = {
     ("IS", "Gross profit"): "gross_profit",
     # IS - Opex
     ("IS", "Research and development"): "research_and_development",
-    ("IS", "Technology and development"): "research_and_development",
+    ("IS", "Technology and development"): "technology_expense",
     ("IS", "Technology expense"): "research_and_development",
     ("IS", "Exploration expense"): "research_and_development",
     ("IS", "Sales and marketing"): "sales_and_marketing",
@@ -337,7 +337,7 @@ def load_sql_kpis():
     query = """
         SELECT company_id, fiscal_year, fiscal_quarter, kpi_id, basis, status, value as sql_value
         FROM kpi_values
-        WHERE policy_version = 'v1.1.0';
+        WHERE policy_version = 'v1.2.0';
     """
     df_sql = pd.read_sql(query, conn)
     conn.close()

@@ -36,10 +36,10 @@ gold-34,ARG,2022,1,net_margin_pct,as_originally_reported,5.417358,percent,ok,Sys
 gold-35,ARG,2022,1,net_margin_pct,as_restated,5.417358,percent,ok,Systematic coverage evaluation ARG FY2022Q1 net_margin_pct,false
 gold-36,ARG,2022,1,operating_margin_pct,as_originally_reported,7.987839,percent,ok,Systematic coverage evaluation ARG FY2022Q1 operating_margin_pct,false
 gold-37,ARG,2022,1,operating_margin_pct,as_restated,7.987839,percent,ok,Systematic coverage evaluation ARG FY2022Q1 operating_margin_pct,false
-gold-38,ARG,2022,1,opex_ratio_pct,as_originally_reported,30.790492,percent,ok,Systematic coverage evaluation ARG FY2022Q1 opex_ratio_pct,false
-gold-39,ARG,2022,1,opex_ratio_pct,as_restated,30.790492,percent,ok,Systematic coverage evaluation ARG FY2022Q1 opex_ratio_pct,false
-gold-40,ARG,2022,1,rd_intensity_pct,as_originally_reported,0.000000,percent,ok,Systematic coverage evaluation ARG FY2022Q1 rd_intensity_pct,false
-gold-41,ARG,2022,1,rd_intensity_pct,as_restated,0.000000,percent,ok,Systematic coverage evaluation ARG FY2022Q1 rd_intensity_pct,false
+gold-38,ARG,2022,1,opex_ratio_pct,as_originally_reported,,percent,missing_input,Systematic coverage evaluation ARG FY2022Q1 opex_ratio_pct,false
+gold-39,ARG,2022,1,opex_ratio_pct,as_restated,,percent,missing_input,Systematic coverage evaluation ARG FY2022Q1 opex_ratio_pct,false
+gold-40,ARG,2022,1,rd_intensity_pct,as_originally_reported,,percent,missing_input,Systematic coverage evaluation ARG FY2022Q1 rd_intensity_pct,false
+gold-41,ARG,2022,1,rd_intensity_pct,as_restated,,percent,missing_input,Systematic coverage evaluation ARG FY2022Q1 rd_intensity_pct,false
 gold-42,ARG,2022,1,revenue_yoy_growth_pct,as_originally_reported,,percent,missing_input,Systematic coverage evaluation ARG FY2022Q1 revenue_yoy_growth_pct,false
 gold-43,ARG,2022,1,revenue_yoy_growth_pct,as_restated,,percent,missing_input,Systematic coverage evaluation ARG FY2022Q1 revenue_yoy_growth_pct,false
 gold-44,ARG,2022,1,roe_quarterly_pct,as_originally_reported,4.960142,percent,ok,Systematic coverage evaluation ARG FY2022Q1 roe_quarterly_pct,false

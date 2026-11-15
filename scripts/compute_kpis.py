@@ -22,7 +22,7 @@ def main():
     is_test = "--test" in sys.argv
     db_label = "test" if is_test else "production"
 
-    policy_version = "v1.1.0"
+    policy_version = "v1.2.0"
 
     print(f"=== CFO Copilot: Computing 16 KPIs ({db_label} database, policy {policy_version}) ===")
     conn = psycopg2.connect(**settings.get_connection_params(role="rw", is_test=is_test))

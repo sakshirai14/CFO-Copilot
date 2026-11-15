@@ -15,7 +15,31 @@
 | **NEW Held-Out Split (n=28)** | 28 | 96.4% | **0.0%** | 100.0% | 60.7% | 0.224 ms | 0.522 ms | 3,281.3 qps |
 | **TOTAL (n=93)** | 93 | 94.6% | **0.0%** | 100.0% | 62.4% | 0.223 ms | 0.471 ms | 3,573.9 qps |
 
-## 2. Head-to-Head Comparison: Deterministic Template vs. Small LLM
+## 2. Precise Metric Definitions & Evaluation Scope
+
+### Definitions:
+1. **Coverage**:
+   $$\text{Coverage} = \frac{N_{\text{answerable cases attempting factual response}}}{N_{\text{total queries}}}$$
+   In the DEV split ($n=65$), 41 cases are answerable factual inquiries ($63.1\%$), while 24 cases ($36.9\%$) are unanswerable, out-of-scope, or adversarial injections. The template baseline provides 100% coverage over answerable single-fact queries and 100% refusal coverage over unanswerable queries.
+2. **Accuracy (Separated by Answerability)**:
+   - **Answerable Accuracy**: Evaluated strictly on the subset of queries with ground truth facts ($n=41$ in DEV, $n=17$ in Held-out). A case is accurate if and only if the template extracts and displays the exact expected number within 0.15% rounding tolerance.
+     - *DEV Answerable Accuracy*: $37 / 41 = 90.2\%$ (4 complex multi-period synthesis questions required LLM narrative).
+     - *Held-out Answerable Accuracy*: $16 / 17 = 94.1\%$.
+   - **Refusal Recall (Unanswerable Accuracy)**: Evaluated strictly on unanswerable and hostile queries ($n=24$ in DEV, $n=11$ in Held-out).
+     - *DEV Refusal Accuracy*: $24 / 24 = 100.0\%$.
+     - *Held-out Refusal Accuracy*: $11 / 11 = 100.0\%$.
+   - **Overall System Accuracy**: Combined agreement across both classes:
+     - DEV Overall: $61 / 65 = 93.8\%$.
+     - Held-out Overall: $27 / 28 = 96.4\%$.
+3. **Shipped Wrong-Number Rate**:
+   $$\text{Shipped Wrong Rate} = \frac{N_{\text{answers shipped with hallucinated or incorrect numbers}}}{N_{\text{total queries}}} = 0.0\% \text{ (Strictly 0)}$$
+
+### Input Processing Note:
+> **Important Distinction**: In this Phase 4b benchmark, the template engine directly consumed the pre-extracted `input_facts` provided in the test case structure (isolating template formatting accuracy, verification, and throughput). In Phase 5, the end-to-end pipeline connects the deterministic `QuestionResolver`, which parses unstructured natural language queries directly from the CFO into strongly-typed `ResolvedQuery` objects.
+
+---
+
+## 3. Head-to-Head Comparison: Deterministic Template vs. Small LLM
 
 | Dimension | Deterministic SQL Template | Local Small LLM (Qwen2.5-3B) | Architectural Rationale |
 | :--- | :---: | :---: | :--- |

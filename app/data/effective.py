@@ -16,7 +16,7 @@ from app.core.config import get_settings
 logger = logging.getLogger("cfo_copilot.effective")
 
 
-def build_effective_line_items(conn, policy_version: str = "v1.1.0") -> int:
+def build_effective_line_items(conn, policy_version: str = "v1.2.0") -> int:
     """Computes and populates effective_line_items table deterministically.
     
     Returns the total number of effective line items upserted.

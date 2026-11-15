@@ -48,7 +48,7 @@ def get_provenance_trace(
     kpi_id: Optional[str] = None,
     basis: str = "as_restated",
     kpi_value_id: Optional[int] = None,
-    policy_version: str = "v1.1.0"
+    policy_version: str = "v1.2.0"
 ) -> Dict[str, Any]:
     """Retrieves full provenance trace from database."""
     with conn.cursor() as cur:

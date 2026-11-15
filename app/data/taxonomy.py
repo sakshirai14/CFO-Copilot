@@ -28,7 +28,7 @@ GLOBAL_TAXONOMY: Dict[Tuple[str, str], Tuple[str, int, str]] = {
 
     # IS - Operating Expenses
     ("IS", "Research and development"): ("research_and_development", 1, "R&D expense"),
-    ("IS", "Technology and development"): ("research_and_development", 1, "ARG technology (0.0)"),
+    ("IS", "Technology and development"): ("technology_expense", 1, "ARG IT/POS technology operations (not ASC 730 R&D)"),
     ("IS", "Technology expense"): ("research_and_development", 1, "ZLG technology operations"),
     ("IS", "Exploration expense"): ("research_and_development", 1, "CEP upstream exploration"),
 

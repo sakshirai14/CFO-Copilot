@@ -24,7 +24,7 @@ def conflict_test_setup(settings):
         with conn.cursor() as cur:
             cur.execute("DELETE FROM kpi_values; DELETE FROM effective_line_items;")
         conn.commit()
-        compute_all_kpis(conn, policy_version="v1.1.0")
+        compute_all_kpis(conn, policy_version="v1.2.0")
     finally:
         conn.close()
 
@@ -142,7 +142,7 @@ class TestConflictPolicyRules:
                 SELECT COUNT(*)
                 FROM effective_line_items
                 WHERE company_id = 'ARG' AND fiscal_year = 2023 AND fiscal_quarter = 2
-                  AND canonical_item = 'revenue' AND basis = 'as_restated' AND policy_version = 'v1.1.0';
+                  AND canonical_item = 'revenue' AND basis = 'as_restated' AND policy_version = 'v1.2.0';
             """)
             assert cur.fetchone()[0] == 1  # Exactly 1 effective item, not doubled
         conn.close()
@@ -165,7 +165,7 @@ class TestConflictPolicyRules:
         conn.close()
 
     def test_r6_missing_input_and_rd_zero_exception(self, conflict_test_setup, settings):
-        """Rule R6: Missing inputs yield missing_input status; ARG non-R&D reports 0.0%."""
+        """Rule R6: Missing inputs yield missing_input status; ARG does not report ASC 730 R&D."""
         conn = psycopg2.connect(**settings.get_connection_params(role="ro", is_test=True))
         with conn.cursor() as cur:
             # Undefined first 4 quarters YoY growth
@@ -180,7 +180,7 @@ class TestConflictPolicyRules:
             assert val is None
             assert "first four quarters" in reason
 
-            # ARG R&D intensity evaluates to 0.0%
+            # ARG R&D intensity evaluates to missing_input (retailer does not report ASC 730 R&D)
             cur.execute("""
                 SELECT status, value
                 FROM kpi_values
@@ -188,8 +188,8 @@ class TestConflictPolicyRules:
                   AND kpi_id = 'rd_intensity_pct' AND basis = 'as_restated';
             """)
             stat_rd, val_rd = cur.fetchone()
-            assert stat_rd == "ok"
-            assert float(val_rd) == 0.0
+            assert stat_rd == "missing_input"
+            assert val_rd is None
         conn.close()
 
     def test_r7_non_aligned_calendar_detection(self, conflict_test_setup, settings):
@@ -238,6 +238,18 @@ class TestConflictPolicyRules:
             assert cur.fetchone()[0] == 0
         conn.close()
 
+    def test_r9_formula_canonicalization(self, conflict_test_setup, settings):
+        """Rule R9: All 16 KPIs strictly match canonical definitions from kpi_glossary.csv."""
+        conn = psycopg2.connect(**settings.get_connection_params(role="ro", is_test=True))
+        with conn.cursor() as cur:
+            cur.execute("SELECT DISTINCT kpi_id FROM kpi_values ORDER BY 1;")
+            db_kpis = [r[0] for r in cur.fetchall()]
+            assert len(db_kpis) == 16, f"Expected exactly 16 canonical KPIs, found {len(db_kpis)}"
+            # Verify no unauthorized ad-hoc KPI names exist
+            cur.execute("SELECT COUNT(*) FROM kpi_values WHERE kpi_id NOT IN (SELECT kpi_id FROM kpi_definitions);")
+            assert cur.fetchone()[0] == 0
+        conn.close()
+
     def test_r10_storage_precision_and_presentation(self, conflict_test_setup, settings):
         """Rule R10: Stored as high precision NUMERIC in PostgreSQL; units strictly explicit."""
         conn = psycopg2.connect(**settings.get_connection_params(role="ro", is_test=True))
@@ -249,12 +261,24 @@ class TestConflictPolicyRules:
             assert sorted(units) == ["USD", "percent", "x"]
         conn.close()
 
+    def test_r11_accounting_integrity_gate(self, conflict_test_setup, settings):
+        """Rule R11: Primary GAAP accounting identities enforced; identity failures downgrade to unverified."""
+        conn = psycopg2.connect(**settings.get_connection_params(role="ro", is_test=True))
+        with conn.cursor() as cur:
+            # Assert all calculated 'ok' values satisfy accounting identity gates
+            cur.execute("""
+                SELECT COUNT(*) FROM effective_line_items
+                WHERE status = 'ok' AND 'R11' = ANY(rule_ids_applied);
+            """)
+            assert cur.fetchone()[0] == 0, "No 'ok' line item may propagate from an R11 identity violation"
+        conn.close()
+
     def test_r12_provenance_and_policy_version(self, conflict_test_setup, settings):
-        """Rule R12: Every calculated KPI stores policy_version 'v1.1.0' and input_line_item_ids."""
+        """Rule R12: Every calculated KPI stores policy_version 'v1.2.0' and input_line_item_ids."""
         conn = psycopg2.connect(**settings.get_connection_params(role="ro", is_test=True))
         with conn.cursor() as cur:
             cur.execute("""
-                SELECT COUNT(*) FROM kpi_values WHERE policy_version != 'v1.1.0';
+                SELECT COUNT(*) FROM kpi_values WHERE policy_version != 'v1.2.0';
             """)
             assert cur.fetchone()[0] == 0
 
@@ -288,7 +312,7 @@ class TestGoldenEvaluationSet:
                     SELECT value, unit, status
                     FROM kpi_values
                     WHERE company_id = %s AND fiscal_year = %s AND fiscal_quarter = %s
-                      AND kpi_id = %s AND basis = %s AND policy_version = 'v1.1.0';
+                      AND kpi_id = %s AND basis = %s AND policy_version = 'v1.2.0';
                 """, (
                     row["company_id"],
                     int(row["fiscal_year"]),

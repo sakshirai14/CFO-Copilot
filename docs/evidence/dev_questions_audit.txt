@@ -1,9 +1,9 @@
 ====================================================================================================
 CFO COPILOT - DEV QUESTIONS AUDIT & TRAP EVALUATION TABLE
 ====================================================================================================
-Timestamp:              2026-11-15T11:36:15.767629
+Timestamp:              2026-11-15T19:13:35.230512
 Source Benchmark:       /Users/sakshirai/AI_RAG_Assignment/data_pack/CANDIDATE_PACK/puzzle4_data/dev_questions.csv
-Evaluation Basis:       SQL Engine (policy_version 'v1.1.0', basis 'as_restated') & Text Corpus
+Evaluation Basis:       SQL Engine (policy_version 'v1.2.0', basis 'as_restated') & Text Corpus
 Guidance:               No rule tuning to fit. Discrepancies reported transparently.
 ----------------------------------------------------------------------------------------------------
 

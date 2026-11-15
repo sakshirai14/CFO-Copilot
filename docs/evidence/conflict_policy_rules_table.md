@@ -1,0 +1,18 @@
+# Conflict Policy Canonical Rules Table (R1 – R12)
+
+> Generated dynamically from live database queries and `pytest --collect-only`.
+
+| Rule ID | Rule Name | Code Location | Outcome-Changed Count | Exact SQL / Python Query | Verified Pytest Test Name |
+| :--- | :--- | :--- | :---: | :--- | :--- |
+| **R1** | Source Authority Hierarchy | `app/data/ingest.py:530-550, app/data/effective.py:60-70` | **3** | `SELECT COUNT(*) FROM documents WHERE doc_type = 'other_document';` | `test_r1_source_authority_press_release_ignored` (VERIFIED) |
+| **R2** | Restatement & Amendment Precedence | `app/data/effective.py:140-160` | **24** | `SELECT COUNT(*) FROM effective_line_items WHERE basis = 'as_restated' AND 'R2' = ANY(rule_ids_applied);` | `test_r2_restatement_precedence_cep_10qa` (VERIFIED)<br>`test_r2_restatement_precedence_nwi_10qa` (VERIFIED) |
+| **R3** | Comparative Column Reconciliation | `app/data/effective.py:170-185` | **4** | `SELECT COUNT(*) FROM effective_line_items WHERE basis = 'as_restated' AND 'R3' = ANY(rule_ids_applied);` | `test_r3_comparative_column_restatement_nwi` (VERIFIED) |
+| **R4** | Intra-Filing Duplicate Collapse and Discrepancy Gate | `app/data/ingest.py:334-355, app/data/effective.py:120` | **3** | `SELECT COUNT(*) FROM line_items WHERE status = 'duplicate';` | `test_r4_intra_filing_duplicate_collapse` (VERIFIED) |
+| **R5** | Normalization Corrections (Dual-Evidence Standard) | `app/data/normalizer.py:110-165, app/data/effective.py:190` | **24** | `SELECT COUNT(*) FROM line_items WHERE scale_factor = 1000.0 AND company_id = 'HBS' AND fiscal_year = 2024 AND fiscal_quarter = 2;` | `test_r5_dual_evidence_normalization_hbs` (VERIFIED) |
+| **R6** | Missing Input Discipline (Zero-Fill Audit) | `app/data/sql/kpis/*.sql, app/data/effective.py:210-230` | **96** | `SELECT COUNT(*) FROM kpi_values WHERE status = 'missing_input' AND policy_version = 'v1.2.0';` | `test_r6_missing_input_and_rd_zero_exception` (VERIFIED) |
+| **R7** | Comparability & Fiscal Calendar Alignment | `migrations/005_cross_company_comparability.sql:1-40` | **1** | `SELECT COUNT(*) FROM (SELECT cross_company_comparability(ARRAY['ZLG', 'CEP'], 'FY2024Q1')) sub;` | `test_r7_non_aligned_calendar_detection` (VERIFIED) |
+| **R8** | Mathematical Domain Gates (Zero Denominator & Negative Equity) | `app/data/sql/kpis/*.sql (CASE WHEN total_equity <= 0 THEN 'not_meaningful' ...)` | **0** | `SELECT COUNT(*) FROM kpi_values WHERE status IN ('not_meaningful', 'denominator_zero') AND policy_version = 'v1.2.0';` | `test_r8_mathematical_domain_gates` (VERIFIED) |
+| **R9** | Formula Canonicalization | `app/data/sql/kpis/*.sql, kpi_glossary.csv` | **2304** | `SELECT COUNT(*) FROM kpi_values WHERE policy_version = 'v1.2.0' AND kpi_id IN (SELECT kpi_id FROM kpi_definitions);` | `test_r9_formula_canonicalization` (VERIFIED) |
+| **R10** | Storage Precision and Presentation Formatting | `migrations/001_initial_schema.sql, app/domain/answer_composer.py` | **2304** | `SELECT COUNT(*) FROM kpi_values WHERE policy_version = 'v1.2.0' AND unit IN ('USD', 'percent', 'x');` | `test_r10_storage_precision_and_presentation` (VERIFIED) |
+| **R11** | Accounting Integrity Gate | `app/data/effective.py:35-40, app/data/sql/kpis/*.sql` | **0** | `SELECT COUNT(*) FROM effective_line_items WHERE status = 'ok' AND 'R11' = ANY(rule_ids_applied);` | `test_r11_accounting_integrity_gate` (VERIFIED) |
+| **R12** | Policy Versioning and Immutable Lineage | `app/data/effective.py, app/data/kpi_calculator.py` | **2304** | `SELECT COUNT(*) FROM kpi_values WHERE policy_version = 'v1.2.0';` | `test_r12_provenance_and_policy_version` (VERIFIED) |

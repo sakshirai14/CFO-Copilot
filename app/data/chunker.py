@@ -162,7 +162,7 @@ def build_text_chunks_from_documents(conn) -> List[Chunk]:
     return chunks
 
 
-def build_table_chunks_from_effective_line_items(conn, policy_version: str = "v1.1.0") -> List[Chunk]:
+def build_table_chunks_from_effective_line_items(conn, policy_version: str = "v1.2.0") -> List[Chunk]:
     """Builds structured markdown table chunks from effective_line_items (as_restated)."""
     chunks = []
     with conn.cursor() as cur:
@@ -374,7 +374,7 @@ def run_chunking_pipeline(is_test: bool = False) -> Dict[str, Any]:
     conn = psycopg2.connect(**settings.get_connection_params(role="rw", is_test=is_test))
     try:
         text_chunks = build_text_chunks_from_documents(conn)
-        table_chunks = build_table_chunks_from_effective_line_items(conn, policy_version="v1.1.0")
+        table_chunks = build_table_chunks_from_effective_line_items(conn, policy_version="v1.2.0")
         tenant_chunks = build_tenant_chunks(conn)
 
         all_chunks = text_chunks + table_chunks + tenant_chunks
