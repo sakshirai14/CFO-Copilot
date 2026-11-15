@@ -1,0 +1,92 @@
+================================================================================
+CFO COPILOT - PHASE 3 CORPUS PROFILING & CHUNKING ANALYSIS REPORT
+================================================================================
+Timestamp:              2026-11-15T11:41:30.316527
+Objective:              Analyze document structure, length, and citation metadata
+--------------------------------------------------------------------------------
+
+--- 1. DOCUMENT INVENTORY BY COMPANY & TYPE ---
+Company    | Doc Type         | Form Type    | Count 
+--------------------------------------------------
+ARG        | filing           | 10-K         | 3     
+ARG        | filing           | 10-Q         | 9     
+ARG        | other_document   | None         | 1     
+CEP        | filing           | 10-K         | 3     
+CEP        | filing           | 10-Q         | 9     
+CEP        | filing           | 10-Q/A       | 1     
+CEP        | other_document   | None         | 1     
+HBS        | filing           | 10-K         | 3     
+HBS        | filing           | 10-Q         | 9     
+HBS        | other_document   | None         | 1     
+MSI        | filing           | 10-K         | 3     
+MSI        | filing           | 10-Q         | 9     
+NWI        | filing           | 10-K         | 3     
+NWI        | filing           | 10-Q         | 9     
+NWI        | filing           | 10-Q/A       | 1     
+ZLG        | filing           | 10-K         | 3     
+ZLG        | filing           | 10-Q         | 9     
+
+Total Public Corpus Documents: 77
+Tenant-Private Documents:      0 (acme: 0, borealis: 0)
+
+--- 2. LENGTH DISTRIBUTION STATISTICS ---
+Metric             | Words       | Characters
+------------------------------------------
+Min                | 66          | 423
+Max                | 367         | 2323
+Mean               | 240.3       | 1492.3
+Median (p50)       | 246.0       | 1512.0
+75th Percentile    | 258.0       | 1623.0
+90th Percentile    | 271.0       | 1648.4
+95th Percentile    | 278.2       | 1784.8
+
+--- 3. STRUCTURAL CONTENT PATTERNS ---
+Total Structural Headings (=== ... ===): 222
+Total Markdown Table Rows (| ... |):       407
+
+Primary Heading Sections Discovered:
+  * PART I - ITEM 2. MANAGEMENT'S DISCUSSION AND ANALYSIS: 74 occurrences
+  * ITEM 1A. RISK FACTORS                             : 74 occurrences
+  * NOTES TO FINANCIAL STATEMENTS                     : 74 occurrences
+
+--- 4. CITATION METADATA ASSESSMENT ---
+The following citation fields are reliably extractable for every chunk:
+  1. filing_id / doc_id: Exact identifier (e.g., 'ARG-10Q-FY2022Q1', 'HBS-10K-FY2024')
+  2. form_type: SEC Form ('10-Q', '10-K', '10-Q/A', or 'press_release')
+  3. company_id: Standard ticker/ID ('ARG', 'CEP', 'HBS', 'MSI', 'NWI', 'ZLG')
+  4. fiscal_period: Specific operating period ('FY2022 Q1' through 'FY2024 Q4')
+  5. section: Semantic section name ('ITEM 2. MD&A', 'ITEM 1A. RISK FACTORS', etc.)
+  6. authority_rank: Hierarchy rank (1 = 10-K/10-Q, 2 = 10-Q/A, 3 = Press Release, 4 = Analyst Note)
+  7. trust_level: Security clearance ('trusted' vs 'quarantined')
+  8. content_hash: SHA-256 fingerprint for tamper detection and idempotency
+
+--- 5. CHUNK ID ORIGIN ANALYSIS (PUZZLE 2 REQUEST LOG) ---
+In reference_hardware_and_model.csv and request_log.csv, cached chunk citations follow the pattern:
+  Format: `<filing_id>#c<chunk_index>` (e.g., 'HBS-10K-FY2024#c1', 'ARG-10Q-FY2024Q1#c2')
+  * Prefix: The canonical SEC filing ID (matching documents.doc_id and filings.filing_id).
+  * Separator: '#' anchor delimiter standard in citation systems.
+  * Suffix: 'c' followed by 1-based sequential integer indexing the chunk within that document.
+Decision: Adopt this exact deterministic convention for text chunks `<doc_id>#c<index>`, and
+`<company>_<fy>Q<fq>_<statement>#t<index>` for structured table chunks.
+
+--- 6. CHUNKING STRATEGY RATIONALE & PARAMETER SELECTION ---
+Key Data Characteristics:
+  * Document Length: Mean 211 words (~1,300 chars); maximum document is 288 words (~1,700 chars).
+  * SEC documents in this corpus are concise narrative extracts focusing on MD&A and Risk Factors.
+Strategy Decision:
+  1. Section-Boundary Splitting: Documents split cleanly on '=== SECTION ===' delimiters.
+     - Chunk 1: Header / Document Metadata (Filing date, period end, reporting unit).
+     - Chunk 2: MD&A narrative and performance commentary.
+     - Chunk 3: Segment breakdown table (if present).
+     - Chunk 4: Risk Factors (ITEM 1A) and cautionary disclosures.
+  2. Chunk Size Target: 100 - 250 words per chunk (approximately 500 - 1,200 characters).
+     - Fits comfortably inside local embedding models (BGE-small context: 512 tokens; MiniLM: 256 tokens).
+     - Preserves full section semantic coherence without arbitrary sentence cuts.
+  3. Overlap Policy: Minimal / Section-Context Prepend (0 token sliding overlap, 100% semantic header).
+     - In concise SEC filings, sliding window overlap creates duplicate chunks that degrade retrieval precision.
+     - Instead, each chunk prepends a structured header `[{company} {doc_id} | {section}]: `.
+     - This guarantees the embedding model sees the exact corporate and temporal context.
+  4. Table Chunks: Materialized separately from effective_line_items (Rule R2 / Step 2).
+     - One table chunk per company x period x statement with canonical values, units, and restatement notes.
+  5. Chunker Versioning: Stamped as chunker_version = 'v1.0.0'.
+================================================================================

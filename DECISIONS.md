@@ -152,9 +152,17 @@
 
 ---
 
-### [2026-11-15] DECISION 15: Cross-Company Comparability SQL Function (Migration 005)
-- **Context**: Rule R7 was documented conceptually in Phase 2 but lacked a pure SQL query interface.
-- **Decision**: Implemented `cross_company_comparability(target_companies text[], fiscal_label text, threshold_days integer DEFAULT 15)` in forward migration `005_cross_company_comparability.sql`. The function parses fiscal labels, retrieves calendar period start/end dates from filings, calculates calendar day differences, and flags `aligned` boolean based on the 15-day threshold. Verified that ZLG (91 days apart) and HBS (183 days apart) are marked `aligned = false` against calendar companies (CEP/MSI).
+### [2026-11-15] DECISION 16: Corpus-Driven Chunking Strategy and ID Convention
+- **Context**: Phase 3 requires chunking 77 corpus documents and structured financial tables into searchable chunks with strict citations.
+- **Data Findings** (`docs/evidence/corpus_profile.txt`):
+  1. Mean document length is 240 words (~1,492 characters), with maximum length of 367 words (~2,323 characters). Documents are concise, high-density SEC narrative disclosures.
+  2. Documents possess consistent structural markdown headings: `PART I - ITEM 2. MANAGEMENT'S DISCUSSION AND ANALYSIS` (74x), `ITEM 1A. RISK FACTORS` (74x), and segment breakdown tables.
+  3. Chunk IDs in the request log follow `<filing_id>#c<index>` (e.g., `HBS-10K-FY2024#c1`).
+- **Decisions**:
+  1. **Section-Boundary Chunking**: Documents are split cleanly on section boundaries (`=== ... ===`), yielding 2-4 semantic chunks per document (Header/Metadata, MD&A, Segment Tables, Risk Factors).
+  2. **Contextual Header Prepending**: Rather than arbitrary sliding window character overlap (which introduces redundant near-duplicate chunks in concise filings), each chunk prepends a structured context tag: `[{company} {doc_id} | {section}]: `.
+  3. **Table Chunks Separated**: Structured financial statements are rendered from `effective_line_items` (Rule R2 enforced, carrying HBS unit scale fix and restatement annotations), chunked as `<company>_<fy>Q<fq>_<stmt>#t1`.
+  4. **Chunker Versioning**: Deterministic version stamped as `chunker_version = 'v1.0.0'`.
 
 ---
 
