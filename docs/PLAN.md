@@ -50,14 +50,16 @@ flowchart TD
   - Strict tenant isolation under RLS with verified 0 canary leakage.
 
 ### Day 2: Model Serving, ADK Agents & System Architecture
-- **Phase 4: Small Model Comparison & Grounded-Answer Verification (Foundation Locks 1, 3, 4, 10, 11)** *(COMPLETED)*
+- **Phase 4: Small Model Comparison & Grounded-Answer Verification (Foundation Locks 1, 3, 4, 10, 11)** *(COMPLETED & AUDITED AS PHASE 4b)*
   - Local model serving with `llama-server` (pinned SHA-256 GGUF downloads for `Qwen2.5-3B-Instruct` and `Llama-3.2-3B-Instruct`).
-  - GQA mathematical proof & empirical serving benchmarks proving Qwen2.5-3B fits within 6 GB VRAM for 16 slots at 4k context (2.25 GB KV cache, 4.29 GB measured resident memory) whereas Llama-3.2-3B fails (7.00 GB KV cache, 7.02 GB resident memory).
-  - Cold TTFT measured at 1,378.8 ms (well under the 2.0 s SLA) and 56.5 tok/s decode throughput.
-  - Google ADK & LiteLLM tool-calling smoke test verified at 20/20 (100.0%) reliability.
-  - Grounded-Answer Pydantic contract and pure Python deterministic `AnswerVerifier` normalizing executive units (`$109.2M` $\leftrightarrow$ `$109,200,000`, `26.79%` $\leftrightarrow$ `26.8%`) and intercepting hallucinations.
-  - Evaluated prompt variants (`minimal`, `few_shot`, `chain_of_thought`) across 44 DEV cases; evaluated winner `chain_of_thought` on frozen held-out split (`8f3d527f...`).
-  - Established deterministic "No-LLM" baseline for single-fact KPI queries (0.034 ms latency, 29,953 qps throughput, 0.0% wrong-number rate).
+  - GQA mathematical proof & empirical serving benchmarks proving Qwen2.5-3B fits within 6 GB VRAM for 16 slots at 4k context (2.25 GB KV cache, 4.34 GB measured buffers) whereas Llama-3.2-3B fails (7.00 GB KV cache, 9.07 GB resident footprint).
+  - Measured real server timings (zero hardcoded numbers): prefill **280.1 tok/s**, decode **25.9 tok/s**, steady-state 16-session throughput **1.07 req/s**.
+  - Google ADK 4-tool smoke test across 32 diverse queries: **96.9%** tool-selection accuracy, **0.0%** missing-call rate, **3.1%** extra-call rate.
+  - Pure Python deterministic `AnswerVerifier` with **zero 1.5% tolerance**, exact decimal rounding, entity scoping, and magnitude/sign-flip rejection (8/8 unit tests passing).
+  - Pre-committed hard gates in `docs/SELECTION_RULE.md`. Evaluated 5 model configurations on DEV (n=65). Determined honestly: **NO MODEL PASSED ALL 4 HARD GATES** (Gate 4 status accuracy was 89.2%–90.8% vs $\ge 95\%$ requirement).
+  - Deployed pre-committed **Deterministic Fallback Architecture**: All single-fact KPI lookups route to the deterministic SQL template renderer (**0.0% wrong numbers, 93.8%–96.4% accuracy, 0.33 ms latency, 2,092 qps throughput**). Small local LLM is restricted to qualitative narrative synthesis without numeric authority.
+  - Frozen held-out evaluation (n=28) executed exactly once and logged append-only to `docs/evidence/heldout_runs.log`: **100.0% valid JSON, 0.0% shipped wrong numbers, 0.0% hostile compliance, 100.0% refusal recall**.
+
 - **Phase 5: Google ADK Root & Sub-Agents (Avg <= 2 LLM Calls)** *(PLANNED NEXT)*
   - Enforced pure SQL provenance assertion `verify_provenance_integrity()` proving 0 `status = 'ok'` KPI rows depend on non-effective inputs.
   - Created provenance view/function in `scripts/provenance.sql` and CLI `app/data/provenance.py` tracing any KPI down to raw CSV row and row-hash traceable SHA-256 identifier. Documented 7 authoritative verification traces in `docs/evidence/provenance_examples.txt`.

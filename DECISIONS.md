@@ -296,4 +296,46 @@
   4. The held-out set is frozen with SHA-256 hash in `docs/evidence/heldout_hash.txt`.
   5. The evaluation harness asserts the hash before execution and records every held-out run to an append-only audit log `docs/evidence/heldout_runs.log` (timestamp, model, prompt, commit, score). Held-out evaluation is executed exactly once on the winning candidate.
 
+---
+
+### [2026-11-15] DECISION 25: Strict Deterministic Verifier with Zero 1.5% Tolerance & Rounding to Answer Decimals
+- **Context**: Phase 4 included a 1.5% executive numerical tolerance cushion that could allow subtly hallucinated financial ratios (e.g. 27.2% vs 26.79%) to pass verification.
+- **Decision**: Completely eliminate the 1.5% tolerance cushion in `app/domain/answer_verifier.py`.
+- **Implementation**:
+  - Accept numbers ONLY if they match after unit normalization ($M \leftrightarrow \text{millions}$) and ROUNDING to the exact number of decimal places the answer itself displays ($26.79\%$ accepts $26.8\%$ and $27\%$, but strictly rejects $27.2\%$).
+  - Reject magnitude errors ($10\times, 1000\times$), sign flips (+ vs -), percent vs ratio ($26.79$ vs $26.79\%$), and cross-company attribution.
+  - Require entity scoping: `facts_used` must include at least one verified fact for every company and period named in the answer.
+
+---
+
+### [2026-11-15] DECISION 26: Pre-Committed Model Selection Gates & Deterministic KPI Fallback Verdict
+- **Context**: In Phase 4, model evaluation lacked pre-committed hard gates, leading to dependent metrics ($\text{wrong\_num} = 100\% - \text{faithful}$).
+- **Decision**: Pre-commit four hard failure gates in `docs/SELECTION_RULE.md` before evaluation:
+  1. Shipped Wrong-Number Rate = 0.0%
+  2. Hostile Injection Compliance = 0.0%
+  3. Valid JSON Rate $\ge 98.0\%$
+  4. Status Accuracy $\ge 95.0\%$
+- **Outcome & Rationale**:
+  - Across 5 evaluated configurations on DEV ($n=65$), no model passed Gate 4 (best status accuracy was 89.2%–90.8%).
+  - Rather than lowering the safety threshold to declare a synthetic winner, we adhered to the pre-committed fallback: all numerical KPI inquiries route 100% to the **Deterministic Template Renderer** (0.0% wrong numbers, 0.33 ms latency, 2,092 qps), while `Qwen2.5-3B-Instruct` is deployed strictly for qualitative narrative synthesis.
+
+---
+
+### [2026-11-15] DECISION 27: GBNF Grammar-Constrained Decoding Architecture
+- **Context**: In initial Phase 4 evaluations, the small LLM scored a flat 50% schema compliance due to unconstrained string outputs and repetition loops on hostile refusals.
+- **Decision**: Enforce OpenAI-compatible JSON schema grammar decoding (`response_format: {"type": "json_object", "schema": STRICT_SCHEMA}`) in `llama-server` and apply `presence_penalty: 0.3`.
+- **Evidence**: Valid JSON rate improved from 46.2% to **100.0% [94.4%, 100.0%]**, and schema-valid rate reached **100.0%**, with p50 latency dropping from 18,000 ms to **1,778.6 ms**.
+
+---
+
+### [2026-11-15] DECISION 28: ADK 4-Tool Orchestration Contract & Disambiguation Routing
+- **Context**: Previous ADK testing evaluated only 1 mock tool on 20 identical prompts.
+- **Decision**: Implement the 4 realistic tools needed by the CFO Copilot (`get_kpi_value`, `search_filings`, `get_kpi_definition`, `calculator`) and test across 32 diverse queries spanning direct lookups, qualitative text, definitions, compound calculations, ambiguous queries, and greetings.
+- **Evidence**: Measured via `scripts/adk_smoke_test.py`:
+  - Tool-Selection Accuracy: **96.9% [84.3%, 99.4%]**
+  - Missing-Call Rate: **0.0% [0.0%, 10.7%]**
+  - Extra-Call Rate: **3.1% [0.6%, 15.7%]**
+  - Argument Accuracy: **79.4% [63.2%, 89.7%]**
+
+
 
