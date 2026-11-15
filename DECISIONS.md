@@ -452,3 +452,14 @@
   2. **HTTP 200 OK (Degraded Mode)**: Used when the request has been admitted, but the language model or inference subsystem is unavailable (model offline, model OOM, queue wait deadline exceeded, or verifier rejection). Ships certified deterministic KPIs and verbatim filing passages with citations, flagged with `degraded=true`.
   3. **HTTP 503 Service Unavailable**: Used strictly when the underlying PostgreSQL database is unreachable, because data-dependent endpoints cannot function without relational storage. The liveness endpoint (`/v1/health`) remains 200 OK to prevent orchestrator thrashing.
 - **Rationale**: In corporate finance, a direct quote from Form 10-K with exact source filing citations is far superior to an error message or a hallucinated model summary.
+
+---
+
+### [2026-11-15] DECISION 36: Held-Out v2 Declared Contaminated and Renamed 'dev2'
+- **Context**: During Phase 6 evaluation, `scripts/eval_agent_heldout_v2.py` crashed at case 19 with `AttributeError: 'dict' object has no attribute 'lower'` because `QuestionResolver._extract_kpi` was invoked with `prior_context` (a dict) directly.
+- **Action & Declaration**:
+  - A 7-line fix was applied to `app/domain/question_resolver.py` to extract `dict_kpi = prior_context.get('kpi_id')` and pass `prior_str` if present.
+  - Because cases 1–18 were evaluated in stdout before this fix was committed, **Held-Out v2 is formally declared CONTAMINATED** and reclassified as development evaluation data (`dev2`).
+  - It will NOT be represented as an authoritative single-run held-out evaluation.
+  - A fresh, unseen **Held-Out v3** benchmark ($\ge 50$ cases, $\ge 20$ LLM-path) will be generated, cryptographically frozen with SHA-256, and reserved strictly for final acceptance in Phase 9 without any intermediate runs.
+

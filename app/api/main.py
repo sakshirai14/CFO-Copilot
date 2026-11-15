@@ -238,12 +238,14 @@ async def chat_endpoint(
             detail=f"Question length ({len(req.question)}) exceeds maximum limit of {settings.MAX_QUESTION_LENGTH} characters.",
         )
 
+    effective_fault = x_fault_inject if settings.ENABLE_FAULT_INJECTION else None
+
     envelope = await lifecycle_manager.execute_request(
         tenant_id=tenant_id,
         question=req.question,
         session_id=req.session_id,
         request_id=request_id,
-        fault_inject=x_fault_inject,
+        fault_inject=effective_fault,
     )
     return JSONResponse(content=envelope.model_dump(), headers={"X-Request-Id": request_id})
 
@@ -266,6 +268,8 @@ async def chat_stream_endpoint(
             detail=f"Question length ({len(req.question)}) exceeds maximum limit of {settings.MAX_QUESTION_LENGTH} characters.",
         )
 
+    effective_fault = x_fault_inject if settings.ENABLE_FAULT_INJECTION else None
+
     async def sse_event_generator():
         try:
             async for event_item in lifecycle_manager.stream_request(
@@ -273,7 +277,7 @@ async def chat_stream_endpoint(
                 question=req.question,
                 session_id=req.session_id,
                 request_id=request_id,
-                fault_inject=x_fault_inject,
+                fault_inject=effective_fault,
             ):
                 event_name = event_item["event"]
                 event_data = event_item["data"]

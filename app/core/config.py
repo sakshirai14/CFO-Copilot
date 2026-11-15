@@ -54,6 +54,7 @@ class Settings(BaseSettings):
     RATE_LIMIT_RPS: int = 20
     MAX_QUESTION_LENGTH: int = 2000
     MAX_BODY_SIZE_BYTES: int = 65536
+    ENABLE_FAULT_INJECTION: bool = False
 
     # Inference Serving
     INFERENCE_API_BASE: str = "http://localhost:8080/v1"

@@ -12,8 +12,36 @@ Tests all 5 specified fault scenarios:
 import pytest
 import httpx
 from app.api.main import app
+from app.core.config import get_settings
 
 AUTH_HEADER = {"X-API-Key": "cfo_key_acme_dev"}
+
+
+@pytest.fixture(autouse=True)
+def enable_faults_for_suite(monkeypatch):
+    """Enables fault injection for explicit fault tests in this suite."""
+    settings = get_settings()
+    monkeypatch.setattr(settings, "ENABLE_FAULT_INJECTION", True)
+
+
+@pytest.mark.anyio
+async def test_fault_inject_ignored_when_disabled(monkeypatch):
+    """When ENABLE_FAULT_INJECTION is False (default in production), X-Fault-Inject has no effect."""
+    settings = get_settings()
+    monkeypatch.setattr(settings, "ENABLE_FAULT_INJECTION", False)
+
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.post(
+            "/v1/chat",
+            json={"question": "What qualitative disclosures did Helix Biosystems provide regarding competition?"},
+            headers={**AUTH_HEADER, "X-Fault-Inject": "model_offline", "X-Request-Id": "req_normal_client_01"}
+        )
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["request_id"] == "req_normal_client_01"
+        # Fault header was ignored: no FAULT_MODEL_OFFLINE injected
+        assert "FAULT_MODEL_OFFLINE" not in str(data.get("caveats", []))
 
 
 @pytest.mark.anyio
