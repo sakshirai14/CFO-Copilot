@@ -137,6 +137,24 @@
 - **Context**: During Phase 2 differential testing, NWI FY2024 Q3 originally-reported net income differed between pandas and SQL.
 - **Root Cause**: In Phase 1 ingestion, intra-filing duplicate detection checked `(filing_id, statement, canonical_item)`. In `NWI-10Q-FY2024Q3`, the filing contained both a comparative prior-period column (FY2023 Q3 net income $34.9M) and the current period (FY2024 Q3 net income $55.4M). The current quarter's line item was falsely flagged as a duplicate of the comparative column.
 - **Decision**: Scoped deduplication key strictly to `(filing_id, statement, canonical_item, fiscal_year, fiscal_quarter)`. Reingested and verified that genuine duplicates (such as ARG FY2023 Q2 identical revenue rows) remain collapsed, while comparative columns reporting on prior periods are properly preserved as valid line items.
+- **Clean-Room Verification**: Rebuilding from clean-room scratch (`docker compose down -v`, `make up`, `make ingest`, `make kpis`) proved 100.00% differential agreement across all 2,304 KPI records with zero manual DB patches.
+
+---
+
+### [2026-11-15] DECISION 14: Zero-Fill Audit Elimination & Policy Version Bump to v1.1.0
+- **Context**: Phase 2 audit flagged that `opex_ratio_pct.sql` contained `COALESCE(rd.value_normalized, 0)` and `rd_intensity_pct.sql` returned `0.000000` status 'ok' when `rd.value_normalized IS NULL`.
+- **Finding**: While our dataset happens to contain explicit reported lines for all 6 companies across all 72 quarters (ARG, CEP, and ZLG explicitly report $0.00 on the statement face for Technology/Exploration expenses, while HBS, MSI, and NWI report positive R&D), synthesizing zero on absent inputs violates the core rule: *"A wrong number is worse than no answer; no COALESCE-to-zero of a missing component."*
+- **Decision**:
+  1. Removed `COALESCE(rd.value_normalized, 0)` from `opex_ratio_pct.sql`. If any input (RD, SM, GA, REV) is absent/NULL, the calculation strictly produces `value = NULL` and `status = 'missing_input'`.
+  2. In `rd_intensity_pct.sql`, if `research_and_development` is absent/NULL, the query returns `status = 'missing_input'` and `value = NULL`. If the filing explicitly reports 0.00, it computes 0.00% with `status = 'ok'` linked to the filing row.
+  3. Bumped `policy_version` to `'v1.1.0'` across the entire database, SQL definitions, calculators, and differential test suite.
+  4. Clarified trigger counts: the 310 R6 triggers in `effective_line_items` represent non-reported canonical taxonomy slots across both bases (155 per basis, e.g. inventories for MSI/ZLG, restructuring charges, stock repurchases). Because none of the 16 core KPIs consume these non-reported items, exactly 48 KPI values have `status = 'missing_input'` (representing `revenue_yoy_growth_pct` for FY2022 Q1-Q4 across 6 companies and 2 bases, where prior-year FY2021 revenue is physically absent from the dataset).
+
+---
+
+### [2026-11-15] DECISION 15: Cross-Company Comparability SQL Function (Migration 005)
+- **Context**: Rule R7 was documented conceptually in Phase 2 but lacked a pure SQL query interface.
+- **Decision**: Implemented `cross_company_comparability(target_companies text[], fiscal_label text, threshold_days integer DEFAULT 15)` in forward migration `005_cross_company_comparability.sql`. The function parses fiscal labels, retrieves calendar period start/end dates from filings, calculates calendar day differences, and flags `aligned` boolean based on the 15-day threshold. Verified that ZLG (91 days apart) and HBS (183 days apart) are marked `aligned = false` against calendar companies (CEP/MSI).
 
 ---
 

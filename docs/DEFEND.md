@@ -130,7 +130,7 @@ Standard division operations in naive software routinely crash with `ZeroDivisio
 Rule R8 establishes strict domain gates enforced directly in SQL:
 1. **Zero Denominator**: Whenever revenue or current liabilities equals zero, the engine outputs `status = 'denominator_zero'` with an explicit explanation (e.g., *"Revenue denominator is zero; calculation is mathematically undefined"*). It never returns `NULL` or `NaN`.
 2. **Negative Stockholders' Equity**: For Return on Equity (`roe_quarterly_pct`) and Debt-to-Equity (`debt_to_equity_x`), negative equity produces economically nonsensical ratios. The engine outputs `status = 'not_meaningful'` with the explanation: *"Stockholders' equity is negative (${val}); ratio is economically non-meaningful"*.
-3. **Retailer Non-R&D Exception (Rule R6)**: For companies that report no R&D (such as Aurora Retail Group), R&D expense is treated as \$0.00, yielding `rd_intensity_pct = 0.0%` with status `ok`.
+3. **Zero-Fill Audit Discipline (Rule R6)**: When an input is absent from the filing, the engine never coalesces it to zero. Where a company explicitly discloses $0.00 on its statement face (ARG, CEP, ZLG for Technology/Exploration expenses), `rd_intensity_pct` computes 0.00% with `status = 'ok'` traceable to that filing row. Where an input is absent, status is strictly `missing_input` and value is `NULL`.
 
 ---
 
@@ -141,17 +141,21 @@ To guarantee that our SQL engine is mathematically flawless, we conducted two ri
 ### A. 100.00% Differential Verification (Clean-Room Pandas Engine)
 - Script: `scripts/verify_kpis_differential.py`
 - Methodology: An independent Python/pandas pipeline re-implemented all normalization and formulas directly from the raw SEC CSV files without importing any production code.
+- **What It Proves**: Proves arithmetic fidelity, unit scaling multipliers, sign inversions, and SQL formula correctness against an independently coded Pandas vector pipeline.
+- **What It Does NOT Prove**: It does not prove complete independence of policy choices, since both the production SQL engine and the differential verification script were designed by the same platform engineer.
+- **Explanation of the $5 \times 10^{-7}$ Maximum Difference**:
+  PostgreSQL stores intermediate and calculated values as arbitrary-precision `NUMERIC(18, 6)` using exact fixed-point BCD decimal arithmetic. In contrast, Python / NumPy / Pandas performs calculations using IEEE-754 64-bit binary floating point (`float64`). Minor representation differences on fractional decimal divisions (such as $0.00000050$ at the 7th decimal place) arise purely from float64 binary representation of decimal fractions prior to half-up rounding. All stored SQL values maintain full numeric precision and are rounded only at presentation per Rule R10.
 - Results: Across all **2,304** calculated KPI values (1,152 `as_restated`, 1,152 `as_originally_reported`):
   - **Match Rate**: **100.00%** across all 16 KPIs.
   - **Discrepancies**: **0**.
-  - **Max Absolute Difference**: $0.00000050$ (purely 64-bit IEEE floating-point representation limits).
+  - **Max Absolute Difference**: $0.00000050$.
   - Evidence Log: `docs/evidence/differential_test_results.txt`.
 
 ### B. Automated Regression & Golden Set Coverage
-- **51 Automated Tests Passing in 1.76s** (`make test`):
+- **52 Automated Tests Passing in 2.1s** (`make test`):
   - 12 Conflict policy integration tests verifying Rules R1-R12.
-  - 15 Formula unit tests verifying mathematical boundary conditions.
+  - 16 Formula unit tests verifying mathematical boundary conditions.
   - 24 Foundation integration & unit tests (RLS isolation, migrations, normalizers).
 - **50 Curated Golden Evaluation Cases** (`tests/evals/kpi_golden.csv`):
-  - 15 hand-verified against raw SEC filing line numbers and cryptographic SHA-256 hashes.
-  - 100% agreement asserted in automated CI testing.
+  - 15 hand-verified against raw SEC filing line numbers and row-hash traceable SHA-256 identifiers.
+  - 100% agreement asserted in automated CI testing against the independent Pandas pipeline.

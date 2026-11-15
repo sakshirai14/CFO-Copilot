@@ -274,11 +274,10 @@ def compute_kpis_pandas(df_eff, df_idx):
             np.nan
         )
 
-        # 12. opex_ratio_pct = (COALESCE(rd, 0) + sm + ga) / revenue * 100
-        rd_clean = df_calc["research_and_development"].fillna(0.0)
+        # 12. opex_ratio_pct = (rd + sm + ga) / revenue * 100 (never coalesce missing components to zero)
         df_calc["opex_ratio_pct"] = np.where(
-            df_calc["revenue"] > 0,
-            ((rd_clean + df_calc["sales_and_marketing"] + df_calc["general_and_administrative"]) / df_calc["revenue"]) * 100,
+            (df_calc["revenue"] > 0) & df_calc["research_and_development"].notna() & df_calc["sales_and_marketing"].notna() & df_calc["general_and_administrative"].notna(),
+            ((df_calc["research_and_development"] + df_calc["sales_and_marketing"] + df_calc["general_and_administrative"]) / df_calc["revenue"]) * 100,
             np.nan
         )
 
@@ -296,10 +295,10 @@ def compute_kpis_pandas(df_eff, df_idx):
             np.nan
         )
 
-        # 15. rd_intensity_pct = COALESCE(rd, 0) / revenue * 100
+        # 15. rd_intensity_pct = rd / revenue * 100 (never coalesce missing rd to zero; 0 only if reported as 0)
         df_calc["rd_intensity_pct"] = np.where(
-            df_calc["revenue"] > 0,
-            (rd_clean / df_calc["revenue"]) * 100,
+            (df_calc["revenue"] > 0) & df_calc["research_and_development"].notna(),
+            (df_calc["research_and_development"] / df_calc["revenue"]) * 100,
             np.nan
         )
 
@@ -338,7 +337,7 @@ def load_sql_kpis():
     query = """
         SELECT company_id, fiscal_year, fiscal_quarter, kpi_id, basis, status, value as sql_value
         FROM kpi_values
-        WHERE policy_version = 'v1.0.0';
+        WHERE policy_version = 'v1.1.0';
     """
     df_sql = pd.read_sql(query, conn)
     conn.close()

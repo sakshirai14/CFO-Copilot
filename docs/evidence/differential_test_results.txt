@@ -1,7 +1,7 @@
 ================================================================================
 CFO COPILOT - INDEPENDENT DIFFERENTIAL KPI VERIFICATION REPORT
 ================================================================================
-Timestamp:              2026-11-15T00:17:07.868123
+Timestamp:              2026-11-15T11:26:25.417990
 Methodology:            Independent Pandas Pipeline vs Production SQL Engine
 Production Code Used:   NONE (Clean-room re-implementation from raw CSVs)
 Total Compared Records: 2304 (1152 per basis)

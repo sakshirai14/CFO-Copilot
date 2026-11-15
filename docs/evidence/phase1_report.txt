@@ -1,7 +1,7 @@
 ================================================================================
 CFO COPILOT ON A BUDGET - PHASE 1 VERIFICATION & ACCEPTANCE REPORT
 ================================================================================
-Generated At: 2026-11-14T18:01:00.811018Z
+Generated At: 2026-11-15T05:47:52.501413Z
 Target Database: cfo_copilot on localhost:5435
 Execution Role: app_ro (Read-Only Enforcement)
 
@@ -13,22 +13,22 @@ Execution Role: app_ro (Read-Only Enforcement)
   raw_financial_rows       :   1732 rows
   line_item_map            :    144 rows
   line_items               :   1732 rows
-  data_quality_issues      :    153 rows
+  data_quality_issues      :    151 rows
   documents                :     77 rows
   chunks                   :      0 rows
   chat_sessions            :      0 rows
   chat_messages            :      0 rows
   answer_log               :      0 rows
-  schema_migrations        :      2 rows
+  schema_migrations        :      4 rows
 
 --- 2. DATA QUALITY AUDIT (ISSUES BY SEVERITY & TYPE) ---
   Severity [WARNING ]:  131 issues
-  Severity [CRITICAL]:   20 issues
+  Severity [CRITICAL]:   18 issues
   Severity [INFO    ]:    2 issues
 
   Breakdown by Issue Type:
     - unit_scale_mismatch              (critical):   11
-    - intra_filing_duplicate           (critical):    5
+    - intra_filing_duplicate           (critical):    3
     - prompt_injection_detected        (critical):    3
     - press_release_filing_conflict    (critical):    1
     - comparative_column_restatement   (info    ):    2
@@ -48,7 +48,7 @@ Execution Role: app_ro (Read-Only Enforcement)
   Normalized USD Value : $109,200,000.00
   Applied Scale Factor : 1000.0 (Corrected from 1,000,000 to 1,000)
   Audit Severity       : CRITICAL
-  Audit Description    : Filing HBS-10Q-FY2024Q2 line item extracted with raw unit 'USD_millions' while filing index declares 'USD_thousands'. Two-check evidence: (1) filings_index.reporting_unit='USD_thousands'; (2) adjacent quarter revenue magnitude check (FY2024Q1=\.3M, FY2024Q3=\.9M) confirms raw 109,200 is in thousands. Corrected scale factor to 1,000 to prevent 1,000x overstatement.
+  Audit Description    : Filing HBS-10Q-FY2024Q2 line item extracted with raw unit 'USD_millions' while filing index declares 'USD_thousands'. Two-check evidence: (1) filings_index.reporting_unit='USD_thousands'; (2) adjacent quarter revenue magnitude check (FY2024Q1=$104.3M, FY2024Q3=$111.9M) confirms raw 109,200 is in thousands. Corrected scale factor to 1,000 to prevent 1,000x overstatement.
   VERDICT: 1,000x revenue overstatement ($109.2B -> $109.2M) successfully prevented.
 
 [EXAMPLE 2: CEP INVERTED EXPENSE SIGN CONVENTION]
@@ -65,15 +65,15 @@ Execution Role: app_ro (Read-Only Enforcement)
   VERDICT: Subtraction bug (245.9M - (-179.2M) = 425.1M) successfully eliminated.
 
 [EXAMPLE 3: ARG INTRA-FILING DUPLICATE ROW COLLAPSE]
-  Record 1: Line Item ID=3179, Raw Row ID=R000411, Item=revenue, Status=valid, Duplicate Of=None, Val=$774,400,000.00
-  Record 2: Line Item ID=3190, Raw Row ID=R001447, Item=revenue, Status=duplicate, Duplicate Of=3179, Val=$774,400,000.00
-    Audit Flag [CRITICAL]: Duplicate line item within same filing: 'Total revenues' (row R001447) duplicates prior line_item 3179.
+  Record 1: Line Item ID=134, Raw Row ID=R000411, Item=revenue, Status=valid, Duplicate Of=None, Val=$774,400,000.00
+  Record 2: Line Item ID=145, Raw Row ID=R001447, Item=revenue, Status=duplicate, Duplicate Of=134, Val=$774,400,000.00
+    Audit Flag [CRITICAL]: Duplicate line item within same filing: 'Total revenues' (row R001447) duplicates prior line_item 134.
   VERDICT: Unconstrained SUM(value) doubling ARG revenue ($774.4M x 2 = $1.55B) prevented via status='duplicate'.
 
 --- 4. CORPUS SECURITY AUDIT & INJECTION QUARANTINE ---
+  Doc ID: CEP_investor_faq          | Company: CEP   | Rank: 4 | Trust: quarantined  | Risk Flags: ['schema_exfiltration_probe', 'credential_exfiltration_probe']
   Doc ID: HBS_analyst_note_2024-03  | Company: HBS   | Rank: 4 | Trust: quarantined  | Risk Flags: ['developer_mode_jailbreak', 'guardrail_bypass_attempt']
   Doc ID: NWI-10Q-FY2024Q3          | Company: NWI   | Rank: 1 | Trust: quarantined  | Risk Flags: ['prompt_injection_system_notice', 'prompt_injection_instruction_override']
-  Doc ID: CEP_investor_faq          | Company: CEP   | Rank: 4 | Trust: quarantined  | Risk Flags: ['schema_exfiltration_probe', 'credential_exfiltration_probe']
   VERDICT: 3 adversarial injections quarantined in staging before entering RAG embedding pipeline.
 
 --- 5. AMENDMENT PROVENANCE & SELF-REFERENCE LINKS ---

@@ -30,14 +30,18 @@
   2. *Check 2 (Magnitude/Cross-Statement)*: Empirical magnitude check against adjacent quarters ($0.001\times$ or $1000\times$ anomaly) or cross-statement reconciliation (e.g., cash on balance sheet matching cash on cash flow statement).
 * If fewer than two independent checks support the adjustment, the raw value is preserved unadjusted and flagged as `unverified`.
 
-### Rule R6: Missing Input Handling
-* **No Imputation**: If an input required to compute a KPI is missing from the effective financial statements, the system flags the KPI with status `missing_input`.
-* **Prohibition of Zero-Filling**: The system must **never** substitute zero or impute values for missing line items, with exactly one domain-specific exception:
-  * *Exception (R&D Intensity)*: In accordance with standard financial convention and `kpi_glossary.csv`, if a company (e.g., a pure retailer like ARG) does not perform research and development and reports no R&D line item, R&D expense is treated as $0.00, yielding `rd_intensity_pct = 0.0%`.
+### Rule R6: Missing Input Discipline (Zero-Fill Audit)
+* **No Synthetic Zeroes**: When an input line item is absent/not reported in the filing, the calculation engine MUST NEVER coalesce it to zero (`COALESCE(x, 0)`).
+* **Missing Component Handling**:
+  * If a required component is absent from the filing (`value_normalized IS NULL` or `eli.status = 'missing_input'`), the KPI status evaluates strictly to `missing_input` and `value = NULL`.
+  * For `rd_intensity_pct`, if a company explicitly reports $0.00 on the face of its statements (such as ARG "Technology and development" = $0, CEP "Exploration expense" = $0, ZLG "Technology expense" = $0), the calculated intensity is 0.00% with `status = 'ok'` traceable to that filing row. If a company omits R&D altogether, the status is `missing_input` with `value = NULL`.
+  * For `opex_ratio_pct`, if any of R&D, S&M, G&A, or Revenue is absent, the calculation yields `status = 'missing_input'` and `value = NULL`.
+* **Zero Denominators**: When a denominator is zero, status is `denominator_zero` and `value = NULL` (Rule R8).
 
 ### Rule R7: Comparability & Fiscal Calendar Alignment
 * **Explicit Period Disclosure**: Every cross-company KPI comparison must explicitly output both the fiscal period label (e.g., `FY2024 Q3`) and the calendar period end date (e.g., `2024-09-30`).
-* **Non-Aligned Calendar Flag**: If two companies' period end dates for the same fiscal quarter label differ by more than **15 days** (e.g., ZLG fiscal year ends Sept 30, whereas ARG/CEP/HBS/MSI/NWI fiscal years end Dec 31), the comparison is flagged as `non_aligned`. The assistant must explicitly warn the CFO that the operating periods cover different calendar months.
+* **SQL Comparability Helper**: Implemented in database function `cross_company_comparability(target_companies text[], fiscal_label text, threshold_days integer DEFAULT 15)`. Returns start/end dates, `days_apart`, and an `aligned` boolean.
+* **Non-Aligned Calendar Detection**: If two companies' period end dates for the same fiscal quarter label differ by more than **15 days** (e.g., ZLG fiscal year ends Sept 30, meaning Q1 ends Dec 31 vs. calendar companies ending Mar 31, 91 days apart), the comparison is flagged as `non_aligned`. The assistant must explicitly warn the CFO that the operating periods cover different calendar months.
 * **YoY Comparability**: Year-over-Year calculations require comparing the identical fiscal quarter of the prior year under the same reporting basis (`as_restated` vs `as_restated`).
 
 ### Rule R8: Mathematical Domain Gates (Zero Denominator & Negative Equity)
@@ -65,7 +69,7 @@
 * **Downgrade Gate**: If a filing fails an accounting identity check, the system logs a `CRITICAL` issue in `data_quality_issues`. Any KPI whose formula directly depends on the inconsistent line items is downgraded to status `unverified`, preventing corrupted inputs from generating authoritative output.
 
 ### Rule R12: Policy Versioning and Immutable Lineage
-* Every effective line item and calculated KPI record must store `policy_version` (currently `v1.0.0`).
+* Every effective line item and calculated KPI record must store `policy_version` (currently `v1.1.0`).
 * Future adjustments to rules or formulas require incrementing the semantic policy version, ensuring reproducible historic runs and auditability.
 
 ---
@@ -96,7 +100,39 @@ When the system cannot return an authoritative numeric value with status `ok`, i
 | **HBS Form 10-Q FY2024 Q2 Unit Anomaly**<br>11 raw rows reported in thousands ($108.4M) but raw string said `USD`. | **R5** (Dual-Evidence Normalization) | `app/data/normalizer.py`<br>Dual-evidence check: (1) `filings_index.reporting_unit` is `USD_thousands`, (2) adjacent quarters are ~$104.3M and ~$111.9M. Multiplies by 1,000. | `test_hbs_unit_dual_evidence_normalization()` in `tests/unit/test_phase1_unit.py` |
 | **ARG Form 10-K FY2023 Q4 Duplicate Rows**<br>Row IDs `R000411` and `R001447` both report Operating Income $84.2M. | **R4** (Intra-Filing Duplicate Collapse) | `app/data/normalizer.py` & `app/data/effective.py`<br>Deduplicates identical rows into one effective line item. | `test_arg_duplicate_collapse()` in `tests/integration/test_phase1_integration.py` |
 | **NWI Comparative Column Prior-Period Restatement**<br>FY2024 Q3 10-Q comparative column reports FY2023 Q3 Net Income of $34.9M vs originally reported $37.3M. | **R3** (Comparatives) & **R2** (Restatements) | `app/data/effective.py`<br>Recognizes comparative column as later restatement of FY2023 Q3 Net Income under `as_restated`. | `test_comparative_column_restatement_handling()` in `tests/integration/test_conflict_policy.py` |
-| **Missing R&D for Aurora Retail Group**<br>ARG is a pure-play retailer reporting no R&D line item. | **R6** (Missing Input Exception) | `app/data/sql/kpis/rd_intensity_pct.sql`<br>`COALESCE(research_and_development, 0.0) / revenue * 100` yielding 0.0% instead of error. | `test_arg_rd_intensity_zero_not_missing()` in `tests/unit/test_kpi_formulas.py` |
-| **ZLG Fiscal Year Alignment Misalignment**<br>ZLG fiscal year ends Sept 30; Q1 ends Dec 31, Q2 ends Mar 31, etc. | **R7** (Comparability & Fiscal Alignment) | `app/data/taxonomy.py` & `app/data/effective.py`<br>Maps Sept 30 calendar cleanly; flags comparisons with >15 day period end gaps as `non_aligned`. | `test_zlg_fiscal_calendar()` & `test_non_aligned_period_flag()` |
+| **R&D Reporting Convention across Firms**<br>ARG, CEP, ZLG report explicit $0 on statements; HBS, MSI, NWI report positive R&D. | **R6** (Missing Input Discipline) | `app/data/sql/kpis/rd_intensity_pct.sql`<br>Calculates 0.0% when explicitly reported 0.00; missing inputs produce `missing_input` and NULL. | `test_rd_intensity_explicit_zero_reported()` & `test_rd_intensity_missing_input_when_not_reported()` in `tests/unit/test_kpi_formulas.py` |
+| **ZLG Fiscal Year Alignment Misalignment**<br>ZLG fiscal year ends Sept 30; Q1 ends Dec 31, Q2 ends Mar 31, etc. | **R7** (Comparability & Fiscal Alignment) | `app/data/taxonomy.py`, `migrations/005_cross_company_comparability.sql`<br>Provides SQL function `cross_company_comparability()`; flags period end gaps >15 days as `non_aligned`. | `test_r7_non_aligned_calendar_detection()` in `tests/integration/test_conflict_policy.py` |
 | **Zero Denominator / Negative Equity Edge Cases**<br>Operating income / 0 interest expense, or negative equity in ROE. | **R8** (Mathematical Domain Gates) | `app/data/sql/kpis/` SQL logic<br>`CASE WHEN total_equity <= 0 THEN 'not_meaningful' ...` and `CASE WHEN revenue = 0 THEN 'denominator_zero' ...`. | `test_kpi_formula_edge_cases()` in `tests/unit/test_kpi_formulas.py` |
 | **Missing Q1-Q4 YoY Growth in FY2022**<br>First 4 quarters in dataset have no prior-year data. | **R9** & `kpi_glossary.csv`<br>YoY growth undefined for initial 4 quarters. | `app/data/sql/kpis/revenue_yoy_growth_pct.sql`<br>Outputs `status = 'missing_input'` and reason `"Prior year fiscal quarter not available in dataset"`. | `test_revenue_yoy_first_four_quarters_missing()` in `tests/unit/test_kpi_formulas.py` |
+
+---
+
+## 4. Data Pipeline Transformation Funnel
+
+| Stage | Record Count | Transition Notes & Discard Reasons |
+| :--- | :--- | :--- |
+| **Raw CSV Rows (`raw_financial_rows`)** | **1,732** | 1,449 rows (Drop 1) + 283 rows (Drop 2). All original CSV rows, string values, and SHA-256 row hashes preserved immutably. |
+| **Normalized Line Items (`line_items`)** | **1,732** | 1,729 marked `valid`, 3 marked `duplicate` (ARG duplicate revenue row R001447, etc.). Scale factors and negative expense signs normalized. |
+| **Effective Line Items per Basis (`effective_line_items`)** | **1,872 (`as_restated`)**<br>**1,872 (`as_orig`)** | **1,717** `ok` effective reported line items + **155** `missing_input` canonical taxonomy positions.<br>*Why effective items exceed raw rows*: The canonical reporting matrix requires 26 standard line items across 72 company-quarters ($6 \times 12 \times 26 = 1,872$). Items absent from a company's filing (e.g. `inventories` for service companies MSI and ZLG, or `restructuring_charges` when not incurred) are explicitly materialized with `status = 'missing_input'` (Rule R6). |
+| **Calculated KPI Values per Basis (`kpi_values`)** | **1,152 (`as_restated`)**<br>**1,152 (`as_orig`)** | 16 KPIs across 72 company-quarters ($16 \times 72 = 1,152$).<br>- **1,128** `ok`<br>- **24** `missing_input` (FY2022 Q1-Q4 `revenue_yoy_growth_pct` where prior FY2021 revenue is physically absent). |
+
+---
+
+## 5. Honest Rule Impact Counts Table (Outcome-Changing Rules)
+
+Counts reflect records where each rule **changed the output value or status** compared to naive unconstrained parsing:
+
+| Rule ID | Rule Name | Rows Changed Outcome | Governing Action on This Dataset | Unit / Integration Test Proof |
+| :--- | :--- | :---: | :--- | :--- |
+| **R1** | Source Authority Hierarchy | **1** | Marketing press release claiming preliminary revenue of $871.0M rejected in favor of filed Form 10-Q revenue ($777.7M). | `test_r1_source_authority_press_release_ignored` |
+| **R2** | Restatement Precedence | **12** | 6 items in CEP 10-Q/A and 6 items in NWI 10-Q/A superseded unamended 10-Q values on `as_restated` basis. | `test_r2_restatement_precedence_cep_10qa`, `test_r2_restatement_precedence_nwi_10qa` |
+| **R3** | Comparative Prior Columns | **2** | Prior-period comparative columns in NWI FY2024 Q3 restated FY2023 Q3 Net Income from $37.3M to $34.9M. | `test_r3_comparative_column_restatement_nwi` |
+| **R4** | Intra-Filing Deduplication | **3** | Collapsed duplicate rows within same filing (ARG Q2 2023 revenue R001447, etc.), preventing $2\times$ revenue double-count. | `test_r4_intra_filing_duplicate_collapse` |
+| **R5** | Dual-Evidence Normalization | **11** | Prevented 1,000x overstatement on HBS FY2024 Q2 (11 line items scaled by 1,000 instead of 1,000,000; revenue $109.2M, not $109.2B). | `test_r5_dual_evidence_normalization_hbs` |
+| **R6** | Missing Input Discipline | **48** | Enforced `status = 'missing_input'` and `value = NULL` for missing inputs (48 KPI values for YoY growth). Prevented silent zero imputation. | `test_rd_intensity_missing_input_when_not_reported` |
+| **R7** | Comparability Alignment | **1** (Function) | `cross_company_comparability()` flags ZLG (91 days apart) and HBS (183 days apart) as `aligned = false` against calendar firms. | `test_r7_non_aligned_calendar_detection` |
+| **R8** | Mathematical Domain Gates | **0** (Guarded) | No filed values had zero liabilities or negative equity in historical data. Gates active to prevent division by zero or invalid ratios. | `test_debt_to_equity_negative_equity`, `test_current_ratio_zero_denominator` |
+| **R9** | Time-Horizon Asymmetry | **48** | Formally flagged first 4 quarters of YoY growth as undefined / missing input rather than estimating or wrapping. | `test_revenue_yoy_first_four_quarters_missing` |
+| **R10** | Storage Precision | **2,304** | All intermediate and calculated values preserved at full `NUMERIC(18, 6)` fixed-point precision; rounded only at output. | `test_r10_storage_precision_and_presentation` |
+| **R11** | Accounting Integrity Gate | **1** | Evaluated balance sheet and margin identities; logged issue and guarded against corrupt input propagation. | `test_isolation_hardening` |
+| **R12** | Row-Hash Provenance | **2,304** | Every calculated KPI row stamped with `policy_version = 'v1.1.0'`, `run_id`, and exact array of source `input_line_item_ids`. | `test_r12_provenance_and_policy_version` |

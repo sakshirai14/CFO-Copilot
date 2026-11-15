@@ -1,19 +1,19 @@
 case_id,company_id,fiscal_year,fiscal_quarter,kpi_id,basis,expected_value,expected_unit,expected_status,raw_verification_source,hand_verified
-gold-01,ARG,2022,2,free_cash_flow_usd,as_restated,37800000.000000,USD,ok,raw_financial_rows R000335: 68.1M - R000336: 30.3M,true
-gold-02,CEP,2022,3,debt_to_equity_x,as_restated,0.580789,x,ok,raw_financial_rows R001345: 468M debt / R001347: 805.8M equity,true
-gold-03,CEP,2024,1,interest_coverage_x,as_restated,7.953125,x,ok,raw_financial_rows R001436: 50.9M op_inc / R001437: 6.4M int_exp,true
-gold-04,ARG,2022,3,current_ratio_x,as_restated,1.402419,x,ok,raw_financial_rows R000345: 1020.4M curr_assets / R000347: 727.6M curr_liab,true
-gold-05,CEP,2024,3,debt_to_equity_x,as_restated,0.540915,x,ok,raw_financial_rows R001454: 468M debt / R001456: 865.2M equity,true
-gold-06,CEP,2023,1,operating_margin_pct,as_restated,18.314367,percent,ok,raw_financial_rows R001374: 52.4M op_inc / R001368: 286.1M rev,true
-gold-07,ARG,2022,1,current_ratio_x,as_restated,1.423986,x,ok,raw_financial_rows R000321: 998.5M curr_assets / R000323: 701.2M curr_liab,true
-gold-08,CEP,2023,2,gross_margin_pct,as_restated,27.254902,percent,ok,raw_financial_rows R001391: 78.4M gross_profit / R001389: 287.7M rev,true
-gold-09,ARG,2024,1,current_ratio_x,as_restated,1.451350,x,ok,raw_financial_rows R000441: 1092.6M curr_assets / R000443: 752.8M curr_liab,true
-gold-10,CEP,2022,3,gross_margin_pct,as_restated,27.276065,percent,ok,raw_financial_rows R001337: 79.1M gross_profit / R001335: 290.0M rev,true
-gold-11,CEP,2024,2,gross_margin_pct,as_restated,26.787149,percent,ok,financial_statements_raw.csv R001446: 66.7M / R001444: 249M,true
-gold-12,CEP,2024,2,gross_margin_pct,as_originally_reported,27.124847,percent,ok,financial_statements_raw.csv R001420: 66.7M / R001418: 245.9M,true
-gold-13,NWI,2023,3,net_margin_pct,as_restated,7.874549,percent,ok,comparative column R000290 in NWI-10Q-FY2024Q3 (34.9M / 443.2M),true
-gold-14,NWI,2023,3,net_margin_pct,as_originally_reported,8.416065,percent,ok,original 10-Q row R000155 in NWI-10Q-FY2023Q3 (37.3M / 443.2M),true
-gold-15,HBS,2024,2,gross_margin_pct,as_restated,61.263736,percent,ok,raw rows R000795 & R000797 normalized with 1000x scale (66.9M / 109.2M),true
+gold-01,ARG,2022,2,free_cash_flow_usd,as_restated,37800000.000000,USD,ok,"financial_statements_raw.csv line 35 (R000335: CFO $68.1M) - line 36 (R000336: Capex $30.3M)",true
+gold-02,CEP,2022,3,debt_to_equity_x,as_restated,0.580789,x,ok,"financial_statements_raw.csv line 347 (R001221: Debt $468.0M) / line 349 (R001223: Equity $805.8M)",true
+gold-03,CEP,2024,1,interest_coverage_x,as_restated,7.953125,x,ok,"financial_statements_raw.csv line 491 (R001365: Op income $50.9M) / line 492 (R001366: Interest $6.4M)",true
+gold-04,ARG,2022,3,current_ratio_x,as_restated,1.402419,x,ok,"financial_statements_raw.csv line 53 (R000341: Current assets $1,020.4M) / line 55 (R000343: Current liabilities $727.6M)",true
+gold-05,CEP,2024,3,debt_to_equity_x,as_restated,0.540915,x,ok,"financial_statements_raw.csv line 542 (R001413: Debt $468.0M) / line 544 (R001415: Equity $865.2M)",true
+gold-06,CEP,2023,1,operating_margin_pct,as_restated,18.314367,percent,ok,"financial_statements_raw.csv line 386 (R001240: Op income $52.4M) / line 380 (R001234: Revenue $286.1M)",true
+gold-07,ARG,2022,1,current_ratio_x,as_restated,1.423986,x,ok,"financial_statements_raw.csv line 5 (R000305: Current assets $998.5M) / line 7 (R000307: Current liabilities $701.2M)",true
+gold-08,CEP,2023,2,gross_margin_pct,as_restated,27.254902,percent,ok,"financial_statements_raw.csv line 408 (R001262: Gross profit $78.4M) / line 406 (R001260: Revenue $287.7M)",true
+gold-09,ARG,2024,1,current_ratio_x,as_restated,1.451350,x,ok,"financial_statements_raw.csv line 213 (R000485: Current assets $1,092.6M) / line 215 (R000487: Current liabilities $752.8M)",true
+gold-10,CEP,2022,3,gross_margin_pct,as_restated,27.276065,percent,ok,"financial_statements_raw.csv line 440 (R001294: Gross profit $79.1M) / line 438 (R001292: Revenue $290.0M)",true
+gold-11,CEP,2024,2,gross_margin_pct,as_restated,26.787149,percent,ok,"financial_statements_raw.csv line 535 (R001446: Gross profit $66.7M in 10-Q/A) / line 533 (R001444: Revenue $249.0M in 10-Q/A)",true
+gold-12,CEP,2024,2,gross_margin_pct,as_originally_reported,27.124847,percent,ok,"financial_statements_raw.csv line 524 (R001374: Gross profit $66.7M in 10-Q) / line 522 (R001372: Revenue $245.9M in 10-Q)",true
+gold-13,NWI,2023,3,net_margin_pct,as_restated,7.874549,percent,ok,"financial_statements_raw.csv line 1330 (R000290: Net income $34.9M comparative) / line 1318 (R000145: Revenue $443.2M)",true
+gold-14,NWI,2023,3,net_margin_pct,as_originally_reported,8.416065,percent,ok,"financial_statements_raw.csv line 1328 (R000155: Net income $37.3M original 10-Q) / line 1318 (R000145: Revenue $443.2M)",true
+gold-15,HBS,2024,2,gross_margin_pct,as_restated,61.263736,percent,ok,"financial_statements_raw.csv line 815 (R000797: Gross profit $66.9M normalized) / line 813 (R000795: Revenue $109.2M normalized)",true
 gold-16,ARG,2022,1,asset_turnover_x,as_originally_reported,0.331546,x,ok,Systematic coverage evaluation ARG FY2022Q1 asset_turnover_x,false
 gold-17,ARG,2022,1,asset_turnover_x,as_restated,0.331546,x,ok,Systematic coverage evaluation ARG FY2022Q1 asset_turnover_x,false
 gold-18,ARG,2022,1,current_ratio_x,as_originally_reported,1.423986,x,ok,Systematic coverage evaluation ARG FY2022Q1 current_ratio_x,false

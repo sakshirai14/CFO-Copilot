@@ -39,7 +39,7 @@ KPI_NAMES = [
 ]
 
 
-def verify_provenance_integrity(conn, policy_version: str = "v1.0.0") -> int:
+def verify_provenance_integrity(conn, policy_version: str = "v1.1.0") -> int:
     """SQL Assertion: Asserts zero status='ok' KPI values depend on non-effective inputs."""
     assertion_sql = """
         SELECT COUNT(*)
@@ -69,7 +69,7 @@ def verify_provenance_integrity(conn, policy_version: str = "v1.0.0") -> int:
     return violation_count
 
 
-def compute_all_kpis(conn, policy_version: str = "v1.0.0", run_id: str = None) -> Dict[str, Any]:
+def compute_all_kpis(conn, policy_version: str = "v1.1.0", run_id: str = None) -> Dict[str, Any]:
     """Runs all 16 KPI SQL definitions for both bases and persists to kpi_values."""
     if run_id is None:
         run_id = f"run_{uuid.uuid4().hex[:12]}"

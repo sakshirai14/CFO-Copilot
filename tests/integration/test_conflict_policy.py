@@ -13,11 +13,18 @@ from app.data.kpi_calculator import compute_all_kpis
 
 @pytest.fixture(scope="module")
 def conflict_test_setup(settings):
-    """Ensures test database is fully migrated and KPIs computed."""
+    """Ensures test database is fully migrated, data ingested, and KPIs computed."""
+    from app.data.ingest import DataIngestor
     run_migrations(is_test=True)
+    ingestor = DataIngestor(is_test=True)
+    ingestor.ingest_release("drop1")
+    ingestor.ingest_release("drop2")
     conn = psycopg2.connect(**settings.get_connection_params(role="rw", is_test=True))
     try:
-        compute_all_kpis(conn, policy_version="v1.0.0")
+        with conn.cursor() as cur:
+            cur.execute("DELETE FROM kpi_values; DELETE FROM effective_line_items;")
+        conn.commit()
+        compute_all_kpis(conn, policy_version="v1.1.0")
     finally:
         conn.close()
 
@@ -135,7 +142,7 @@ class TestConflictPolicyRules:
                 SELECT COUNT(*)
                 FROM effective_line_items
                 WHERE company_id = 'ARG' AND fiscal_year = 2023 AND fiscal_quarter = 2
-                  AND canonical_item = 'revenue' AND basis = 'as_restated';
+                  AND canonical_item = 'revenue' AND basis = 'as_restated' AND policy_version = 'v1.1.0';
             """)
             assert cur.fetchone()[0] == 1  # Exactly 1 effective item, not doubled
         conn.close()
@@ -189,6 +196,7 @@ class TestConflictPolicyRules:
         """Rule R7: ZLG fiscal quarters end Sept 30, >15 days difference from ARG/CEP calendar."""
         conn = psycopg2.connect(**settings.get_connection_params(role="ro", is_test=True))
         with conn.cursor() as cur:
+            # 1. Direct filing date check
             cur.execute("""
                 SELECT f1.period_end, f2.period_end, ABS(f1.period_end - f2.period_end) as day_diff
                 FROM filings f1, filings f2
@@ -197,6 +205,24 @@ class TestConflictPolicyRules:
             """)
             zlg_end, cep_end, diff = cur.fetchone()
             assert diff > 15, f"Expected >15 days misaligned calendar, got {diff} days"
+
+            # 2. SQL Helper function cross_company_comparability() check
+            cur.execute("""
+                SELECT days_apart, aligned
+                FROM cross_company_comparability(ARRAY['ZLG', 'CEP'], 'FY2024Q1');
+            """)
+            days_apart, aligned = cur.fetchone()
+            assert days_apart == 91
+            assert aligned is False
+
+            # 3. Calendar-aligned companies (CEP vs MSI)
+            cur.execute("""
+                SELECT days_apart, aligned
+                FROM cross_company_comparability(ARRAY['CEP', 'MSI'], 'FY2024Q1');
+            """)
+            days_apart_aligned, aligned_flag = cur.fetchone()
+            assert days_apart_aligned == 0
+            assert aligned_flag is True
         conn.close()
 
     def test_r8_mathematical_domain_gates(self, conflict_test_setup, settings):
@@ -224,11 +250,11 @@ class TestConflictPolicyRules:
         conn.close()
 
     def test_r12_provenance_and_policy_version(self, conflict_test_setup, settings):
-        """Rule R12: Every calculated KPI stores policy_version 'v1.0.0' and input_line_item_ids."""
+        """Rule R12: Every calculated KPI stores policy_version 'v1.1.0' and input_line_item_ids."""
         conn = psycopg2.connect(**settings.get_connection_params(role="ro", is_test=True))
         with conn.cursor() as cur:
             cur.execute("""
-                SELECT COUNT(*) FROM kpi_values WHERE policy_version != 'v1.0.0';
+                SELECT COUNT(*) FROM kpi_values WHERE policy_version != 'v1.1.0';
             """)
             assert cur.fetchone()[0] == 0
 
@@ -262,7 +288,7 @@ class TestGoldenEvaluationSet:
                     SELECT value, unit, status
                     FROM kpi_values
                     WHERE company_id = %s AND fiscal_year = %s AND fiscal_quarter = %s
-                      AND kpi_id = %s AND basis = %s AND policy_version = 'v1.0.0';
+                      AND kpi_id = %s AND basis = %s AND policy_version = 'v1.1.0';
                 """, (
                     row["company_id"],
                     int(row["fiscal_year"]),

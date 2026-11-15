@@ -59,7 +59,7 @@ flowchart TD
   - Created migration `004_kpi_engine.sql` and pure SQL definitions for all 16 KPIs in `app/data/sql/kpis/`.
   - Built runner `app/data/kpi_calculator.py` and CLI `scripts/compute_kpis.py` (`make kpis`) computing 2,304 values with 0 duplicate drift.
   - Enforced pure SQL provenance assertion `verify_provenance_integrity()` proving 0 `status = 'ok'` KPI rows depend on non-effective inputs.
-  - Created provenance view/function in `scripts/provenance.sql` and CLI `app/data/provenance.py` tracing any KPI down to raw CSV row and cryptographic SHA256 hash. Documented 7 authoritative verification traces in `docs/evidence/provenance_examples.txt`.
+  - Created provenance view/function in `scripts/provenance.sql` and CLI `app/data/provenance.py` tracing any KPI down to raw CSV row and row-hash traceable SHA-256 identifier. Documented 7 authoritative verification traces in `docs/evidence/provenance_examples.txt`.
   - Conducted independent differential verification in `scripts/verify_kpis_differential.py` proving 100.00% match against clean-room pandas recomputation (`docs/evidence/differential_test_results.txt`).
   - Conducted narrative text reconciliation in `scripts/reconcile_kpis_vs_text.py` (`docs/evidence/text_reconciliation_results.txt`).
   - Built 50-row golden eval set in `tests/evals/kpi_golden.csv` (15 hand-verified) and comprehensive automated test suite (51 tests passing in 1.76s).

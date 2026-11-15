@@ -22,11 +22,13 @@ def main():
     is_test = "--test" in sys.argv
     db_label = "test" if is_test else "production"
 
-    print(f"=== CFO Copilot: Computing 16 KPIs ({db_label} database) ===")
+    policy_version = "v1.1.0"
+
+    print(f"=== CFO Copilot: Computing 16 KPIs ({db_label} database, policy {policy_version}) ===")
     conn = psycopg2.connect(**settings.get_connection_params(role="rw", is_test=is_test))
 
     try:
-        result = compute_all_kpis(conn, policy_version="v1.0.0")
+        result = compute_all_kpis(conn, policy_version=policy_version)
         print(f"[OK] KPI computation completed: {result['total_computed']} values stored.")
         print(f"[OK] Provenance integrity verified: 0 violations.\n")
 
@@ -35,10 +37,10 @@ def main():
             cur.execute("""
                 SELECT company_id, status, COUNT(*)
                 FROM kpi_values
-                WHERE policy_version = 'v1.0.0' AND basis = 'as_restated'
+                WHERE policy_version = %s AND basis = 'as_restated'
                 GROUP BY company_id, status
                 ORDER BY company_id, status;
-            """)
+            """, (policy_version,))
             status_rows = cur.fetchall()
 
             print("--- KPI Values by Company x Status (Basis: as_restated) ---")
@@ -51,10 +53,10 @@ def main():
             cur.execute("""
                 SELECT basis, status, COUNT(*)
                 FROM kpi_values
-                WHERE policy_version = 'v1.0.0'
+                WHERE policy_version = %s
                 GROUP BY basis, status
                 ORDER BY basis, status;
-            """)
+            """, (policy_version,))
             print("\n--- KPI Values by Basis x Status ---")
             print(f"{'Basis':<24} | {'Status':<16} | {'Count':<8}")
             print("-" * 54)
@@ -65,10 +67,10 @@ def main():
             cur.execute("""
                 SELECT UNNEST(rule_ids_applied) AS rule_id, COUNT(*)
                 FROM effective_line_items
-                WHERE policy_version = 'v1.0.0'
+                WHERE policy_version = %s
                 GROUP BY rule_id
                 ORDER BY rule_id;
-            """)
+            """, (policy_version,))
             print("\n--- Conflict Policy Rule Trigger Counts (effective_line_items) ---")
             print(f"{'Rule ID':<12} | {'Triggers':<10}")
             print("-" * 26)
@@ -79,8 +81,8 @@ def main():
             cur.execute("""
                 SELECT COUNT(*)
                 FROM kpi_values
-                WHERE policy_version = 'v1.0.0' AND restated = TRUE;
-            """)
+                WHERE policy_version = %s AND restated = TRUE;
+            """, (policy_version,))
             restated_kpi_cnt = cur.fetchone()[0]
             print(f"\nTotal KPI values restated (restated=true): {restated_kpi_cnt}")
 

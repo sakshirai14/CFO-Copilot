@@ -28,29 +28,28 @@ SELECT
     p.period_end,
     'rd_intensity_pct' AS kpi_id,
     CASE 
-        WHEN rev.value_normalized IS NULL THEN NULL
+        WHEN rev.value_normalized IS NULL OR rd.value_normalized IS NULL THEN NULL
         WHEN rev.value_normalized = 0 THEN NULL
-        WHEN rev.eli_status != 'ok' THEN NULL
-        WHEN rd.value_normalized IS NULL THEN 0.000000
-        WHEN rd.eli_status != 'ok' THEN NULL
+        WHEN rev.eli_status != 'ok' OR rd.eli_status != 'ok' THEN NULL
+        WHEN 'R11' = ANY(rev.rule_ids_applied) THEN NULL
         ELSE ROUND((rd.value_normalized / rev.value_normalized) * 100, 6)
     END AS value,
     'percent' AS unit,
     CASE 
-        WHEN rev.value_normalized IS NULL THEN 'missing_input'
+        WHEN 'R11' = ANY(rev.rule_ids_applied) THEN 'unverified'
+        WHEN rev.eli_status = 'conflict' OR rd.eli_status = 'conflict' THEN 'conflict'
+        WHEN rev.eli_status = 'unverified' OR rd.eli_status = 'unverified' THEN 'unverified'
+        WHEN rev.value_normalized IS NULL OR rd.value_normalized IS NULL THEN 'missing_input'
         WHEN rev.value_normalized = 0 THEN 'denominator_zero'
-        WHEN rev.eli_status = 'conflict' THEN 'conflict'
-        WHEN rev.eli_status = 'unverified' THEN 'unverified'
-        WHEN rd.eli_status = 'conflict' THEN 'conflict'
-        WHEN rd.eli_status = 'unverified' THEN 'unverified'
         ELSE 'ok'
     END AS status,
     CASE 
-        WHEN rev.value_normalized IS NULL THEN 'Missing required input: revenue'
-        WHEN rev.value_normalized = 0 THEN 'Revenue denominator is zero'
+        WHEN 'R11' = ANY(rev.rule_ids_applied) THEN 'Underlying filing failed accounting integrity check (R11)'
         WHEN rev.eli_status = 'conflict' OR rd.eli_status = 'conflict' THEN 'Conflicting input values in filing'
         WHEN rev.eli_status = 'unverified' OR rd.eli_status = 'unverified' THEN 'Input failed accounting integrity check'
-        WHEN rd.value_normalized IS NULL THEN 'Zero: company reports no R&D expense'
+        WHEN rev.value_normalized IS NULL THEN 'Missing required input: revenue'
+        WHEN rd.value_normalized IS NULL THEN 'Missing required input: research_and_development'
+        WHEN rev.value_normalized = 0 THEN 'Revenue denominator is zero'
         ELSE NULL
     END AS reason,
     ARRAY_REMOVE(ARRAY[rd.line_item_id, rev.line_item_id], NULL) AS input_line_item_ids,

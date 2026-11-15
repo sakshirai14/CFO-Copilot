@@ -63,12 +63,10 @@ def compute_interest_coverage(operating_income, interest_expense):
 
 
 def compute_rd_intensity(rd, revenue):
-    if revenue is None:
+    if revenue is None or rd is None:
         return None, "missing_input"
     if revenue == 0:
         return None, "denominator_zero"
-    if rd is None or rd == 0:
-        return Decimal("0.000000"), "ok"
     return round((Decimal(rd) / Decimal(revenue)) * 100, 6), "ok"
 
 
@@ -145,9 +143,15 @@ class TestKpiFormulasAndDomainGates:
         assert status == "denominator_zero"
         assert val is None
 
-    def test_rd_intensity_zero_when_not_reported(self):
-        """Rule R6 exception: Retailer reporting no R&D returns 0.0%."""
+    def test_rd_intensity_missing_input_when_not_reported(self):
+        """Rule R6: If R&D is absent/None, return missing_input (never synthesize zero)."""
         val, status = compute_rd_intensity(None, 746800000)
+        assert status == "missing_input"
+        assert val is None
+
+    def test_rd_intensity_explicit_zero_reported(self):
+        """Rule R6: When filing explicitly reports 0.0 R&D, returns 0.0% ok."""
+        val, status = compute_rd_intensity(0, 746800000)
         assert status == "ok"
         assert val == Decimal("0.000000")
 

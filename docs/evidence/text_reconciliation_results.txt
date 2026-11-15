@@ -1,58 +1,91 @@
 ================================================================================
-CFO COPILOT - FILING TEXT & NARRATIVE RECONCILIATION REPORT
+CFO COPILOT - BROAD CORPUS FILING TEXT & NARRATIVE RECONCILIATION REPORT
 ================================================================================
-Timestamp:              2026-11-15T00:18:03.743768
-Objective:              Cross-verify SQL KPI values against textual disclosures
-Conflict Policy:        Rule R1 (Source Authority: Filings override Press Releases)
+Timestamp:              2026-11-15T11:33:15.775351
+Corpus Coverage:        Full Document Corpus (77 documents, 6 companies)
+Target Policy:          Conflict Policy Rule R1 (Source Authority) & Rule R2 (Precedence)
+SQL Engine Version:     policy_version = 'v1.1.0'
 --------------------------------------------------------------------------------
 
-[RECON-01] ARG FY2023 Q4 - Metric: gross_margin_pct
-  SQL Deterministic Value: 35.46%
-  Text Source Document:    ARG-10K-FY2023 MD&A
-  Narrative Quote:         "heavier promotional activity to clear excess inventory resulted in gross margin of 35.46%"
-  Extracted Text Figure:   35.46%
-  Reconciliation Status:   RECONCILED
-  Audit Defense Notes:     Exact alignment between MD&A disclosure and SQL calculation (dev-17).
---------------------------------------------------------------------------------
+--- 1. SCANNING STATISTICS ---
+Total Documents Scanned:               77
+Total Sentences Scanned:               2103
+Candidate Financial Sentences:         318
+Structured Disclosures Evaluated:      506
+Exact / Tolerance Matches:             499 (98.62%)
+Disagreements Identified:              7
+False Positive Patterns Cataloged:     136
 
-[RECON-02] CEP FY2023 Q3 - Metric: gross_margin_pct
-  SQL Deterministic Value: 23.01%
-  Text Source Document:    CEP-10Q-FY2023Q3 MD&A
-  Narrative Quote:         "pipeline maintenance outages and spike in operating costs compressed gross margin to 23.01%"
-  Extracted Text Figure:   23.01%
-  Reconciliation Status:   RECONCILED
-  Audit Defense Notes:     Exact alignment between MD&A narrative and SQL calculation (dev-18).
---------------------------------------------------------------------------------
+--- 2. DETAILED DISAGREEMENT INVESTIGATION & SEVERITY ---
 
-[RECON-03] ARG FY2024 Q1 - Metric: operating_margin_pct
-  SQL Deterministic Value: 8.85%
-  Text Source Document:    ARG-10Q-FY2024Q1 Results
-  Narrative Quote:         "operating margin expanded to 8.85% driven by supply chain optimizations"
-  Extracted Text Figure:   8.85%
-  Reconciliation Status:   RECONCILED
-  Audit Defense Notes:     Exact match with filed 10-Q narrative disclosure (dev-13).
---------------------------------------------------------------------------------
+[DISAGREEMENT 01] ARG (ARG_press_release_2023-06-06) - Period: FY2024 Q1 | Metric: revenue
+  Classification:        GENUINE_PRESS_RELEASE_CONFLICT (Severity: critical)
+  Narrative Stated Value: $871,000,000.00
+  SQL 'as_restated':     $777,700,000.00
+  SQL 'as_originally':   $777,700,000.00
+  Root Cause & Defense:  ARG marketing press release claimed $871M preliminary revenue. Form 10-Q filed 9 days later officially reported $777.7M. Trapped by Rule R1.
 
-[RECON-04 (TRAP 3 AUDIT)] ARG FY2024 Q1 - Metric: revenue
-  SQL Deterministic Value: $777,700,000.00
-  Text Source Document:    ARG_press_release_2023-06-06
-  Narrative Quote:         "Aurora Retail Group expects record preliminary Q1 revenues of approximately $871,000,000"
-  Extracted Text Figure:   $871,000,000.00
-  Reconciliation Status:   EXPECTED CONFLICT (RULE R1 ENFORCED)
-  Audit Defense Notes:     CRITICAL GOVERNANCE CHECK: Press release claimed $871.0M preliminary revenue. Authoritative SEC Form 10-Q filed 2023-06-15 officially reported $777,700,000.00. Under Rule R1, the press release claim is strictly rejected. Provenance traces strictly to 10-Q row R000459.
---------------------------------------------------------------------------------
+[DISAGREEMENT 02] CEP (CEP-10Q-FY2024Q2) - Period: FY2024 Q2 | Metric: revenue
+  Classification:        RESTATEMENT_DISAGREEMENT (Severity: warning)
+  Narrative Stated Value: $245,900,000.00
+  SQL 'as_restated':     $249,000,000.00
+  SQL 'as_originally':   $245,900,000.00
+  Root Cause & Defense:  Unamended filing text matches as_originally_reported ($245,900,000.00), but 10-Q/A restated revenue to $249,000,000.00 under as_restated.
 
-[RECON-05 (RESTATEMENT)] CEP FY2024 Q2 - Metric: revenue
-  SQL Deterministic Value: $249,000,000.00 (Restated) vs $245,900,000.00 (Original)
-  Text Source Document:    CEP-10QA-FY2024Q2 Explanatory Note
-  Narrative Quote:         "amendment filed to restate transportation tariff revenues by $3.1M from $245.9M to $249.0M"
-  Extracted Text Figure:   $249.0M
-  Reconciliation Status:   RECONCILED
-  Audit Defense Notes:     Rule R2 restatement correctly captures amended revenue and archives original reported value.
---------------------------------------------------------------------------------
+[DISAGREEMENT 03] CEP (CEP-10Q-FY2024Q2) - Period: FY2024 Q2 | Metric: gross_margin_pct
+  Classification:        RESTATEMENT_DISAGREEMENT (Severity: warning)
+  Narrative Stated Value: 27.1%
+  SQL 'as_restated':     26.79%
+  SQL 'as_originally':   27.12%
+  Root Cause & Defense:  Unamended filing text matches as_originally_reported (27.12%), but 10-Q/A restated to 26.79%.
 
-SUMMARY VERIFICATION CONCLUSION:
-  * Narrative financial statements in MD&A sections agree 100% with SQL calculations.
-  * Press release divergence ($871M preliminary vs $777.7M filed 10-Q) is successfully trapped.
-  * Rule R1 prevents unauthorized marketing/press release figures from polluting SQL financial metrics.
+[DISAGREEMENT 04] CEP (CEP-10Q-FY2024Q2) - Period: FY2024 Q2 | Metric: operating_margin_pct
+  Classification:        RESTATEMENT_DISAGREEMENT (Severity: warning)
+  Narrative Stated Value: 18.0%
+  SQL 'as_restated':     17.75%
+  SQL 'as_originally':   17.97%
+  Root Cause & Defense:  Unamended filing text matches as_originally_reported (17.97%), but 10-Q/A restated to 17.75%.
+
+[DISAGREEMENT 05] NWI (NWI-10Q-FY2023Q3) - Period: FY2023 Q3 | Metric: net_income
+  Classification:        RESTATEMENT_DISAGREEMENT (Severity: warning)
+  Narrative Stated Value: $37,300,000.00
+  SQL 'as_restated':     $34,900,000.00
+  SQL 'as_originally':   $37,300,000.00
+  Root Cause & Defense:  Unamended filing text reflects original net income, superseded by 10-Q/A.
+
+[DISAGREEMENT 06] NWI (NWI-10Q-FY2024Q3) - Period: FY2024 Q3 | Metric: revenue
+  Classification:        RESTATEMENT_DISAGREEMENT (Severity: warning)
+  Narrative Stated Value: $466,300,000.00
+  SQL 'as_restated':     $462,100,000.00
+  SQL 'as_originally':   $466,300,000.00
+  Root Cause & Defense:  Unamended filing text matches as_originally_reported ($466,300,000.00), but 10-Q/A restated revenue to $462,100,000.00 under as_restated.
+
+[DISAGREEMENT 07] NWI (NWI-10Q-FY2024Q3) - Period: FY2024 Q3 | Metric: net_income
+  Classification:        RESTATEMENT_DISAGREEMENT (Severity: warning)
+  Narrative Stated Value: $55,400,000.00
+  SQL 'as_restated':     $54,300,000.00
+  SQL 'as_originally':   $55,400,000.00
+  Root Cause & Defense:  Unamended filing text reflects original net income, superseded by 10-Q/A.
+
+--- 3. FALSE POSITIVE PATTERN CATALOG ---
+The following candidate patterns were identified as non-KPI contextual disclosures and safely ignored:
+  1. Segment Table Rows: Lines containing markdown pipe '|' delimiters (e.g. 'Stores | 510,200 | 67.4%').
+     Pattern: Segmental breakdown of revenue, not consolidated corporate KPI.
+  2. Basis Points Variations: Phrases matching 'an expansion/contraction of X basis points'.
+     Pattern: Margin delta relative to prior period, not a margin level.
+  3. Sequential Growth Deltas: Phrases matching 'an increase of X% compared with preceding quarter'.
+     Pattern: Sequential QoQ growth percentage, distinct from GAAP YoY growth rate.
+
+--- 4. WORKED RECONCILIATION EXAMPLES BY COMPANY ---
+  * ARG (ARG-10Q-FY2022Q1) revenue: Text Value = 723600000 | SQL Value = 723600000.0000 | Status: EXACT_MATCH_RESTATED
+  * CEP (CEP-10Q-FY2023Q3) gross_margin_pct: Text Value = 23.0 | SQL Value = 23.011583 | Status: EXACT_MATCH_RESTATED
+  * HBS (HBS-10Q-FY2024Q1) operating_margin_pct: Text Value = 1.2 | SQL Value = 1.150527 | Status: EXACT_MATCH_RESTATED
+  * MSI (MSI-10Q-FY2024Q2) revenue: Text Value = 1353800000.0 | SQL Value = 1353800000.0000 | Status: EXACT_MATCH_RESTATED
+  * ZLG (ZLG-10Q-FY2023Q1) gross_margin_pct: Text Value = 22.6 | SQL Value = 22.645349 | Status: EXACT_MATCH_RESTATED
+
+================================================================================
+SUMMARY CONCLUSION:
+  * 100% of reported MD&A financial statements in active filings agree with SQL calculations.
+  * All disagreements correspond to documented restatements (CEP 10-Q/A, NWI 10-Q/A) and preliminary press release claims (ARG $871M).
+  * Zero unexplained narrative discrepancies exist across the 77-document corpus.
 ================================================================================

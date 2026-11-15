@@ -42,26 +42,26 @@ SELECT
     p.period_end,
     'opex_ratio_pct' AS kpi_id,
     CASE 
-        WHEN sm.value_normalized IS NULL OR ga.value_normalized IS NULL OR rev.value_normalized IS NULL THEN NULL
+        WHEN rd.value_normalized IS NULL OR sm.value_normalized IS NULL OR ga.value_normalized IS NULL OR rev.value_normalized IS NULL THEN NULL
         WHEN rev.value_normalized = 0 THEN NULL
-        WHEN sm.eli_status != 'ok' OR ga.eli_status != 'ok' OR rev.eli_status != 'ok' THEN NULL
+        WHEN rd.eli_status != 'ok' OR sm.eli_status != 'ok' OR ga.eli_status != 'ok' OR rev.eli_status != 'ok' THEN NULL
         WHEN 'R11' = ANY(rev.rule_ids_applied) THEN NULL
-        ELSE ROUND(((COALESCE(rd.value_normalized, 0) + sm.value_normalized + ga.value_normalized) / rev.value_normalized) * 100, 6)
+        ELSE ROUND(((rd.value_normalized + sm.value_normalized + ga.value_normalized) / rev.value_normalized) * 100, 6)
     END AS value,
     'percent' AS unit,
     CASE 
         WHEN 'R11' = ANY(rev.rule_ids_applied) THEN 'unverified'
-        WHEN sm.eli_status = 'conflict' OR ga.eli_status = 'conflict' OR rev.eli_status = 'conflict' THEN 'conflict'
-        WHEN sm.eli_status = 'unverified' OR ga.eli_status = 'unverified' OR rev.eli_status = 'unverified' THEN 'unverified'
-        WHEN sm.value_normalized IS NULL OR ga.value_normalized IS NULL OR rev.value_normalized IS NULL THEN 'missing_input'
+        WHEN rd.eli_status = 'conflict' OR sm.eli_status = 'conflict' OR ga.eli_status = 'conflict' OR rev.eli_status = 'conflict' THEN 'conflict'
+        WHEN rd.eli_status = 'unverified' OR sm.eli_status = 'unverified' OR ga.eli_status = 'unverified' OR rev.eli_status = 'unverified' THEN 'unverified'
+        WHEN rd.value_normalized IS NULL OR sm.value_normalized IS NULL OR ga.value_normalized IS NULL OR rev.value_normalized IS NULL THEN 'missing_input'
         WHEN rev.value_normalized = 0 THEN 'denominator_zero'
         ELSE 'ok'
     END AS status,
     CASE 
         WHEN 'R11' = ANY(rev.rule_ids_applied) THEN 'Underlying filing failed accounting integrity check (R11)'
-        WHEN sm.eli_status = 'conflict' OR ga.eli_status = 'conflict' OR rev.eli_status = 'conflict' THEN 'Conflicting input values in filing'
-        WHEN sm.eli_status = 'unverified' OR ga.eli_status = 'unverified' OR rev.eli_status = 'unverified' THEN 'Input failed accounting integrity check'
-        WHEN sm.value_normalized IS NULL OR ga.value_normalized IS NULL OR rev.value_normalized IS NULL THEN 'Missing required inputs: sales_and_marketing, general_and_administrative, or revenue'
+        WHEN rd.eli_status = 'conflict' OR sm.eli_status = 'conflict' OR ga.eli_status = 'conflict' OR rev.eli_status = 'conflict' THEN 'Conflicting input values in filing'
+        WHEN rd.eli_status = 'unverified' OR sm.eli_status = 'unverified' OR ga.eli_status = 'unverified' OR rev.eli_status = 'unverified' THEN 'Input failed accounting integrity check'
+        WHEN rd.value_normalized IS NULL OR sm.value_normalized IS NULL OR ga.value_normalized IS NULL OR rev.value_normalized IS NULL THEN 'Missing required inputs: research_and_development, sales_and_marketing, general_and_administrative, or revenue'
         WHEN rev.value_normalized = 0 THEN 'Revenue denominator is zero'
         ELSE NULL
     END AS reason,
