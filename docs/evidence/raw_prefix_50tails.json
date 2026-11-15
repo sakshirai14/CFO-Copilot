@@ -1,0 +1,361 @@
+{
+  "count": 50,
+  "prefix_tokens_approx": 290,
+  "ttft_p50_ms": 99.72,
+  "ttft_p95_ms": 102.15,
+  "ttft_min_ms": 31.36,
+  "ttft_max_ms": 104.9,
+  "warmup_ttft_ms": 1042.46,
+  "details": [
+    {
+      "ttft_ms": 31.36,
+      "total_ms": 357.44,
+      "chunks": 18,
+      "tail_id": 1,
+      "tail_preview": "What were the primary revenue drivers for Aurora Retail Grou..."
+    },
+    {
+      "ttft_ms": 102.57,
+      "total_ms": 431.98,
+      "chunks": 18,
+      "tail_id": 2,
+      "tail_preview": "Summarize the operating cash flow adjustments for Cobalt Ene..."
+    },
+    {
+      "ttft_ms": 104.9,
+      "total_ms": 443.17,
+      "chunks": 18,
+      "tail_id": 3,
+      "tail_preview": "Detail Helix BioSystems's capital expenditures on laboratory..."
+    },
+    {
+      "ttft_ms": 98.87,
+      "total_ms": 431.77,
+      "chunks": 18,
+      "tail_id": 4,
+      "tail_preview": "What factors influenced Northwind Industrial's gross margin ..."
+    },
+    {
+      "ttft_ms": 101.13,
+      "total_ms": 436.97,
+      "chunks": 18,
+      "tail_id": 5,
+      "tail_preview": "Explain Zephyr Logistics's freight volume trends across regi..."
+    },
+    {
+      "ttft_ms": 99.41,
+      "total_ms": 432.98,
+      "chunks": 18,
+      "tail_id": 6,
+      "tail_preview": "Describe Aurora Retail Group's inventory write-down disclosu..."
+    },
+    {
+      "ttft_ms": 99.58,
+      "total_ms": 438.88,
+      "chunks": 18,
+      "tail_id": 7,
+      "tail_preview": "What were Cobalt Energy Partners's lease commitment obligati..."
+    },
+    {
+      "ttft_ms": 98.96,
+      "total_ms": 433.17,
+      "chunks": 18,
+      "tail_id": 8,
+      "tail_preview": "Summarize Helix BioSystems's grant revenue from research par..."
+    },
+    {
+      "ttft_ms": 101.37,
+      "total_ms": 438.7,
+      "chunks": 18,
+      "tail_id": 9,
+      "tail_preview": "What drove Northwind Industrial's restructuring charges duri..."
+    },
+    {
+      "ttft_ms": 97.6,
+      "total_ms": 429.01,
+      "chunks": 18,
+      "tail_id": 10,
+      "tail_preview": "Detail Zephyr Logistics's fleet maintenance expenses during ..."
+    },
+    {
+      "ttft_ms": 101.04,
+      "total_ms": 453.22,
+      "chunks": 18,
+      "tail_id": 11,
+      "tail_preview": "Explain the drivers of Aurora Retail Group's same-store sale..."
+    },
+    {
+      "ttft_ms": 95.19,
+      "total_ms": 449.23,
+      "chunks": 18,
+      "tail_id": 12,
+      "tail_preview": "What explanations did Cobalt Energy give for pipeline mainte..."
+    },
+    {
+      "ttft_ms": 101.16,
+      "total_ms": 434.79,
+      "chunks": 18,
+      "tail_id": 13,
+      "tail_preview": "Summarize Helix BioSystems's patent litigation reserves disc..."
+    },
+    {
+      "ttft_ms": 101.11,
+      "total_ms": 435.66,
+      "chunks": 18,
+      "tail_id": 14,
+      "tail_preview": "Describe Northwind Industrial's working capital movements in..."
+    },
+    {
+      "ttft_ms": 100.22,
+      "total_ms": 436.45,
+      "chunks": 18,
+      "tail_id": 15,
+      "tail_preview": "What drove Zephyr Logistics's terminal automation investment..."
+    },
+    {
+      "ttft_ms": 99.41,
+      "total_ms": 433.57,
+      "chunks": 18,
+      "tail_id": 16,
+      "tail_preview": "Explain Aurora Retail Group's private-label merchandise marg..."
+    },
+    {
+      "ttft_ms": 100.09,
+      "total_ms": 436.52,
+      "chunks": 18,
+      "tail_id": 17,
+      "tail_preview": "What were Cobalt Energy Partners's decommissioning liabiliti..."
+    },
+    {
+      "ttft_ms": 100.07,
+      "total_ms": 434.52,
+      "chunks": 18,
+      "tail_id": 18,
+      "tail_preview": "Detail Helix BioSystems's clinical reagent consumption in fi..."
+    },
+    {
+      "ttft_ms": 100.51,
+      "total_ms": 441.23,
+      "chunks": 18,
+      "tail_id": 19,
+      "tail_preview": "What factors contributed to Northwind Industrial's warranty ..."
+    },
+    {
+      "ttft_ms": 100.09,
+      "total_ms": 441.0,
+      "chunks": 18,
+      "tail_id": 20,
+      "tail_preview": "Summarize Zephyr Logistics's long-term warehouse lease oblig..."
+    },
+    {
+      "ttft_ms": 99.24,
+      "total_ms": 434.35,
+      "chunks": 18,
+      "tail_id": 21,
+      "tail_preview": "What drove Aurora Retail Group's digital ecommerce growth in..."
+    },
+    {
+      "ttft_ms": 101.73,
+      "total_ms": 435.68,
+      "chunks": 18,
+      "tail_id": 22,
+      "tail_preview": "Explain Cobalt Energy Partners's natural gas liquid pricing ..."
+    },
+    {
+      "ttft_ms": 101.75,
+      "total_ms": 436.59,
+      "chunks": 18,
+      "tail_id": 23,
+      "tail_preview": "Describe Helix BioSystems's molecular diagnostics segment pe..."
+    },
+    {
+      "ttft_ms": 99.66,
+      "total_ms": 433.8,
+      "chunks": 18,
+      "tail_id": 24,
+      "tail_preview": "What explanations were provided for Northwind Industrial's s..."
+    },
+    {
+      "ttft_ms": 99.19,
+      "total_ms": 432.63,
+      "chunks": 18,
+      "tail_id": 25,
+      "tail_preview": "Detail Zephyr Logistics's cross-border logistics volume fluc..."
+    },
+    {
+      "ttft_ms": 101.72,
+      "total_ms": 435.18,
+      "chunks": 18,
+      "tail_id": 26,
+      "tail_preview": "What were Aurora Retail Group's promotional markdown strateg..."
+    },
+    {
+      "ttft_ms": 100.91,
+      "total_ms": 447.45,
+      "chunks": 18,
+      "tail_id": 27,
+      "tail_preview": "Summarize Cobalt Energy Partners's environmental remediation..."
+    },
+    {
+      "ttft_ms": 101.44,
+      "total_ms": 432.61,
+      "chunks": 18,
+      "tail_id": 28,
+      "tail_preview": "Explain Helix BioSystems's genomic sequencing instrument pla..."
+    },
+    {
+      "ttft_ms": 99.11,
+      "total_ms": 433.31,
+      "chunks": 18,
+      "tail_id": 29,
+      "tail_preview": "What factors influenced Northwind Industrial's commercial ae..."
+    },
+    {
+      "ttft_ms": 92.94,
+      "total_ms": 418.7,
+      "chunks": 18,
+      "tail_id": 30,
+      "tail_preview": "Describe Zephyr Logistics's container handling efficiency im..."
+    },
+    {
+      "ttft_ms": 99.79,
+      "total_ms": 435.2,
+      "chunks": 18,
+      "tail_id": 31,
+      "tail_preview": "What were Aurora Retail Group's store opening and renovation..."
+    },
+    {
+      "ttft_ms": 99.65,
+      "total_ms": 435.63,
+      "chunks": 18,
+      "tail_id": 32,
+      "tail_preview": "Summarize Cobalt Energy Partners's hedging contract settleme..."
+    },
+    {
+      "ttft_ms": 101.09,
+      "total_ms": 430.18,
+      "chunks": 18,
+      "tail_id": 33,
+      "tail_preview": "Explain Helix BioSystems's antibody reagent manufacturing yi..."
+    },
+    {
+      "ttft_ms": 99.65,
+      "total_ms": 441.84,
+      "chunks": 18,
+      "tail_id": 34,
+      "tail_preview": "What drove Northwind Industrial's industrial pump and valve ..."
+    },
+    {
+      "ttft_ms": 97.97,
+      "total_ms": 429.97,
+      "chunks": 18,
+      "tail_id": 35,
+      "tail_preview": "Detail Zephyr Logistics's cold-chain refrigerated transport ..."
+    },
+    {
+      "ttft_ms": 100.83,
+      "total_ms": 434.21,
+      "chunks": 18,
+      "tail_id": 36,
+      "tail_preview": "What explanations did Aurora Retail Group disclose regarding..."
+    },
+    {
+      "ttft_ms": 96.77,
+      "total_ms": 424.46,
+      "chunks": 18,
+      "tail_id": 37,
+      "tail_preview": "Describe Cobalt Energy Partners's offshore platform maintena..."
+    },
+    {
+      "ttft_ms": 101.39,
+      "total_ms": 434.03,
+      "chunks": 18,
+      "tail_id": 38,
+      "tail_preview": "What were Helix BioSystems's automated liquid handler sales ..."
+    },
+    {
+      "ttft_ms": 99.22,
+      "total_ms": 432.66,
+      "chunks": 18,
+      "tail_id": 39,
+      "tail_preview": "Summarize Northwind Industrial's raw metal and steel tariff ..."
+    },
+    {
+      "ttft_ms": 102.47,
+      "total_ms": 434.26,
+      "chunks": 18,
+      "tail_id": 40,
+      "tail_preview": "Explain Zephyr Logistics's last-mile parcel delivery cost in..."
+    },
+    {
+      "ttft_ms": 99.85,
+      "total_ms": 429.94,
+      "chunks": 18,
+      "tail_id": 41,
+      "tail_preview": "What drove Aurora Retail Group's customer loyalty rewards pr..."
+    },
+    {
+      "ttft_ms": 100.66,
+      "total_ms": 433.78,
+      "chunks": 18,
+      "tail_id": 42,
+      "tail_preview": "Detail Cobalt Energy Partners's water disposal and recycling..."
+    },
+    {
+      "ttft_ms": 99.24,
+      "total_ms": 435.18,
+      "chunks": 18,
+      "tail_id": 43,
+      "tail_preview": "Summarize Helix BioSystems's university laboratory equipment..."
+    },
+    {
+      "ttft_ms": 96.68,
+      "total_ms": 431.85,
+      "chunks": 18,
+      "tail_id": 44,
+      "tail_preview": "What factors affected Northwind Industrial's commercial HVAC..."
+    },
+    {
+      "ttft_ms": 94.91,
+      "total_ms": 428.0,
+      "chunks": 18,
+      "tail_id": 45,
+      "tail_preview": "Explain Zephyr Logistics's diesel fuel surcharges applied to..."
+    },
+    {
+      "ttft_ms": 98.83,
+      "total_ms": 430.16,
+      "chunks": 18,
+      "tail_id": 46,
+      "tail_preview": "Describe Aurora Retail Group's seasonal inventory buildup ah..."
+    },
+    {
+      "ttft_ms": 99.47,
+      "total_ms": 432.54,
+      "chunks": 18,
+      "tail_id": 47,
+      "tail_preview": "What were Cobalt Energy Partners's seismic exploration surve..."
+    },
+    {
+      "ttft_ms": 100.59,
+      "total_ms": 432.08,
+      "chunks": 18,
+      "tail_id": 48,
+      "tail_preview": "Summarize Helix BioSystems's bio-repository cryopreservation..."
+    },
+    {
+      "ttft_ms": 97.45,
+      "total_ms": 462.05,
+      "chunks": 18,
+      "tail_id": 49,
+      "tail_preview": "What explanations did Northwind Industrial provide regarding..."
+    },
+    {
+      "ttft_ms": 96.33,
+      "total_ms": 432.83,
+      "chunks": 18,
+      "tail_id": 50,
+      "tail_preview": "Detail Zephyr Logistics's intermodal rail transfer fee struc..."
+    }
+  ]
+}

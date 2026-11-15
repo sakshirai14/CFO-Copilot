@@ -1,0 +1,42 @@
+=== Google ADK AgentEvaluator Offline Traceback ===
+Command executed:
+python -c "
+import asyncio
+from google.adk.evaluation import AgentEvaluator
+from app.agents.root_agent import CfoCopilotRootAgent
+asyncio.run(AgentEvaluator.evaluate(
+    agent_module=CfoCopilotRootAgent(),
+    eval_dataset_file_path_or_dir='tests/adk_evals/cfo_copilot.evalset.json',
+    num_runs=1
+))
+"
+
+Resulting Traceback:
+Traceback (most recent call last):
+  File "/Users/sakshirai/AI_RAG_Assignment/.venv/lib/python3.11/site-packages/google/adk/evaluation/agent_evaluator.py", line 240, in evaluate_eval_set
+    from .metric_evaluator_registry import DEFAULT_METRIC_EVALUATOR_REGISTRY
+  File "/Users/sakshirai/AI_RAG_Assignment/.venv/lib/python3.11/site-packages/google/adk/evaluation/metric_evaluator_registry.py", line 54, in <module>
+    from .multi_turn_task_success_evaluator import MultiTurnTaskSuccessV1Evaluator
+  File "/Users/sakshirai/AI_RAG_Assignment/.venv/lib/python3.11/site-packages/google/adk/evaluation/multi_turn_task_success_evaluator.py", line 27, in <module>
+    from .vertex_ai_eval_facade import _MultiTurnVertexiAiEvalFacade
+  File "/Users/sakshirai/AI_RAG_Assignment/.venv/lib/python3.11/site-packages/google/adk/evaluation/vertex_ai_eval_facade.py", line 29, in <module>
+    from ..dependencies._agentplatform import agentplatform
+  File "/Users/sakshirai/AI_RAG_Assignment/.venv/lib/python3.11/site-packages/google/adk/dependencies/_agentplatform.py", line 17, in <module>
+    import agentplatform as agentplatform
+ModuleNotFoundError: No module named 'agentplatform'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "<string>", line 5, in <module>
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/asyncio/runners.py", line 190, in run
+    return runner.run(main)
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/asyncio/base_events.py", line 650, in run_until_complete
+    return future.result()
+  File "/Users/sakshirai/AI_RAG_Assignment/.venv/lib/python3.11/site-packages/google/adk/evaluation/agent_evaluator.py", line 413, in evaluate
+    await AgentEvaluator.evaluate_eval_set(
+  File "/Users/sakshirai/AI_RAG_Assignment/.venv/lib/python3.11/site-packages/google/adk/evaluation/agent_evaluator.py", line 243, in evaluate_eval_set
+    raise ModuleNotFoundError(MISSING_EVAL_DEPENDENCIES_MESSAGE) from e
+ModuleNotFoundError: Eval module is not installed, please install via `pip install "google-adk[eval]"`.

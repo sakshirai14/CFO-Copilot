@@ -62,9 +62,46 @@ class AnswerComposer:
 
     @classmethod
     def compose_fallback_answer(cls, facts: List[FactItem], query: Optional[ResolvedQuery] = None) -> str:
-        """Invoked when LLM response is rejected by AnswerVerifier."""
+        """Invoked when LLM response is rejected by AnswerVerifier or model server is unavailable.
+        Provides an extractive fallback: deterministic metrics + verbatim retrieved filing passages with citations.
+        """
         if not facts:
-            return "Refused: Requested financial information could not be verified from SEC filings."
+            return "Refused: Requested financial disclosures could not be located in SEC filings."
+
+        kpi_facts = [f for f in facts if f.kpi_id is not None]
+        text_facts = [f for f in facts if f.kpi_id is None and f.text]
+
+        sections = []
+
+        # 1. Deterministic metric data block (if structured KPIs exist)
+        if kpi_facts:
+            structured_block = cls.compose_structured_answer(query or ResolvedQuery(question="fallback", route=RouteType.STRUCTURED), kpi_facts)
+            sections.append(f"Certified Metric Data:\n{structured_block}")
+
+        # 2. Extractive passages quoted verbatim with citations and authority labels
+        if text_facts:
+            passage_lines = []
+            for idx, tf in enumerate(text_facts[:3], 1):
+                # Authority label formatting
+                filing_str = (tf.source_filing or "").lower()
+                if "press_release" in filing_str or "faq" in filing_str or ("analyst" in filing_str and "note" in filing_str):
+                    auth_label = "unaudited, not a filing"
+                elif "10-q/a" in filing_str or "10qa" in filing_str:
+                    auth_label = "SEC Form 10-Q/A Amendment"
+                elif "10-q" in filing_str or "10q" in filing_str or "10-k" in filing_str or "10k" in filing_str:
+                    auth_label = "SEC Filing"
+                else:
+                    auth_label = "Company Disclosure"
+
+                citation = f"Source: {tf.source_filing or tf.fact_id} [{auth_label}]"
+                clean_text = tf.text.strip().replace("\n", " ")
+                passage_lines.append(f'[{idx}] "{clean_text}" ({citation})')
+
+            sections.append("Relevant Filing Excerpts:\n" + "\n".join(passage_lines))
+
+        if sections:
+            return "\n\n".join(sections)
+
         return cls.compose_structured_answer(query or ResolvedQuery(question="fallback", route=RouteType.STRUCTURED), facts)
 
     @staticmethod

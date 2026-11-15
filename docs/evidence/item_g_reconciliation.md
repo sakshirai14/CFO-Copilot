@@ -64,3 +64,4 @@ In Phase 4b held-out evaluation ($n=28$):
   - `new-cf-06` (14.20%): **Faithful & Passed**
   - `new-cf-07` (28.50%): **Faithful & Passed**
 - **Reconciliation**: 5 cases (`01, 04, 05, 06, 07`) passed faithfully. 1 case (`03`) was a genuine model over-refusal. 1 case (`02`) was a faithful answer wrongly rejected by the verifier bug. The earlier text misclassified `new-cf-02` as an over-refusal and misstated the denominator as 5 instead of 7. With the verifier fix, counterfactual faithfulness is **6 / 7 (85.7%)**.
+

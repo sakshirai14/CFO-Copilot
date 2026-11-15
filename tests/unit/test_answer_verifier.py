@@ -293,3 +293,50 @@ def test_percentage_not_double_extracted_as_currency():
     assert res.valid is True
     assert len(res.ungrounded_numbers) == 0
     assert len(res.violations) == 0
+
+
+def test_repeated_supported_number_passes():
+    """A legitimate executive response repeating a verified number in lead and summary passes."""
+    fact = InputFact(
+        fact_id="f_rev",
+        company_id="ARG",
+        fiscal_year=2024,
+        fiscal_quarter=1,
+        metric_name="revenue",
+        value=777700000.0,
+        text="Aurora Retail Group revenue was $777,700,000."
+    )
+    # The number $777,700,000 is stated in the first sentence and repeated in the summary
+    answer = GroundedAnswer(
+        status=AnswerStatus.ANSWERED,
+        answer="Aurora Retail Group generated $777,700,000 in revenue for FY2024 Q1. Therefore, total top-line sales reached $777,700,000.",
+        facts_used=["f_rev"],
+        caveats=[]
+    )
+    res = AnswerVerifier.verify(answer, [fact])
+    assert res.valid is True
+    assert len(res.ungrounded_numbers) == 0
+
+
+def test_unsupported_number_strictly_rejected():
+    """An ungrounded number not present in facts (e.g. fake 45.0% margin or $999M) is strictly rejected."""
+    fact = InputFact(
+        fact_id="f_gm",
+        company_id="NWI",
+        fiscal_year=2024,
+        fiscal_quarter=3,
+        metric_name="gross_margin_pct",
+        value=36.38,
+        text="Northwind gross margin was 36.38%."
+    )
+    # Model injects unsupported 45.0% margin
+    answer = GroundedAnswer(
+        status=AnswerStatus.ANSWERED,
+        answer="Northwind reported gross margin of 36.38% and operating margin of 45.0%.",
+        facts_used=["f_gm"],
+        caveats=[]
+    )
+    res = AnswerVerifier.verify(answer, [fact])
+    assert res.valid is False
+    assert any("45" in un["raw_text"] for un in res.ungrounded_numbers)
+

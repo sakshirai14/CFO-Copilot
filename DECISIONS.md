@@ -370,17 +370,15 @@
 ### [2026-11-15] DECISION 33: Conservative Treatment of ARG "Technology and Development" & Rule Table Reconciliation
 - **Context**: In Phase 5b audit, the treatment of ARG's operating line item `"Technology and development"` was audited alongside the R1-R12 conflict rules.
 - **Rationale & Analysis**:
-  1. **What ARG's Filings Call It**: ARG's income statement reports `"Technology and development"`. In retail enterprises (Aurora Retail Group), this expense covers IT infrastructure, point-of-sale maintenance, and ecommerce operations.
-  2. **Why It Is Not ASC 730 R&D**: Under US GAAP (ASC 730), general IT operations and software maintenance do not qualify as Research and Development.
-  3. **Impact of Mapping Choices**:
-     - *If mapped to R&D*: ARG would report artificial R&D intensity, distorting cross-company comparisons against true technology/pharma spenders like Helix BioSystems.
-     - *If conservative rule applied (enforced)*: Remapped to `technology_expense`. Under Rule R6 (no silent zero-fill), both `rd_intensity_pct` and `opex_ratio_pct` evaluate to `missing_input` across all 12 quarters (48 records total across both bases).
+  1. **What ARG's Filings Report**: ARG reports `"Technology and development" = 0` on its income statement face across all 12 reported quarters (e.g. rows R000294, R000318 in `financial_statements_raw.csv`).
+  2. **Conservative Taxonomy Choice**: Because standard R&D is not reported by ARG and the raw value is 0, under Policy v1.2.0 conservative taxonomy it is mapped to `technology_expense`.
+  3. **Impact of Mapping Choice**: Under Rule R6 (no silent zero-fill), both `rd_intensity_pct` and `opex_ratio_pct` evaluate strictly to `status = 'missing_input'` and `value = NULL` across all 12 quarters (48 records total across both bases). Combined with 48 `missing_input` records from FY2022 YoY revenue growth (6 companies x 4 quarters x 2 bases), the total `missing_input` count in `kpi_values` is **96**.
 - **Rule Table Reconciliation**:
-  - **R1 (Press Releases)**: Excludes 3 non-filing documents (`ARG_press_release_2023-06-06`, `CEP_investor_faq`, `HBS_analyst_note_2024-03`) from structured lines.
-  - **R4 (Duplicate Rows)**: Collapsed 3 duplicate pairs in `ARG-10Q-FY2023Q2` (revenue, cost of revenue, net income).
+  - **R1 (Press Releases)**: Excludes 3 non-filing documents (`ARG_press_release_2023-06-06`, `CEP_investor_faq`, `HBS_analyst_note_2024-03`) from structured lines (`SELECT count(*) FROM documents WHERE doc_type = 'other_document'` = 3).
+  - **R4 (Duplicate Rows)**: Collapsed 3 duplicate rows in `ARG-10Q-FY2023Q2` (`SELECT count(*) FROM line_items WHERE status = 'duplicate'` = 3).
   - **R5 (Unit Scaling)**: 11 rows scaled in `HBS-10Q-FY2024Q2` (thousands -> units) and 121 expense items sign-normalized.
   - **R7 (ZLG Calendar)**: Aligned to September 30 fiscal year-end (not a 4-4-5 calendar).
-  - **R11 (Integrity Gate)**: 1 identity check failure detected in `NWI-10QA-FY2024Q3` during isolated ingest; resolved when unamended opex lines carried forward under R2 with 0 downstream KPI downgrades.
+  - **R11 (Integrity Gate)**: 1 identity check failure detected in `NWI-10QA-FY2024Q3` during isolated ingest (`SELECT count(*) FROM data_quality_issues WHERE issue_type = 'accounting_identity_failure'` = 1); resolved when unamended opex lines carried forward under R2 with 0 downstream KPI downgrades.
 
 ---
 
@@ -397,6 +395,23 @@
      - Proved that unstructured narrative queries degrade gracefully with certified filing facts and clear fallback explanations rather than throwing unhandled exceptions.
   3. **Claim Sanitization**:
      - Removed ungrounded claims (e.g. '5,500x faster', 'completely eliminates') across docs and replaced with measured facts (e.g. 'sub-millisecond pure SQL vs multi-second LLM call', 'systematically intercepts').
+
+---
+
+### [2026-11-15] DECISION 35: Phase 5b Audit Corrections & Held-Out v2 Generation (Step 0)
+- **Held-Out v1 Contamination**:
+  - `docs/evidence/agent_heldout_runs.log` recorded two runs at 15:19:07Z and 15:21:02Z due to an unhandled f-string formatting exception during the first markdown export.
+  - Because cases were scored, edits were made to resolve crashes, and cases were rescored, the original held-out set is marked **CONTAMINATED**.
+- **Held-Out v2 Freeze**:
+  - A brand-new held-out evaluation set of 44 cases (20 structured/refusal/chitchat, 24 LLM-path cases) was generated with fresh phrasing and diverse queries across all 6 companies (`tests/evals/agent_heldout_v2.json`).
+  - Frozen with SHA-256 (`f1f189883d595665ff2ebd250c0d2260790d8c4e1dcce431db92170b45a382bb`) in `docs/evidence/agent_heldout_v2_hash.txt` and initialized empty audit log `docs/evidence/agent_heldout_v2_runs.log` BEFORE any Phase 6 agent changes. It will be run exactly once at the end of Phase 6.
+- **Corrected Capacity Model**:
+  - Replaced slot-prefill 0.175s with measured end-to-end service time ($S \approx 4.5\text{ s}$, sustained ceiling $\mu_{\max} \approx 0.53\text{ req/s}$).
+  - Saturation begins at ~66% LLM traffic share under 16 concurrent sessions (20s think time, arrival rate 0.80 req/s).
+  - Prefix caching benchmark with 50 distinct tails measured p50 TTFT of **99.72 ms** (vs 1,042.5 ms cold), proving a true $10.45\times$ prefix caching speedup.
+- **Extractive Fallback Architecture**:
+  - In `app/domain/answer_composer.py`, replaced generic refusal on verifier rejection/model timeout with an extractive response: certified KPI metrics + top 3 retrieved SEC passages quoted verbatim with citations and authority labels.
+
 
 
 

@@ -93,3 +93,44 @@ async def test_root_agent_refusal_zero_llm_calls():
     assert env.llm_calls_made == 0
     assert "Refused:" in env.answer
 
+
+def test_extractive_fallback_quoted_passages():
+    """Fallback for narrative/mixed queries quotes retrieved passages with citations and authority labels."""
+    from app.domain.agent_envelope import ResolvedQuery
+    kpi_fact = FactItem(
+        fact_id="fact_rev",
+        company_id="ARG",
+        fiscal_year=2023,
+        fiscal_quarter=2,
+        kpi_id="revenue",
+        value=774400000.0,
+        unit="USD",
+        status="ok",
+        text="ARG revenue was $774,400,000."
+    )
+    text_fact_sec = FactItem(
+        fact_id="rag_chunk_1",
+        company_id="ARG",
+        text="Management observed supply chain headwinds across retail apparel.",
+        source_filing="ARG-10Q-FY2023Q2",
+        status="ok"
+    )
+    text_fact_pr = FactItem(
+        fact_id="rag_chunk_2",
+        company_id="ARG",
+        text="Preliminary unaudited estimates expect strong seasonal momentum.",
+        source_filing="ARG_press_release_2023-06-06",
+        status="ok"
+    )
+
+    q = ResolvedQuery(question="Explain revenue drivers and supply chain headwinds", route=RouteType.MIXED)
+    fallback = AnswerComposer.compose_fallback_answer([kpi_fact, text_fact_sec, text_fact_pr], q)
+
+    assert "Certified Metric Data:" in fallback
+    assert "$774,400,000" in fallback
+    assert "Relevant Filing Excerpts:" in fallback
+    assert "supply chain headwinds across retail apparel" in fallback
+    assert "Source: ARG-10Q-FY2023Q2 [SEC Filing]" in fallback
+    assert "Source: ARG_press_release_2023-06-06 [unaudited, not a filing]" in fallback
+
+
