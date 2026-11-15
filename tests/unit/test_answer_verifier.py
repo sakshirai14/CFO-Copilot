@@ -270,3 +270,26 @@ def test_security_leak_rejection():
     res = AnswerVerifier.verify(answer, [fact])
     assert res.valid is False
     assert any("Security violation" in v for v in res.violations)
+
+
+def test_percentage_not_double_extracted_as_currency():
+    """Verifier must not double-extract percentage tokens as ungrounded currency amounts (e.g. 48.90%)."""
+    fact = InputFact(
+        fact_id="f_msi_gm",
+        company_id="MSI",
+        fiscal_year=2024,
+        fiscal_quarter=1,
+        metric_name="gross_margin_pct",
+        value=48.9,
+        text="Main Street Investments gross margin was 48.90% in FY2024 Q1."
+    )
+    answer = GroundedAnswer(
+        status=AnswerStatus.ANSWERED,
+        answer="Main Street Investments gross margin was 48.90% in FY2024 Q1.",
+        facts_used=["f_msi_gm"],
+        caveats=[]
+    )
+    res = AnswerVerifier.verify(answer, [fact])
+    assert res.valid is True
+    assert len(res.ungrounded_numbers) == 0
+    assert len(res.violations) == 0

@@ -177,11 +177,15 @@ class AnswerVerifier:
                 extracted.append(parsed)
 
         # 3. Currency and monetary units: $109.2M, $109.2 million, $109,200,000, -$15M, $1.092B
+        # Mask out already extracted percentages and ratios to avoid double-extracting prefix numbers
+        masked_for_curr = pct_pat.sub(" ", masked)
+        masked_for_curr = ratio_pat.sub(" ", masked_for_curr)
+
         curr_pat = re.compile(
             r"[-+]?\$?\s*\(?\d+(?:,\d{3})*(?:\.\d+)?\s*(?:(?:billion|million|thousand|[BMK])\b)?\)?",
             re.IGNORECASE,
         )
-        for m in curr_pat.finditer(masked):
+        for m in curr_pat.finditer(masked_for_curr):
             raw = m.group(0).strip()
             if not raw or raw in ["$", "-", "+", "()"]:
                 continue
