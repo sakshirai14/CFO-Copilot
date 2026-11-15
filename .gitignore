@@ -51,6 +51,11 @@ htmlcov/
 *.db-wal
 *.db-shm
 
+# Models & Weights
+models/
+*.gguf
+
 # Benchmark & evidence logs (keep committed benchmarks/results summaries, ignore raw temp dumps)
 benchmarks/results/*.tmp
 docs/evidence/*.tmp
+logs/

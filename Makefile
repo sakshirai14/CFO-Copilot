@@ -1,4 +1,9 @@
-.PHONY: up down ingest kpis index retrieval-eval test report selfcheck bench clean audit puzzle2-eval help
+.PHONY: up down ingest kpis index retrieval-eval test report selfcheck bench clean audit puzzle2-eval model-up model-down eval-models help
+
+MODEL_FILE ?= models/qwen2.5-3b-instruct-q4_k_m.gguf
+MODEL_PORT ?= 8080
+MODEL_SLOTS ?= 16
+MODEL_CTX ?= 4096
 
 VENV_PYTHON := ./.venv/bin/python3
 PYTHON := $(shell if [ -f $(VENV_PYTHON) ]; then echo $(VENV_PYTHON); else echo python3; fi)
@@ -71,3 +76,32 @@ audit:
 
 puzzle2-eval:
 	$(PYTHON) scripts/analyze_request_log.py
+
+model-up:
+	@echo "[make model-up] Starting llama-server with $(MODEL_FILE) on port $(MODEL_PORT)..."
+	@mkdir -p logs
+	@llama-server -m $(MODEL_FILE) -c $(MODEL_CTX) -np $(MODEL_SLOTS) --port $(MODEL_PORT) --host 127.0.0.1 --jinja > logs/llama_server.log 2>&1 & echo $$! > logs/llama_server.pid
+	@echo "[make model-up] Waiting for llama-server to be ready on port $(MODEL_PORT)..."
+	@for i in $$(seq 1 45); do \
+		if curl -s http://127.0.0.1:$(MODEL_PORT)/health | grep -q 'ok'; then \
+			echo "[make model-up] llama-server ready on http://127.0.0.1:$(MODEL_PORT) (PID: $$(cat logs/llama_server.pid))"; \
+			exit 0; \
+		fi; \
+		sleep 1; \
+	done; \
+	echo "[ERROR] llama-server failed to start! Check logs/llama_server.log"; exit 1
+
+model-down:
+	@echo "[make model-down] Stopping llama-server..."
+	@if [ -f logs/llama_server.pid ]; then \
+		kill -9 $$(cat logs/llama_server.pid) 2>/dev/null || true; \
+		rm -f logs/llama_server.pid; \
+		echo "[make model-down] llama-server stopped."; \
+	else \
+		pkill -9 llama-server 2>/dev/null || true; \
+		echo "[make model-down] llama-server stopped via pkill."; \
+	fi
+
+eval-models:
+	@echo "[make eval-models] Running model comparison and grounding evaluation..."
+	$(PYTHON) scripts/eval_models.py
