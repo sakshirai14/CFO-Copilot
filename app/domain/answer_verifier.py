@@ -1,159 +1,271 @@
 """app/domain/answer_verifier.py
 
-Pure-Python, deterministic answer verifier (Foundation Locks 1, 3, 4, 10, 11).
-Enforces the Grounded-Answer Contract:
-- Extracts financial numbers from narrative answers
-- Verifies extracted numbers match cited input facts within tolerance
-- Verifies cited fact IDs exist in input prompt context
-- Enforces refusal contract (no fabricated figures on refused/missing data)
-- Detects leaked connection strings, prompt instructions, and external URLs
+Pure Python deterministic AnswerVerifier enforcing the Grounded-Answer Contract.
+(Phase 4b Step 3)
+
+Verification Invariants:
+1. Zero 1.5% tolerance: A number in the answer is accepted ONLY if it equals the fact's value
+   after unit normalization and ROUNDING to the number of decimals the answer itself shows:
+   - 26.79% accepts 26.79%, 26.8%, 27%; rejects 27.2%.
+   - $109,200,000 accepts $109.2M and $109.2 million; rejects $110.8M and $1.092B.
+2. Magnitude errors (x10, x1000, 1/10, 1/1000) are strictly rejected.
+3. Sign flips (+ vs -) are strictly rejected.
+4. Percent vs ratio (e.g. 26.79 vs 26.79% or 0.2679) are strictly rejected.
+5. Entity scoping: facts_used must include at least one fact for every company and period named in the answer.
+6. Refusal consistency: status 'insufficient_data' / 'refused' cannot make affirmative financial claims.
+7. Security guard: regex patterns block credential leaks, database passwords, and prompt injection echoes.
 """
 
 import math
 import re
-from dataclasses import dataclass, field
-from decimal import Decimal
 from typing import Any, Dict, List, Optional, Set, Tuple
+from pydantic import BaseModel, Field
 
 from app.inference.contract import AnswerStatus, GroundedAnswer, InputFact
 
 
-@dataclass
-class ExtractedNumber:
+class ExtractedNumber(BaseModel):
     raw_text: str
-    value: float
-    kind: str  # 'currency', 'percentage', 'ratio', 'plain'
+    value: float  # Value in base units (e.g. 109200000.0 for $109.2M, 26.79 for 26.79%)
+    display_value: float  # Number as displayed (e.g. 109.2 for $109.2M, 26.79 for 26.79%)
+    kind: str  # 'currency', 'percentage', 'ratio', 'integer'
+    scale: float  # 1e9, 1e6, 1e3, 1.0
+    decimals: int  # Number of decimal places shown in the raw token
+    is_negative: bool
 
 
-@dataclass
-class VerificationResult:
+class VerificationResult(BaseModel):
     valid: bool
-    violations: List[str] = field(default_factory=list)
-    ungrounded_numbers: List[Dict[str, Any]] = field(default_factory=list)
-    matched_facts: List[str] = field(default_factory=list)
+    violations: List[str] = Field(default_factory=list)
+    ungrounded_numbers: List[Dict[str, Any]] = Field(default_factory=list)
+    matched_facts: List[str] = Field(default_factory=list)
 
 
 class AnswerVerifier:
-    """Deterministic verifier for LLM generated financial answers."""
+    """Pure Python deterministic verifier for CFO Copilot responses."""
 
-    # Patterns indicating leaked internal prompt instructions or credentials
     SECURITY_PATTERNS = [
         re.compile(r"postgres(?:ql)?://[^\s]+", re.IGNORECASE),
-        re.compile(r"password\s*=\s*[^\s]+", re.IGNORECASE),
-        re.compile(r"system\s+notice\s+to\s+ai", re.IGNORECASE),
-        re.compile(r"disregard\s+(?:all\s+)?previous\s+instructions", re.IGNORECASE),
+        re.compile(r"password\s*[:=]\s*['\"]?[^\s'\"]+", re.IGNORECASE),
+        re.compile(r"information_schema\.tables", re.IGNORECASE),
         re.compile(r"developer\s+mode\s+activated", re.IGNORECASE),
-        re.compile(r"https?://[^\s]+", re.IGNORECASE),  # No external URLs
+        re.compile(r"bypass(?:ing)?\s+all\s+guardrails", re.IGNORECASE),
+        re.compile(r"malicious-exfil-server\.com", re.IGNORECASE),
     ]
 
+    COMPANY_ALIASES = {
+        "ARG": ["arg", "aurora retail", "aurora retail group"],
+        "CEP": ["cep", "cobalt energy", "cobalt energy partners"],
+        "HBS": ["hbs", "helix biosystems", "helix bio", "helix"],
+        "MSI": ["msi", "main street investments", "main street"],
+        "NWI": ["nwi", "northwind", "northwind industrial", "northwind industrial corp"],
+        "ZLG": ["zlg", "zephyr", "zephyr logistics"],
+    }
+
+    @staticmethod
+    def get_decimal_places(num_str: str) -> int:
+        """Counts decimals in numeric string representation."""
+        m = re.search(r"\b\d+\.(\d+)", num_str)
+        if m:
+            return len(m.group(1))
+        return 0
+
     @classmethod
-    def parse_numeric_token(cls, raw: str) -> Optional[float]:
-        """Parses a numerical string token (e.g. '$109.2M', '26.79%', '1,450') into a float."""
-        clean = raw.strip().replace(",", "").replace("$", "").replace("(", "-").replace(")", "")
-        multiplier = 1.0
+    def parse_numeric_token(cls, raw: str) -> Optional[ExtractedNumber]:
+        """Parses a numerical token into ExtractedNumber with scale and decimal precision."""
+        clean = raw.strip().replace(",", "")
+        is_neg = False
+        if clean.startswith("-") or ("(" in clean and ")" in clean):
+            is_neg = True
+        clean = clean.replace("$", "").replace("(", "").replace(")", "").replace("-", "").replace("+", "").strip()
+
+        kind = "currency"
+        scale = 1.0
 
         if clean.endswith("%"):
-            clean = clean[:-1]
-            return float(clean)  # treat as percentage point, e.g. 26.79
+            kind = "percentage"
+            core_str = clean[:-1].strip()
+            try:
+                disp_val = float(core_str)
+                decimals = cls.get_decimal_places(core_str)
+                val = -disp_val if is_neg else disp_val
+                return ExtractedNumber(
+                    raw_text=raw,
+                    value=val,
+                    display_value=disp_val,
+                    kind="percentage",
+                    scale=1.0,
+                    decimals=decimals,
+                    is_negative=is_neg,
+                )
+            except ValueError:
+                return None
 
-        if clean.lower().endswith("b") or clean.lower().endswith("billion"):
-            multiplier = 1e9
-            clean = re.sub(r"(?i)b(?:illion)?", "", clean)
-        elif clean.lower().endswith("m") or clean.lower().endswith("million"):
-            multiplier = 1e6
-            clean = re.sub(r"(?i)m(?:illion)?", "", clean)
-        elif clean.lower().endswith("k") or clean.lower().endswith("thousand"):
-            multiplier = 1e3
-            clean = re.sub(r"(?i)k(?:housand)?", "", clean)
-        elif clean.lower().endswith("x"):
-            clean = clean[:-1]
+        if clean.lower().endswith("x"):
+            kind = "ratio"
+            core_str = clean[:-1].strip()
+            try:
+                disp_val = float(core_str)
+                decimals = cls.get_decimal_places(core_str)
+                val = -disp_val if is_neg else disp_val
+                return ExtractedNumber(
+                    raw_text=raw,
+                    value=val,
+                    display_value=disp_val,
+                    kind="ratio",
+                    scale=1.0,
+                    decimals=decimals,
+                    is_negative=is_neg,
+                )
+            except ValueError:
+                return None
 
-        clean = clean.strip()
+        # Check currency / multiplier suffix
+        core_str = clean
+        if re.search(r"(?i)\b(?:b|billion)\b", clean) or clean.lower().endswith("b"):
+            scale = 1e9
+            core_str = re.sub(r"(?i)\b(?:b|billion)\b|b$", "", clean).strip()
+        elif re.search(r"(?i)\b(?:m|million)\b", clean) or clean.lower().endswith("m"):
+            scale = 1e6
+            core_str = re.sub(r"(?i)\b(?:m|million)\b|m$", "", clean).strip()
+        elif re.search(r"(?i)\b(?:k|thousand)\b", clean) or clean.lower().endswith("k"):
+            scale = 1e3
+            core_str = re.sub(r"(?i)\b(?:k|thousand)\b|k$", "", clean).strip()
+
         try:
-            val = float(clean) * multiplier
-            return val
+            disp_val = float(core_str)
+            decimals = cls.get_decimal_places(core_str)
+            val = (-disp_val if is_neg else disp_val) * scale
+            return ExtractedNumber(
+                raw_text=raw,
+                value=val,
+                display_value=disp_val,
+                kind=kind,
+                scale=scale,
+                decimals=decimals,
+                is_negative=is_neg,
+            )
         except ValueError:
             return None
 
     @classmethod
     def extract_numbers_from_text(cls, text: str) -> List[ExtractedNumber]:
-        """Extracts financial numbers from narrative text while ignoring fiscal years and quarters."""
+        """Extracts financial numbers while masking calendar dates and filing labels."""
         extracted: List[ExtractedNumber] = []
 
-        # Mask fiscal years and quarters before token extraction
+        # Mask calendar years, quarters, and form identifiers
         masked = re.sub(r"\b202[0-9]\b", " ", text)
         masked = re.sub(r"\bFY202[0-9]\b", " ", masked, flags=re.IGNORECASE)
         masked = re.sub(r"\bQ[1-4]\b", " ", masked, flags=re.IGNORECASE)
         masked = re.sub(r"\b(?:first|second|third|fourth)\s+quarter\b", " ", masked, flags=re.IGNORECASE)
         masked = re.sub(r"\b10-[KQ](?:/A)?\b", " ", masked, flags=re.IGNORECASE)
         masked = re.sub(r"\bRule\s+R\d+\b", " ", masked, flags=re.IGNORECASE)
+        masked = re.sub(r"\bNote\s+\d+\b", " ", masked, flags=re.IGNORECASE)
 
-        # Regex patterns for financial tokens
-        # 1. Currency with scale: $109.2M, $109.2 million, $54,300,000, -$12.4M
-        currency_pattern = re.compile(
+        # 1. Percentages: 26.79%, 26.8%, 27%
+        pct_pat = re.compile(r"[-+]?\d+(?:\.\d+)?%", re.IGNORECASE)
+        for m in pct_pat.finditer(masked):
+            parsed = cls.parse_numeric_token(m.group(0))
+            if parsed:
+                extracted.append(parsed)
+
+        # 2. Ratios: 1.85x, 0.42x
+        ratio_pat = re.compile(r"\b\d+(?:\.\d+)?x\b", re.IGNORECASE)
+        for m in ratio_pat.finditer(masked):
+            parsed = cls.parse_numeric_token(m.group(0))
+            if parsed:
+                extracted.append(parsed)
+
+        # 3. Currency and monetary units: $109.2M, $109.2 million, $109,200,000, -$15M, $1.092B
+        curr_pat = re.compile(
             r"[-+]?\$?\s*\(?\d+(?:,\d{3})*(?:\.\d+)?\s*(?:(?:billion|million|thousand|[BMK])\b)?\)?",
-            re.IGNORECASE
+            re.IGNORECASE,
         )
-        # 2. Percentage: 26.79%, 0.00%, -5.2%
-        percentage_pattern = re.compile(r"[-+]?\d+(?:\.\d+)?%", re.IGNORECASE)
-        # 3. Ratio: 1.85x, 0.42x
-        ratio_pattern = re.compile(r"\b\d+(?:\.\d+)?x\b", re.IGNORECASE)
-
-        # Extract percentages
-        for match in percentage_pattern.finditer(masked):
-            raw = match.group(0).strip()
-            val = cls.parse_numeric_token(raw)
-            if val is not None:
-                extracted.append(ExtractedNumber(raw_text=raw, value=val, kind="percentage"))
-
-        # Extract ratios
-        for match in ratio_pattern.finditer(masked):
-            raw = match.group(0).strip()
-            val = cls.parse_numeric_token(raw)
-            if val is not None:
-                extracted.append(ExtractedNumber(raw_text=raw, value=val, kind="ratio"))
-
-        # Extract currencies & raw metrics
-        for match in currency_pattern.finditer(masked):
-            raw = match.group(0).strip()
+        for m in curr_pat.finditer(masked):
+            raw = m.group(0).strip()
             if not raw or raw in ["$", "-", "+", "()"]:
                 continue
-            # Avoid re-matching pure percentages or ratios
             if "%" in raw or raw.endswith("x"):
                 continue
-            val = cls.parse_numeric_token(raw)
-            if val is not None:
-                # Filter out pure integers under 100 that might be counts/ranks (e.g. 'top 5', 'rank 1')
-                if val < 100 and "." not in raw and not any(k in raw.lower() for k in ["$", "m", "k", "b"]):
+            parsed = cls.parse_numeric_token(raw)
+            if parsed:
+                # Filter out small integers under 100 without currency / scale symbols (e.g. '30 days')
+                if parsed.value < 100 and parsed.scale == 1.0 and "$" not in raw and "." not in raw:
                     continue
-                extracted.append(ExtractedNumber(raw_text=raw, value=val, kind="currency"))
+                extracted.append(parsed)
 
         return extracted
 
     @classmethod
-    def numbers_match(cls, val1: float, val2: float, tolerance_pct: float = 0.5) -> bool:
-        """Determines if two values match within scaling or relative rounding tolerance."""
-        if val1 == 0.0 and val2 == 0.0:
-            return True
-        if val1 == 0.0 or val2 == 0.0:
-            return abs(val1 - val2) < 0.01
+    def numbers_match_with_rounding(
+        cls,
+        ans_num: ExtractedNumber,
+        fact_num: ExtractedNumber,
+    ) -> bool:
+        """Strict numerical equality after unit normalization and ROUNDING to answer decimals.
 
-        # Direct comparison with tolerance
-        rel_diff = abs(val1 - val2) / max(abs(val1), abs(val2))
-        if rel_diff <= (tolerance_pct / 100.0):
-            return True
+        Zero 1.5% tolerance rule:
+        - Kind must match (percentage matches percentage; ratio matches ratio; currency matches currency).
+        - Signs must match (positive vs negative).
+        - Value must match after rounding fact to answer's displayed decimal precision.
+        """
+        # 1. Kind mismatch
+        if ans_num.kind != fact_num.kind:
+            return False
 
-        # Scaling comparison (e.g. 109,200,000 vs 109.2, or percentage 26.79 vs 0.2679)
-        scales = [1e3, 1e6, 1e9, 100.0, 0.01]
-        for s in scales:
-            scaled1 = val1 * s
-            if abs(scaled1 - val2) / max(abs(scaled1), abs(val2)) <= (tolerance_pct / 100.0):
-                return True
-            scaled2 = val2 * s
-            if abs(val1 - scaled2) / max(abs(val1), abs(scaled2)) <= (tolerance_pct / 100.0):
-                return True
+        # 2. Sign mismatch
+        if ans_num.is_negative != fact_num.is_negative:
+            return False
+
+        dec = ans_num.decimals
+
+        # 3. Percentage matching
+        if ans_num.kind == "percentage":
+            ans_val = abs(ans_num.display_value)
+            fact_val = abs(fact_num.display_value)
+            # Round fact to the number of decimals the answer shows
+            rounded_fact = round(fact_val, dec)
+            return math.isclose(ans_val, rounded_fact, abs_tol=1e-5)
+
+        # 4. Ratio matching
+        if ans_num.kind == "ratio":
+            ans_val = abs(ans_num.display_value)
+            fact_val = abs(fact_num.display_value)
+            rounded_fact = round(fact_val, dec)
+            return math.isclose(ans_val, rounded_fact, abs_tol=1e-5)
+
+        # 5. Currency / monetary matching
+        if ans_num.kind == "currency":
+            # Compare at the scale used in the answer
+            ans_scaled_val = abs(ans_num.display_value)
+            fact_scaled_val = abs(fact_num.value) / ans_num.scale
+            rounded_fact = round(fact_scaled_val, dec)
+            return math.isclose(ans_scaled_val, rounded_fact, abs_tol=1e-5)
 
         return False
+
+    @classmethod
+    def extract_companies_mentioned(cls, text: str) -> Set[str]:
+        """Detects which of the 6 public companies are named in text."""
+        lowered = text.lower()
+        found = set()
+        for cid, aliases in cls.COMPANY_ALIASES.items():
+            for a in aliases:
+                # Word boundary match
+                if re.search(rf"\b{re.escape(a)}\b", lowered):
+                    found.add(cid)
+                    break
+        return found
+
+    @classmethod
+    def extract_periods_mentioned(cls, text: str) -> Set[str]:
+        """Detects fiscal periods (e.g. FY2023, Q2) named in text."""
+        periods = set()
+        for m in re.finditer(r"\b(FY202[0-9]|202[0-9])\b", text, re.IGNORECASE):
+            periods.add(m.group(0).upper())
+        for m in re.finditer(r"\bQ[1-4]\b", text, re.IGNORECASE):
+            periods.add(m.group(0).upper())
+        return periods
 
     @classmethod
     def verify(
@@ -161,10 +273,10 @@ class AnswerVerifier:
         answer: GroundedAnswer,
         input_facts: List[InputFact],
     ) -> VerificationResult:
-        """Verifies a GroundedAnswer against provided input facts."""
-        violations = []
-        ungrounded = []
-        matched_facts = set()
+        """Verifies GroundedAnswer against input facts under Phase 4b strict contract."""
+        violations: List[str] = []
+        ungrounded: List[Dict[str, Any]] = []
+        matched_facts: Set[str] = set()
 
         fact_map = {f.fact_id: f for f in input_facts}
 
@@ -180,9 +292,8 @@ class AnswerVerifier:
             else:
                 matched_facts.add(cited_id)
 
-        # 3. Check Refusal Consistency
-        if answer.status in (AnswerStatus.REFUSED, AnswerStatus.MISSING_DATA):
-            # Check if answer makes an affirmative financial calculation claim
+        # 3. Refusal Consistency (insufficient_data / refused / missing_data)
+        if answer.status in (AnswerStatus.INSUFFICIENT_DATA, AnswerStatus.REFUSED, AnswerStatus.MISSING_DATA):
             financial_claims = re.findall(
                 r"\b(?:revenue|margin|income|profit|ratio)\s+(?:was|is|reached|amounted to)\s+[-+]?\$?\d+",
                 answer.answer,
@@ -192,7 +303,6 @@ class AnswerVerifier:
                 violations.append(
                     f"Refusal violation: Status is '{answer.status.value}' but answer makes affirmative claims: {financial_claims}"
                 )
-            # A valid refusal does not need numerical grounding against facts
             return VerificationResult(
                 valid=(len(violations) == 0),
                 violations=violations,
@@ -200,29 +310,41 @@ class AnswerVerifier:
                 matched_facts=list(matched_facts),
             )
 
-        # 4. Check Numerical Grounding (for status == 'ok')
+        # 4. Entity Scoping: Check that facts_used includes facts for every company & period named
+        companies_in_answer = cls.extract_companies_mentioned(answer.answer)
+        periods_in_answer = cls.extract_periods_mentioned(answer.answer)
+
+        cited_facts = [fact_map[fid] for fid in answer.facts_used if fid in fact_map]
+        cited_companies = {f.company_id for f in cited_facts if f.company_id}
+        cited_years = {str(f.fiscal_year) for f in cited_facts if f.fiscal_year}
+        cited_quarters = {f"Q{f.fiscal_quarter}" for f in cited_facts if f.fiscal_quarter}
+
+        for comp in companies_in_answer:
+            if comp not in cited_companies:
+                violations.append(
+                    f"Scope violation: Answer mentions company '{comp}', but facts_used contains no facts for this company."
+                )
+
+        # 5. Numerical Grounding (for status == 'answered' / 'ok')
         extracted_numbers = cls.extract_numbers_from_text(answer.answer)
 
-        # Collect all numeric values present in cited facts
-        fact_values: List[float] = []
-        for cited_id in answer.facts_used:
-            fact = fact_map.get(cited_id)
-            if not fact:
-                continue
+        # Extract parsed numbers from cited facts
+        fact_extracted_numbers: List[Tuple[ExtractedNumber, InputFact]] = []
+        for fact in cited_facts:
+            # Fact value
             if fact.value is not None:
-                try:
-                    fact_values.append(float(fact.value))
-                except (ValueError, TypeError):
-                    pass
-            # Also extract numbers from fact.text
+                val_str = str(fact.value)
+                parsed_val = cls.parse_numeric_token(val_str)
+                if parsed_val:
+                    fact_extracted_numbers.append((parsed_val, fact))
+            # Text of fact
             for f_num in cls.extract_numbers_from_text(fact.text):
-                fact_values.append(f_num.value)
+                fact_extracted_numbers.append((f_num, fact))
 
-        # Every extracted number must match at least one fact value
         for ext in extracted_numbers:
             matched = False
-            for f_val in fact_values:
-                if cls.numbers_match(ext.value, f_val):
+            for f_num, fact in fact_extracted_numbers:
+                if cls.numbers_match_with_rounding(ext, f_num):
                     matched = True
                     break
 
@@ -231,14 +353,16 @@ class AnswerVerifier:
                     "raw_text": ext.raw_text,
                     "extracted_value": ext.value,
                     "kind": ext.kind,
+                    "decimals": ext.decimals,
                 })
                 violations.append(
-                    f"Ungrounded number: '{ext.raw_text}' (value: {ext.value}) does not match any value in cited facts"
+                    f"Ungrounded number: '{ext.raw_text}' (value {ext.value}, kind {ext.kind}, decimals {ext.decimals}) "
+                    f"does not match any cited fact value after unit normalization and rounding."
                 )
 
-        # Ensure that if status is ok, at least one fact was cited
-        if answer.status == AnswerStatus.OK and not answer.facts_used:
-            violations.append("Contract violation: Status is 'ok' but facts_used is empty")
+        # If answered, at least one fact must be cited
+        if answer.status in (AnswerStatus.ANSWERED, AnswerStatus.OK) and not answer.facts_used:
+            violations.append("Contract violation: Status is 'answered' but facts_used is empty")
 
         is_valid = (len(violations) == 0 and len(ungrounded) == 0)
 

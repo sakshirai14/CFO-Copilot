@@ -10,10 +10,15 @@ from pydantic import BaseModel, Field, field_validator
 
 
 class AnswerStatus(str, Enum):
-    OK = "ok"
-    REFUSED = "refused"
-    MISSING_DATA = "missing_data"
-    UNSUPPORTED = "unsupported"
+    ANSWERED = "answered"
+    INSUFFICIENT_DATA = "insufficient_data"
+    CONFLICT_NOTED = "conflict_noted"
+
+    # Aliases for backwards compatibility with test harnesses and prompts
+    OK = "answered"
+    REFUSED = "insufficient_data"
+    MISSING_DATA = "insufficient_data"
+    UNSUPPORTED = "insufficient_data"
 
 
 class InputFact(BaseModel):
@@ -42,7 +47,7 @@ class InputFact(BaseModel):
 
 class GroundedAnswer(BaseModel):
     """Structured response contract for local LLM generation."""
-    status: AnswerStatus = Field(..., description="Status: 'ok', 'refused', 'missing_data', or 'unsupported'")
+    status: AnswerStatus = Field(..., description="Status: 'answered', 'insufficient_data', or 'conflict_noted'")
     answer: str = Field(..., description="Executive narrative answer for the CFO")
     facts_used: List[str] = Field(default_factory=list, description="List of fact IDs used to construct the answer")
     caveats: List[str] = Field(default_factory=list, description="Noted caveats, restatements, or limitations")
@@ -51,6 +56,18 @@ class GroundedAnswer(BaseModel):
     def parse_status(cls, v):
         if isinstance(v, str):
             v_clean = v.strip().lower()
+            mapping = {
+                "ok": "answered",
+                "answered": "answered",
+                "success": "answered",
+                "refused": "insufficient_data",
+                "missing_data": "insufficient_data",
+                "insufficient_data": "insufficient_data",
+                "unsupported": "insufficient_data",
+                "conflict_noted": "conflict_noted",
+            }
+            if v_clean in mapping:
+                return AnswerStatus(mapping[v_clean])
             return AnswerStatus(v_clean)
         return v
 

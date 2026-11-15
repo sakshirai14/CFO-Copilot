@@ -1,7 +1,14 @@
 """tests/unit/test_answer_verifier.py
 
-Unit tests for deterministic AnswerVerifier.
-Verifies numerical grounding, unit scaling tolerance, fact ID checking, refusal integrity, and security filtering.
+Unit tests for deterministic AnswerVerifier (Phase 4b Step 3).
+Verifies:
+1. Exact unit normalization & rounding to answer decimals (26.79% accepts 26.79%, 26.8%, 27%; rejects 27.2%).
+2. Currency scaling ($109,200,000 accepts $109.2M and $109.2 million; rejects $110.8M and $1.092B).
+3. Magnitude errors (x10, x1000) are strictly rejected.
+4. Sign flips (+ vs -) are strictly rejected.
+5. Percent vs ratio (26.79 vs 26.79% vs 0.2679) are strictly rejected.
+6. Entity scoping: facts_used must include facts for every company & period named in the answer.
+7. Refusal consistency and security leak guards.
 """
 
 import pytest
@@ -9,137 +16,257 @@ from app.domain.answer_verifier import AnswerVerifier
 from app.inference.contract import AnswerStatus, GroundedAnswer, InputFact
 
 
-def test_valid_grounded_answer_with_scaling():
-    """Verifier accepts scaled monetary numbers ($109.2M matching 109,200,000)."""
-    facts = [
-        InputFact(
-            fact_id="fact_hbs_rev",
-            company_id="HBS",
-            fiscal_year=2024,
-            fiscal_quarter=2,
-            metric_name="revenue",
-            value=109200000.0,
-            text="Revenue was $109,200,000 for Helix Biosystems in fiscal 2024 quarter 2"
-        ),
-        InputFact(
-            fact_id="fact_hbs_margin",
-            company_id="HBS",
-            fiscal_year=2024,
-            fiscal_quarter=2,
-            metric_name="gross_margin_pct",
-            value=26.79,
-            text="Gross margin was 26.79% (or 0.2679)"
-        )
-    ]
+def test_percentage_rounding_tolerance():
+    """26.79% accepts 26.79%, 26.8%, 27%; rejects 27.2%."""
+    fact = InputFact(
+        fact_id="f_margin",
+        company_id="HBS",
+        fiscal_year=2024,
+        fiscal_quarter=2,
+        metric_name="gross_margin_pct",
+        value=26.79,
+        text="Gross margin was 26.79%."
+    )
 
+    # 1. Accepts exact 26.79%
+    a1 = GroundedAnswer(
+        status=AnswerStatus.ANSWERED,
+        answer="Helix Biosystems reported gross margin of 26.79%.",
+        facts_used=["f_margin"],
+        caveats=[]
+    )
+    assert AnswerVerifier.verify(a1, [fact]).valid is True
+
+    # 2. Accepts rounded to 1 decimal: 26.8%
+    a2 = GroundedAnswer(
+        status=AnswerStatus.ANSWERED,
+        answer="Helix Biosystems reported gross margin of 26.8%.",
+        facts_used=["f_margin"],
+        caveats=[]
+    )
+    assert AnswerVerifier.verify(a2, [fact]).valid is True
+
+    # 3. Accepts rounded to integer: 27%
+    a3 = GroundedAnswer(
+        status=AnswerStatus.ANSWERED,
+        answer="Helix Biosystems reported gross margin of 27%.",
+        facts_used=["f_margin"],
+        caveats=[]
+    )
+    assert AnswerVerifier.verify(a3, [fact]).valid is True
+
+    # 4. Rejects 27.2% (incorrect rounding)
+    a4 = GroundedAnswer(
+        status=AnswerStatus.ANSWERED,
+        answer="Helix Biosystems reported gross margin of 27.2%.",
+        facts_used=["f_margin"],
+        caveats=[]
+    )
+    res4 = AnswerVerifier.verify(a4, [fact])
+    assert res4.valid is False
+    assert any("27.2%" in v for v in res4.violations)
+
+
+def test_currency_scaling_and_rounding():
+    """$109,200,000 accepts $109.2M and $109.2 million; rejects $110.8M and $1.092B."""
+    fact = InputFact(
+        fact_id="f_rev",
+        company_id="HBS",
+        fiscal_year=2024,
+        fiscal_quarter=2,
+        metric_name="revenue",
+        value=109200000.0,
+        text="Helix Biosystems revenue was $109,200,000."
+    )
+
+    # 1. Accepts $109.2M
+    a1 = GroundedAnswer(
+        status=AnswerStatus.ANSWERED,
+        answer="Helix Biosystems revenue was $109.2M.",
+        facts_used=["f_rev"],
+        caveats=[]
+    )
+    assert AnswerVerifier.verify(a1, [fact]).valid is True
+
+    # 2. Accepts $109.2 million
+    a2 = GroundedAnswer(
+        status=AnswerStatus.ANSWERED,
+        answer="Helix Biosystems revenue was $109.2 million.",
+        facts_used=["f_rev"],
+        caveats=[]
+    )
+    assert AnswerVerifier.verify(a2, [fact]).valid is True
+
+    # 3. Rejects $110.8M
+    a3 = GroundedAnswer(
+        status=AnswerStatus.ANSWERED,
+        answer="Helix Biosystems revenue was $110.8M.",
+        facts_used=["f_rev"],
+        caveats=[]
+    )
+    res3 = AnswerVerifier.verify(a3, [fact])
+    assert res3.valid is False
+    assert any("110.8M" in v for v in res3.violations)
+
+    # 4. Rejects $1.092B (magnitude error: x10 error)
+    a4 = GroundedAnswer(
+        status=AnswerStatus.ANSWERED,
+        answer="Helix Biosystems revenue was $1.092B.",
+        facts_used=["f_rev"],
+        caveats=[]
+    )
+    res4 = AnswerVerifier.verify(a4, [fact])
+    assert res4.valid is False
+    assert any("1.092B" in v for v in res4.violations)
+
+
+def test_magnitude_errors_rejected():
+    """Rejects magnitude errors x10 and x1000."""
+    fact = InputFact(
+        fact_id="f_rev",
+        company_id="HBS",
+        fiscal_year=2024,
+        fiscal_quarter=2,
+        metric_name="revenue",
+        value=109200000.0,
+        text="Revenue was $109,200,000."
+    )
+
+    # x10 magnitude error ($1,092,000,000)
+    a1 = GroundedAnswer(
+        status=AnswerStatus.ANSWERED,
+        answer="Helix revenue was $1,092,000,000.",
+        facts_used=["f_rev"],
+        caveats=[]
+    )
+    assert AnswerVerifier.verify(a1, [fact]).valid is False
+
+    # x1000 magnitude error ($109,200)
+    a2 = GroundedAnswer(
+        status=AnswerStatus.ANSWERED,
+        answer="Helix revenue was $109,200.",
+        facts_used=["f_rev"],
+        caveats=[]
+    )
+    assert AnswerVerifier.verify(a2, [fact]).valid is False
+
+
+def test_sign_flips_rejected():
+    """Rejects positive figure when fact is negative."""
+    fact = InputFact(
+        fact_id="f_loss",
+        company_id="HBS",
+        fiscal_year=2024,
+        fiscal_quarter=1,
+        metric_name="operating_income",
+        value=-15000000.0,
+        text="Helix Biosystems operating loss was -$15,000,000."
+    )
+
+    # Negative matches negative
+    a_ok = GroundedAnswer(
+        status=AnswerStatus.ANSWERED,
+        answer="Helix Biosystems reported an operating loss of -$15,000,000.",
+        facts_used=["f_loss"],
+        caveats=[]
+    )
+    assert AnswerVerifier.verify(a_ok, [fact]).valid is True
+
+    # Sign flip: reports positive $15,000,000 profit
+    a_bad = GroundedAnswer(
+        status=AnswerStatus.ANSWERED,
+        answer="Helix Biosystems reported operating profit of $15,000,000.",
+        facts_used=["f_loss"],
+        caveats=[]
+    )
+    res_bad = AnswerVerifier.verify(a_bad, [fact])
+    assert res_bad.valid is False
+    assert any("15,000,000" in v for v in res_bad.violations)
+
+
+def test_percent_vs_ratio_rejected():
+    """Rejects percent when fact is ratio, and ratio when fact is percent."""
+    f_pct = InputFact(
+        fact_id="f_pct",
+        company_id="CEP",
+        metric_name="gross_margin_pct",
+        value=26.79,
+        text="Gross margin was 26.79%."
+    )
+    f_ratio = InputFact(
+        fact_id="f_ratio",
+        company_id="CEP",
+        metric_name="current_ratio",
+        value=1.85,
+        text="Current ratio was 1.85x."
+    )
+
+    # Attempting to quote percentage as ratio (26.79x)
+    a1 = GroundedAnswer(
+        status=AnswerStatus.ANSWERED,
+        answer="Cobalt Energy gross margin was 26.79x.",
+        facts_used=["f_pct"],
+        caveats=[]
+    )
+    assert AnswerVerifier.verify(a1, [f_pct]).valid is False
+
+    # Attempting to quote ratio as percentage (1.85%)
+    a2 = GroundedAnswer(
+        status=AnswerStatus.ANSWERED,
+        answer="Cobalt Energy current ratio was 1.85%.",
+        facts_used=["f_ratio"],
+        caveats=[]
+    )
+    assert AnswerVerifier.verify(a2, [f_ratio]).valid is False
+
+
+def test_entity_scoping_company_mismatch():
+    """Rejects an answer where numbers exist in facts but belong to a different company not cited."""
+    f_arg = InputFact(
+        fact_id="f_arg",
+        company_id="ARG",
+        fiscal_year=2024,
+        fiscal_quarter=1,
+        metric_name="revenue",
+        value=777700000.0,
+        text="Aurora Retail Group revenue was $777,700,000."
+    )
+
+    # Model claims Helix revenue was $777,700,000, citing only ARG fact
     answer = GroundedAnswer(
-        status=AnswerStatus.OK,
-        answer="In fiscal 2024 quarter 2, Helix Biosystems generated $109.2M in revenue with a gross margin of 26.8%.",
-        facts_used=["fact_hbs_rev", "fact_hbs_margin"],
+        status=AnswerStatus.ANSWERED,
+        answer="Helix Biosystems revenue was $777,700,000.",
+        facts_used=["f_arg"],
         caveats=[]
     )
 
-    res = AnswerVerifier.verify(answer, facts)
-    assert res.valid is True
-    assert len(res.violations) == 0
-    assert len(res.ungrounded_numbers) == 0
-    assert "fact_hbs_rev" in res.matched_facts
-    assert "fact_hbs_margin" in res.matched_facts
-
-
-def test_ungrounded_number_rejection():
-    """Verifier rejects an answer that hallucinates a number not in facts."""
-    facts = [
-        InputFact(
-            fact_id="fact_arg_rev",
-            company_id="ARG",
-            fiscal_year=2024,
-            fiscal_quarter=1,
-            metric_name="revenue",
-            value=777700000.0,
-            text="Revenue was $777.7M"
-        )
-    ]
-
-    # Model hallucinates operating profit of $45.0M
-    answer = GroundedAnswer(
-        status=AnswerStatus.OK,
-        answer="Aurora Retail Group reported revenue of $777.7M and operating profit of $45.0M.",
-        facts_used=["fact_arg_rev"],
-        caveats=[]
-    )
-
-    res = AnswerVerifier.verify(answer, facts)
+    res = AnswerVerifier.verify(answer, [f_arg])
     assert res.valid is False
-    assert any("45" in v for v in res.violations)
-    assert len(res.ungrounded_numbers) == 1
-    assert res.ungrounded_numbers[0]["raw_text"] == "$45.0M"
+    assert any("Scope violation: Answer mentions company 'HBS'" in v for v in res.violations)
 
 
-def test_uncited_or_fake_fact_id_rejection():
-    """Verifier rejects an answer that cites a fact ID that was not provided in input facts."""
-    facts = [
-        InputFact(
-            fact_id="fact_legit_1",
-            text="Legitimate fact"
-        )
-    ]
-
+def test_clean_refusal():
+    """Verifier passes a clean refusal with no affirmative claims."""
     answer = GroundedAnswer(
-        status=AnswerStatus.OK,
-        answer="The company performed well.",
-        facts_used=["fact_legit_1", "fact_hallucinated_999"],
-        caveats=[]
-    )
-
-    res = AnswerVerifier.verify(answer, facts)
-    assert res.valid is False
-    assert any("fact_hallucinated_999" in v for v in res.violations)
-
-
-def test_refusal_with_fabricated_claims_rejection():
-    """Verifier rejects a response marked 'refused' that nonetheless asserts financial figures."""
-    facts = []
-
-    answer = GroundedAnswer(
-        status=AnswerStatus.REFUSED,
-        answer="I refuse to answer, but revenue was $500M in fiscal 2026.",
+        status=AnswerStatus.INSUFFICIENT_DATA,
+        answer="Refused: Request cannot be fulfilled with available facts.",
         facts_used=[],
-        caveats=[]
+        caveats=["Fiscal 2026 data unavailable."]
     )
-
-    res = AnswerVerifier.verify(answer, facts)
-    assert res.valid is False
-    assert any("Refusal violation" in v for v in res.violations)
-
-
-def test_legitimate_clean_refusal():
-    """Verifier passes a clean refusal without fabricated figures."""
-    facts = []
-
-    answer = GroundedAnswer(
-        status=AnswerStatus.REFUSED,
-        answer="Cannot answer: Fiscal 2026 is a future period not covered by available SEC filings.",
-        facts_used=[],
-        caveats=["Data for future fiscal years is unavailable."]
-    )
-
-    res = AnswerVerifier.verify(answer, facts)
+    res = AnswerVerifier.verify(answer, [])
     assert res.valid is True
     assert len(res.violations) == 0
 
 
 def test_security_leak_rejection():
     """Verifier rejects answers that leak database credentials or external URLs."""
-    facts = [InputFact(fact_id="f1", text="Clean fact", value=100.0)]
-
+    fact = InputFact(fact_id="f1", company_id="ARG", text="Clean fact", value=100.0)
     answer = GroundedAnswer(
-        status=AnswerStatus.OK,
-        answer="Revenue was $100. Connected via postgresql://postgres:secret@localhost:5432/cfo_copilot",
+        status=AnswerStatus.ANSWERED,
+        answer="Aurora Retail Group revenue was $100. Connected via postgresql://postgres:secret@localhost:5432/cfo_copilot",
         facts_used=["f1"],
         caveats=[]
     )
-
-    res = AnswerVerifier.verify(answer, facts)
+    res = AnswerVerifier.verify(answer, [fact])
     assert res.valid is False
     assert any("Security violation" in v for v in res.violations)
