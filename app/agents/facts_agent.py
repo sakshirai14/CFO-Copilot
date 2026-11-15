@@ -24,7 +24,8 @@ class FactsAgent(BaseAgent):
         self,
         query: ResolvedQuery,
         tenant_id: str = "acme",
-        is_test: bool = False
+        is_test: bool = False,
+        force_vector_failure: bool = False
     ) -> Tuple[List[FactItem], List[str]]:
         """Gathers verified facts and comparability caveats based on route."""
         facts: List[FactItem] = []
@@ -69,8 +70,11 @@ class FactsAgent(BaseAgent):
                     query=query.text_search_query or query.question,
                     filters=filters,
                     tenant_id=tenant_id,
-                    top_k=3
+                    top_k=3,
+                    force_vector_failure=force_vector_failure
                 )
+                if search_res.degraded:
+                    caveats.append(f"Degraded mode: {search_res.degraded_reason}")
                 for chunk in search_res.chunks:
                     facts.append(FactItem(
                         fact_id=f"rag_{chunk.chunk_id}",

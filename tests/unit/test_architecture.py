@@ -62,3 +62,52 @@ def test_agents_no_sql_string_literals():
 
     assert not violations, f"SQL string literals detected inside app/agents:\n" + "\n".join(violations)
 
+
+
+def test_api_no_data_imports_and_no_sql():
+    """Foundation Lock Walls (Layering): app/api imports nothing from app.data and contains no SQL keywords."""
+    api_dir = Path(__file__).resolve().parent.parent.parent / "app" / "api"
+    api_files = list(api_dir.glob("*.py"))
+    assert len(api_files) >= 3, f"Expected at least 3 API files in {api_dir}"
+
+    forbidden_imports = ["app.data"]
+    violations = []
+    for f in api_files:
+        tree = ast.parse(f.read_text(encoding="utf-8"), filename=str(f))
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                for alias in node.names:
+                    for forbidden in forbidden_imports:
+                        if alias.name.startswith(forbidden):
+                            violations.append(f"{f.name}: import {alias.name}")
+            elif isinstance(node, ast.ImportFrom):
+                if node.module:
+                    for forbidden in forbidden_imports:
+                        if node.module.startswith(forbidden):
+                            violations.append(f"{f.name}: from {node.module} import ...")
+            elif isinstance(node, ast.Constant) and isinstance(node.value, str):
+                val_upper = node.value.upper()
+                for sql_kw in SQL_PATTERNS:
+                    if sql_kw in val_upper:
+                        violations.append(f"{f.name} line {node.lineno}: string contains '{sql_kw}'")
+
+    assert not violations, f"Architectural violations detected inside app/api:\n" + "\n".join(violations)
+
+
+def test_orchestration_no_sql_strings():
+    """Foundation Lock Walls (Layering): app/orchestration contains no SQL keywords."""
+    orch_dir = Path(__file__).resolve().parent.parent.parent / "app" / "orchestration"
+    orch_files = list(orch_dir.glob("*.py"))
+    assert len(orch_files) >= 2, f"Expected at least 2 orchestration files in {orch_dir}"
+
+    violations = []
+    for f in orch_files:
+        tree = ast.parse(f.read_text(encoding="utf-8"), filename=str(f))
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Constant) and isinstance(node.value, str):
+                val_upper = node.value.upper()
+                for sql_kw in SQL_PATTERNS:
+                    if sql_kw in val_upper:
+                        violations.append(f"{f.name} line {node.lineno}: string contains '{sql_kw}'")
+
+    assert not violations, f"SQL string literals detected inside app/orchestration:\n" + "\n".join(violations)

@@ -6,7 +6,7 @@ Reads environment variables from .env if present.
 """
 
 from functools import lru_cache
-from typing import List
+from typing import List, Optional
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -43,14 +43,17 @@ class Settings(BaseSettings):
     DB_APP_RO_USER: str = "app_ro"
     DB_APP_RO_PASSWORD: str = ""
 
-    # Multi-Tenant
+    # Multi-Tenant & Authentication
     TENANTS: str = "acme,borealis"
     DEFAULT_TENANT: str = "acme"
+    TENANT_API_KEYS: str = "cfo_key_acme_dev:acme,cfo_key_borealis_dev:borealis"
 
     # Concurrency & Rate Limits
     MAX_CONCURRENT_SESSIONS: int = 16
     REQUEST_QUEUE_TIMEOUT_SECONDS: int = 10
     RATE_LIMIT_RPS: int = 20
+    MAX_QUESTION_LENGTH: int = 2000
+    MAX_BODY_SIZE_BYTES: int = 65536
 
     # Inference Serving
     INFERENCE_API_BASE: str = "http://localhost:8080/v1"
@@ -63,6 +66,16 @@ class Settings(BaseSettings):
     @property
     def tenant_list(self) -> List[str]:
         return [t.strip() for t in self.TENANTS.split(",") if t.strip()]
+
+    def get_tenant_for_api_key(self, api_key: Optional[str]) -> Optional[str]:
+        if not api_key:
+            return None
+        mapping = {}
+        for pair in self.TENANT_API_KEYS.split(","):
+            if ":" in pair:
+                k, t = pair.strip().split(":", 1)
+                mapping[k.strip()] = t.strip()
+        return mapping.get(api_key.strip())
 
     def get_role_credentials(self, role: str) -> tuple[str, str]:
         """Returns (username, password) for a specified DB role."""

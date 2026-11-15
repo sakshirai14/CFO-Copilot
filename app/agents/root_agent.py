@@ -47,7 +47,8 @@ class CfoCopilotRootAgent(BaseAgent):
         tenant: str = "acme",
         prior_context: Optional[str] = None,
         request_id: Optional[str] = None,
-        is_test: bool = False
+        is_test: bool = False,
+        force_vector_failure: bool = False
     ) -> AnswerEnvelope:
         """Main entry point: processes query through the ADK agent graph."""
         t_start = time.perf_counter()
@@ -93,7 +94,12 @@ class CfoCopilotRootAgent(BaseAgent):
             )
 
         # 3. Step 2: Deterministic Data Retrieval (Pure Domain Services)
-        facts, caveats = self.facts_agent.fetch_facts(query, tenant_id=tenant, is_test=is_test)
+        facts, caveats = self.facts_agent.fetch_facts(
+            query,
+            tenant_id=tenant,
+            is_test=is_test,
+            force_vector_failure=force_vector_failure
+        )
 
         # 4. Step 3: Answer Composition
         # Path A: Pure Structured KPI lookup -> Deterministic SQL Template (0 LLM Calls)

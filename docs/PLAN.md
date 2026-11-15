@@ -122,8 +122,8 @@ flowchart TD
 | **3** | **RAG Retrieval Engine & Citation Provenance** | **COMPLETED** | [corpus_profile.txt](file:///Users/sakshirai/AI_RAG_Assignment/docs/evidence/corpus_profile.txt), [embedding_model_benchmark.txt](file:///Users/sakshirai/AI_RAG_Assignment/docs/evidence/embedding_model_benchmark.txt), [retrieval.json](file:///Users/sakshirai/AI_RAG_Assignment/benchmarks/results/retrieval.json) | 2026-11-15 |
 | **4** | **Small Model Benchmark & Grounding Contract** | **COMPLETED** | [model_serving_benchmarks.md](file:///Users/sakshirai/AI_RAG_Assignment/docs/evidence/model_serving_benchmarks.md), [serving_benchmark_isolated.md](file:///Users/sakshirai/AI_RAG_Assignment/docs/evidence/serving_benchmark_isolated.md) | 2026-11-15 |
 | **5** | **Google ADK Multi-Agent Orchestration** | **COMPLETED** | [agent_evaluation_report.md](file:///Users/sakshirai/AI_RAG_Assignment/docs/evidence/agent_evaluation_report.md), [AGENT_DESIGN.md](file:///Users/sakshirai/AI_RAG_Assignment/docs/AGENT_DESIGN.md) | 2026-11-15 |
-| **6** | Streaming API, Queue, Observability & UI | **NEXT** | Pending Phase 6 execution | — |
-| **7** | KV-Cache Fixes & 3-Level Benchmarks | PENDING | Pending Phase 7 execution | — |
+| **6** | **Streaming API, Queue, Observability & UI** | **COMPLETED** | [load_test.json](file:///Users/sakshirai/AI_RAG_Assignment/benchmarks/results/load_test.json), [BLUEPRINT.md](file:///Users/sakshirai/AI_RAG_Assignment/docs/BLUEPRINT.md) | 2026-11-15 |
+| **7** | KV-Cache Fixes & 3-Level Benchmarks | **NEXT** | Pending Phase 7 execution | — |
 | **8** | Adversarial Robustness & Attack Suite | PENDING | Pending Phase 8 execution | — |
 | **9** | Automated CI, Test Suite & One-Command Self-Check | PENDING | Pending Phase 9 execution | — |
 | **10** | Production Blueprint & Drop 2 Diff Note | PENDING | Pending Phase 10 execution | — |

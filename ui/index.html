@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CFO Copilot - Executive Financial Assistant</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Sidebar: Sessions & Settings -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h1 class="brand-title">CFO Copilot</h1>
+        <div class="badge-self-hosted">Self-Hosted Private</div>
+      </div>
+
+      <div class="auth-section">
+        <label for="apiKeyInput" class="form-label">API Key (Tenant Auth)</label>
+        <input type="text" id="apiKeyInput" class="form-input" value="cfo_key_acme_dev" placeholder="X-API-Key">
+      </div>
+
+      <div class="sessions-section">
+        <div class="section-title-row">
+          <span class="section-title">Sessions</span>
+          <button id="newSessionBtn" class="btn-sm">+ New</button>
+        </div>
+        <div id="sessionsList" class="sessions-list">
+          <!-- Populated dynamically via app.js -->
+        </div>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="system-status">
+          <span class="status-dot online"></span>
+          <span id="livenessStatus">Liveness: OK (v1.2.0)</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Chat Workspace -->
+    <main class="chat-workspace">
+      <!-- Degraded Mode Banner (Hidden by default) -->
+      <div id="degradedBanner" class="degraded-banner" style="display: none;">
+        <span class="degraded-icon">⚠️</span>
+        <span id="degradedText">Degraded Mode: Extractive fallback served.</span>
+      </div>
+
+      <div id="chatMessages" class="chat-messages">
+        <!-- Messages rendered dynamically -->
+        <div class="welcome-card">
+          <h2>Welcome to CFO Copilot</h2>
+          <p>Your private, self-hosted executive financial assistant. Financial figures are computed deterministically via certified SQL; narrative context is verified before display.</p>
+          <div class="sample-queries">
+            <button class="sample-btn" data-query="What was Aurora Retail Group's revenue in fiscal 2023 quarter 2?">ARG FY2023 Q2 Revenue</button>
+            <button class="sample-btn" data-query="What was Northwind Industrial Corp net income in FY2023 Q3?">NWI FY2023 Q3 Net Income (Restated)</button>
+            <button class="sample-btn" data-query="What were the main business risks for Cobalt Energy Partners?">CEP Qualitative Business Risks</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chat Input Area -->
+      <footer class="chat-input-area">
+        <form id="chatForm" class="chat-form">
+          <textarea id="questionInput" class="chat-textarea" placeholder="Ask a financial question regarding covered companies (ARG, CEP, HBS, MSI, NWI, ZLG)..." rows="2" maxlength="2000"></textarea>
+          <button type="submit" id="sendBtn" class="btn-primary">Send</button>
+        </form>
+        <div class="input-meta">
+          <span id="charCount">0/2000</span>
+          <span>Zero Hosted APIs | Deterministic Grounding | 16-Session Bounded Queue</span>
+        </div>
+      </footer>
+    </main>
+
+    <!-- "Show Your Work" Forensic Provenance Panel -->
+    <aside class="provenance-panel">
+      <div class="panel-header">
+        <h2>Show Your Work</h2>
+        <span id="requestTrackingId" class="tracking-id">req_ready</span>
+      </div>
+
+      <div class="panel-content">
+        <!-- Stage & Route -->
+        <div class="audit-block">
+          <span class="audit-label">Routing & Stage</span>
+          <div class="audit-value-row">
+            <span id="auditRoute" class="badge-route">DIRECT</span>
+            <span id="auditStage" class="badge-stage">Idle</span>
+          </div>
+        </div>
+
+        <!-- Timings & SLOs -->
+        <div class="audit-block">
+          <span class="audit-label">Telemetry & Timings</span>
+          <div class="telemetry-grid">
+            <div class="telemetry-cell">
+              <span class="telemetry-title">TTFT (First Content)</span>
+              <span id="telemetryFirstContent" class="telemetry-val">—</span>
+            </div>
+            <div class="telemetry-cell">
+              <span class="telemetry-title">Verified Answer</span>
+              <span id="telemetryVerified" class="telemetry-val">—</span>
+            </div>
+            <div class="telemetry-cell">
+              <span class="telemetry-title">LLM Invocations</span>
+              <span id="telemetryLlmCalls" class="telemetry-val">0</span>
+            </div>
+            <div class="telemetry-cell">
+              <span class="telemetry-title">KV Cache Status</span>
+              <span id="telemetryCache" class="telemetry-val">Optimal</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Resolved Slots -->
+        <div class="audit-block">
+          <span class="audit-label">Resolved Slots</span>
+          <div id="auditSlots" class="slots-container">
+            <div class="slot-item"><span class="slot-key">Company:</span> <span id="slotCompany" class="slot-val">—</span></div>
+            <div class="slot-item"><span class="slot-key">Period:</span> <span id="slotPeriod" class="slot-val">—</span></div>
+            <div class="slot-item"><span class="slot-key">KPI:</span> <span id="slotKpi" class="slot-val">—</span></div>
+            <div class="slot-item"><span class="slot-key">Basis:</span> <span id="slotBasis" class="slot-val">—</span></div>
+          </div>
+        </div>
+
+        <!-- Certified Facts & Provenance -->
+        <div class="audit-block">
+          <span class="audit-label">Facts & Certified Provenance</span>
+          <div id="auditFactsList" class="audit-facts-list">
+            <div class="empty-state">No facts loaded yet.</div>
+          </div>
+        </div>
+
+        <!-- Policy Rules & Restatements -->
+        <div class="audit-block">
+          <span class="audit-label">Policy Rules Applied</span>
+          <div id="auditRules" class="audit-rules-container">
+            <div class="empty-state">Standard accounting policy.</div>
+          </div>
+        </div>
+
+        <!-- Retrieved Passages & Citations -->
+        <div class="audit-block">
+          <span class="audit-label">Retrieved Excerpts & Citations</span>
+          <div id="auditPassages" class="audit-passages-container">
+            <div class="empty-state">No qualitative passages retrieved.</div>
+          </div>
+        </div>
+
+        <!-- Verifier Output -->
+        <div class="audit-block">
+          <span class="audit-label">Answer Verifier Result</span>
+          <div id="auditVerifier" class="verifier-result-box">
+            <span class="status-badge valid">VERIFIED GROUNDED</span>
+          </div>
+        </div>
+
+        <!-- Modal / Drawer for Provenance Trace Details -->
+        <div id="provenanceModal" class="provenance-modal" style="display: none;">
+          <div class="modal-header">
+            <h3>Forensic Audit Trail</h3>
+            <button id="closeModalBtn" class="close-btn">&times;</button>
+          </div>
+          <pre id="provenanceContent" class="provenance-pre"></pre>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

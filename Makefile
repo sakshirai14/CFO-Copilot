@@ -1,4 +1,4 @@
-.PHONY: up down ingest kpis index retrieval-eval test report selfcheck bench clean audit puzzle2-eval model-up model-down eval-models help
+.PHONY: up down ingest kpis index retrieval-eval test report selfcheck bench clean audit puzzle2-eval model-up model-down eval-models run-api load-test help
 
 MODEL_FILE ?= models/qwen2.5-3b-instruct-q4_k_m.gguf
 MODEL_PORT ?= 8080
@@ -113,3 +113,11 @@ agent-eval:
 adk-eval:
 	@echo "[make adk-eval] Running Google ADK native evalset suite..."
 	$(PYTHON) scripts/run_adk_native_eval.py
+
+run-api:
+	@echo "[make run-api] Starting CFO Copilot FastAPI server on port 8000..."
+	$(PYTHON) -m uvicorn app.api.main:app --host 0.0.0.0 --port 8000
+
+load-test:
+	@echo "[make load-test] Running Phase 6 Load & Saturation Benchmarks..."
+	$(PYTHON) scripts/load_test.py

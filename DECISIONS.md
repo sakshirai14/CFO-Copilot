@@ -417,3 +417,38 @@
 
 
 
+
+
+---
+
+### [2026-11-15] DECISION 19: Verify-Before-Display Progressive Streaming Invariant
+- **Decision**: Reject raw token-by-token streaming from the local language model. Implement progressive SSE event streaming ordered strictly as:
+  `meta` $\rightarrow$ `facts` (immediate deterministic facts block) $\rightarrow$ `progress` $\rightarrow$ `answer` (verified text) $\rightarrow$ `final` (AnswerEnvelope) $\rightarrow$ `[DONE]`.
+- **Evidence / Measurement**: In financial reporting, streaming an unverified token (e.g. *"gross margin was 45.0%"*) before the verifier can inspect it exposes the CFO to false numbers even if a subsequent correction is emitted.
+- **Architectural Defense**:
+  - The deterministic facts block is delivered in $< 50\text{ ms}$, satisfying the user's perceptual need for immediate feedback.
+  - The local language model generates the narrative in background memory.
+  - `AnswerVerifier` evaluates the complete candidate text against certified facts before emitting the `answer` event.
+  - If hallucinated numbers or entity mismatches are detected, the candidate is discarded, and the authoritative extractive fallback is emitted instead.
+  - Plain-text rendering (`textContent` only) is enforced in the UI to prevent markdown and HTML image exfiltration injection.
+
+---
+
+### [2026-11-15] DECISION 20: Bounded Queue Sizing from Measured Concurrency Capacity
+- **Decision**: Size the LLM admission queue to `max_in_flight = 16` (matching `llama-server -np 16`) and `max_waiting = 16` with a `10.0s` wait deadline. 100% of structured KPI requests bypass the queue entirely.
+- **Evidence / Measurement**:
+  - Measured single-stream narrative synthesis latency: $S \approx 4.5\text{ s}$.
+  - Measured structured SQL lookup latency: $S_{\text{struct}} \approx 0.33\text{ ms}$ ($> 2,000\text{ QPS}$ capacity).
+  - Maximum LLM throughput: $\mu_{\max} = 16 / 4.5 \approx 3.55\text{ req/s}$.
+  - Under 16 concurrent users with 20s think time, arrival rate is $\lambda = 16 / 20 = 0.80\text{ req/s}$.
+  - At an enterprise traffic mix of 75% structured and 25% LLM narrative, LLM arrival rate is $0.20\text{ req/s}$, well within the $3.55\text{ req/s}$ ceiling ($\rho \approx 5.6\%$).
+  - However, under burst conditions ($N > 32$), admitting more than 16 waiting requests causes queue wait to exceed 10 seconds ($16 \times 4.5 / 16 = 4.5\text{ s}$ clear time; 32 waiting would take $9.0\text{ s}$). Sizing `max_waiting = 16` ensures every admitted request meets the CFO's interactive deadline while dropping excess load cleanly.
+
+---
+
+### [2026-11-15] DECISION 21: Policy Matrix: Backpressure 429 vs Degraded Extractive Fallback vs 503 Outage
+- **Decision**: Define clear, deterministic boundaries for HTTP status codes and degraded modes:
+  1. **HTTP 429 Too Many Requests**: Used strictly for admission backpressure when the waiting buffer is saturated (`waiting >= 16`). Carries mandatory `Retry-After: 5` header. Never drops connections or leaves sockets hanging.
+  2. **HTTP 200 OK (Degraded Mode)**: Used when the request has been admitted, but the language model or inference subsystem is unavailable (model offline, model OOM, queue wait deadline exceeded, or verifier rejection). Ships certified deterministic KPIs and verbatim filing passages with citations, flagged with `degraded=true`.
+  3. **HTTP 503 Service Unavailable**: Used strictly when the underlying PostgreSQL database is unreachable, because data-dependent endpoints cannot function without relational storage. The liveness endpoint (`/v1/health`) remains 200 OK to prevent orchestrator thrashing.
+- **Rationale**: In corporate finance, a direct quote from Form 10-K with exact source filing citations is far superior to an error message or a hallucinated model summary.

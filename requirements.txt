@@ -11,3 +11,4 @@ google-adk>=2.0.0
 litellm>=1.40.0
 
 
+structlog>=24.0.0
