@@ -98,6 +98,13 @@ class AnswerWriterAgent(LlmAgent):
             data = resp.json()
             raw_text = data["choices"][0]["message"]["content"]
             parsed = json.loads(raw_text)
+            choice = data.get("choices", [{}])[0]
+            usage = data.get("usage", {})
+            parsed["_llm_metadata"] = {
+                "prompt_tokens": usage.get("prompt_tokens", 0),
+                "completion_tokens": usage.get("completion_tokens", 0),
+                "finish_reason": choice.get("finish_reason", "stop")
+            }
             return parsed
 
     async def run_async(self, parent_context: InvocationContext) -> AsyncGenerator[Event, None]:
@@ -106,3 +113,4 @@ class AnswerWriterAgent(LlmAgent):
             author=self.name,
             content="AnswerWriter generation executed with 0 tools and frozen prompt v1."
         )
+

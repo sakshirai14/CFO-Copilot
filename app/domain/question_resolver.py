@@ -6,7 +6,7 @@ WITHOUT requiring the LLM to generate database arguments or SQL parameters.
 """
 
 import re
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 from app.domain.agent_envelope import ResolvedQuery, RouteType
 
 # Authoritative Entities
@@ -154,14 +154,27 @@ class QuestionResolver:
     """Deterministically maps natural language CFO queries to structured metadata."""
 
     @classmethod
-    def resolve(cls, query: str, prior_context: Optional[str] = None) -> ResolvedQuery:
+    def resolve(cls, query: str, prior_context: Optional[Any] = None) -> ResolvedQuery:
         clean_q = query.strip()
         upper_q = clean_q.upper()
 
+        # Normalize prior_context to string representation for regex scanning
+        prior_str = ""
+        dict_comp = None
+        dict_fy = None
+        dict_fq = None
+        if isinstance(prior_context, dict):
+            dict_comp = prior_context.get("company_id")
+            dict_fy = prior_context.get("fiscal_year")
+            dict_fq = prior_context.get("fiscal_quarter")
+            prior_str = " ".join(str(v) for v in prior_context.values())
+        elif isinstance(prior_context, str):
+            prior_str = prior_context
+
         # 0. Check for Hostile / Prompt Injection Attacks in prior_context FIRST
-        if prior_context:
+        if prior_str:
             for pat in HOSTILE_PATTERNS:
-                if re.search(pat, prior_context, re.IGNORECASE):
+                if re.search(pat, prior_str, re.IGNORECASE):
                     return ResolvedQuery(
                         question=clean_q,
                         route=RouteType.REFUSAL,
@@ -202,20 +215,27 @@ class QuestionResolver:
                     found_companies.append(cid)
 
         # Multi-turn slot inheritance: If company missing, inspect safe prior_context
-        if not found_companies and prior_context:
-            prior_upper = prior_context.upper()
-            for alias, cid in sorted(COMPANY_ALIASES.items(), key=lambda x: -len(x[0])):
-                if re.search(r"\b" + re.escape(alias) + r"\b", prior_upper):
-                    if cid not in found_companies:
-                        found_companies.append(cid)
+        if not found_companies:
+            if dict_comp and dict_comp in COMPANY_ALIASES.values():
+                found_companies.append(dict_comp)
+            elif prior_str:
+                prior_upper = prior_str.upper()
+                for alias, cid in sorted(COMPANY_ALIASES.items(), key=lambda x: -len(x[0])):
+                    if re.search(r"\b" + re.escape(alias) + r"\b", prior_upper):
+                        if cid not in found_companies:
+                            found_companies.append(cid)
 
         # 5. Extract Fiscal Year & Quarter (Explicit query takes absolute precedence)
         fy, fq = cls._extract_period(clean_q)
 
         # Handle multi-turn follow-ups like "What about the previous quarter?" or "prior quarter"
         is_prior_quarter_request = bool(re.search(r"\b(previous|prior)\s+quarter\b", clean_q, re.IGNORECASE))
-        if prior_context and (fy is None or is_prior_quarter_request):
-            p_fy, p_fq = cls._extract_period(prior_context)
+        if (fy is None or is_prior_quarter_request) and (prior_str or dict_fy is not None):
+            if dict_fy is not None and dict_fq is not None:
+                p_fy, p_fq = dict_fy, dict_fq
+            else:
+                p_fy, p_fq = cls._extract_period(prior_str)
+
             if is_prior_quarter_request and p_fy is not None and p_fq is not None:
                 # Compute arithmetic previous quarter
                 if p_fq > 1:

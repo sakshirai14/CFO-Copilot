@@ -78,3 +78,5 @@ class AnswerEnvelope(BaseModel):
     caveats: List[str] = Field(default_factory=list)
     provenance_traces: List[Dict[str, Any]] = Field(default_factory=list)
     verification: VerificationResult
+    llm_metadata: Optional[Dict[str, Any]] = None
+

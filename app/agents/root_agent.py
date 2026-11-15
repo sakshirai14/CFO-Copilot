@@ -141,11 +141,13 @@ class CfoCopilotRootAgent(BaseAgent):
             status_enum = AnswerStatus.OK if status_str == "ok" else AnswerStatus.REFUSED
             extra_caveats = llm_payload.get("caveats", [])
             all_caveats = caveats + extra_caveats
+            llm_meta = llm_payload.get("_llm_metadata")
         except Exception as e:
             # Degraded mode fallback on model error/timeout
             candidate_text = AnswerComposer.compose_fallback_answer(facts, query)
             status_enum = AnswerStatus.OK
             all_caveats = caveats + [f"Model inference failed ({str(e)}); served certified template fallback."]
+            llm_meta = None
 
         # 5. Step 4: Strict Verification & Grounding Interception
         shipped_answer, ver_res, fallback_triggered = self.verifier.verify_and_intercept(candidate_text, facts, query)
@@ -163,7 +165,8 @@ class CfoCopilotRootAgent(BaseAgent):
             latency_ms=round(latency, 2),
             facts_used=facts,
             caveats=all_caveats,
-            verification=ver_res
+            verification=ver_res,
+            llm_metadata=llm_meta
         )
 
     async def run_async(self, parent_context: InvocationContext) -> AsyncGenerator[Event, None]:
