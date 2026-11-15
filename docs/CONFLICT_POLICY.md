@@ -30,13 +30,18 @@
   2. *Check 2 (Magnitude/Cross-Statement)*: Empirical magnitude check against adjacent quarters ($0.001\times$ or $1000\times$ anomaly) or cross-statement reconciliation (e.g., cash on balance sheet matching cash on cash flow statement).
 * If fewer than two independent checks support the adjustment, the raw value is preserved unadjusted and flagged as `unverified`.
 
-### Rule R6: Missing Input Discipline (Zero-Fill Audit)
+### Rule R6: Missing Input Discipline & ARG "Technology and Development" Rationale
 * **No Synthetic Zeroes**: When an input line item is absent/not reported in the filing, the calculation engine MUST NEVER coalesce it to zero (`COALESCE(x, 0)`).
 * **Missing Component Handling**:
   * If a required component is absent from the filing (`value_normalized IS NULL` or `eli.status = 'missing_input'`), the KPI status evaluates strictly to `missing_input` and `value = NULL`.
-  * For `rd_intensity_pct`, if a company explicitly reports $0.00 on the face of its statements (such as ARG "Technology and development" = $0, CEP "Exploration expense" = $0, ZLG "Technology expense" = $0), the calculated intensity is 0.00% with `status = 'ok'` traceable to that filing row. If a company omits R&D altogether, the status is `missing_input` with `value = NULL`.
-  * For `opex_ratio_pct`, if any of R&D, S&M, G&A, or Revenue is absent, the calculation yields `status = 'missing_input'` and `value = NULL`.
-* **Zero Denominators**: When a denominator is zero, status is `denominator_zero` and `value = NULL` (Rule R8).
+  * For `rd_intensity_pct` and `opex_ratio_pct`, if any required component (R&D, S&M, G&A, or revenue) is absent, the calculation yields `status = 'missing_input'` and `value = NULL`.
+* **Specific Rationale on ARG "Technology and Development" vs ASC 730 R&D**:
+  * *Filing Disclosures*: Aurora Retail Group (ARG) reports an operating line item titled `"Technology and development"` on its Income Statement.
+  * *GAAP Rationale*: ARG is an apparel and consumer retail business. Under US GAAP (ASC 730), internal-use software maintenance, store point-of-sale systems, and ecommerce infrastructure do not constitute ASC 730 Research and Development.
+  * *Impact of Mapping Choices*:
+    1. *If mapped to R&D*: ARG would report an artificial R&D intensity and an opex ratio combining tech maintenance with SG&A, distorting cross-company comparability against genuine biotechnology/hardware R&D firms (e.g. HBS, NWI).
+    2. *If conservative rule applied (current)*: "Technology and development" is remapped to canonical `technology_expense`. Because ARG reports no ASC 730 R&D line item, both `rd_intensity_pct` and `opex_ratio_pct` evaluate strictly to `status = 'missing_input'` across all 12 periods (24 records per KPI across both bases = 48 total records), stating: *"Missing required inputs: research_and_development"*.
+  * *Assumption*: We enforce the conservative GAAP policy. No silent omission or zero-fill is allowed. ARG R&D intensity and opex ratio are marked `missing_input`.
 
 ### Rule R7: Comparability & Fiscal Calendar Alignment
 * **Explicit Period Disclosure**: Every cross-company KPI comparison must explicitly output both the fiscal period label (e.g., `FY2024 Q3`) and the calendar period end date (e.g., `2024-09-30`).

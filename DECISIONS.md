@@ -365,6 +365,23 @@
   2. `app/agents` imports NOTHING from `app.data`, `psycopg2`, or `sqlalchemy`.
   3. `AnswerWriterAgent` has strictly ZERO tools (`len(tools) == 0`).
 
+---
+
+### [2026-11-15] DECISION 33: Conservative Treatment of ARG "Technology and Development" & Rule Table Reconciliation
+- **Context**: In Phase 5b audit, the treatment of ARG's operating line item `"Technology and development"` was audited alongside the R1-R12 conflict rules.
+- **Rationale & Analysis**:
+  1. **What ARG's Filings Call It**: ARG's income statement reports `"Technology and development"`. In retail enterprises (Aurora Retail Group), this expense covers IT infrastructure, point-of-sale maintenance, and ecommerce operations.
+  2. **Why It Is Not ASC 730 R&D**: Under US GAAP (ASC 730), general IT operations and software maintenance do not qualify as Research and Development.
+  3. **Impact of Mapping Choices**:
+     - *If mapped to R&D*: ARG would report artificial R&D intensity, distorting cross-company comparisons against true technology/pharma spenders like Helix BioSystems.
+     - *If conservative rule applied (enforced)*: Remapped to `technology_expense`. Under Rule R6 (no silent zero-fill), both `rd_intensity_pct` and `opex_ratio_pct` evaluate to `missing_input` across all 12 quarters (48 records total across both bases).
+- **Rule Table Reconciliation**:
+  - **R1 (Press Releases)**: Excludes 3 non-filing documents (`ARG_press_release_2023-06-06`, `CEP_investor_faq`, `HBS_analyst_note_2024-03`) from structured lines.
+  - **R4 (Duplicate Rows)**: Collapsed 3 duplicate pairs in `ARG-10Q-FY2023Q2` (revenue, cost of revenue, net income).
+  - **R5 (Unit Scaling)**: 11 rows scaled in `HBS-10Q-FY2024Q2` (thousands -> units) and 121 expense items sign-normalized.
+  - **R7 (ZLG Calendar)**: Aligned to September 30 fiscal year-end (not a 4-4-5 calendar).
+  - **R11 (Integrity Gate)**: 1 identity check failure detected in `NWI-10QA-FY2024Q3` during isolated ingest; resolved when unamended opex lines carried forward under R2 with 0 downstream KPI downgrades.
+
 
 
 

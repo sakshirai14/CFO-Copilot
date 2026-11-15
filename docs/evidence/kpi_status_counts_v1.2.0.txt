@@ -1,0 +1,48 @@
+# SQL Query: Status counts per kpi_id x basis x status (policy_version = 'v1.2.0')
+SELECT kpi_id, basis, status, COUNT(*)
+FROM kpi_values
+WHERE policy_version = 'v1.2.0'
+GROUP BY kpi_id, basis, status
+ORDER BY kpi_id, basis, status;
+
+# Live Database Output:
+KPI ID                     | Basis                    | Status           | Count 
+------------------------------------------------------------------------------
+asset_turnover_x           | as_originally_reported   | ok               | 72    
+asset_turnover_x           | as_restated              | ok               | 72    
+current_ratio_x            | as_originally_reported   | ok               | 72    
+current_ratio_x            | as_restated              | ok               | 72    
+debt_to_equity_x           | as_originally_reported   | ok               | 72    
+debt_to_equity_x           | as_restated              | ok               | 72    
+ebitda_margin_pct          | as_originally_reported   | ok               | 72    
+ebitda_margin_pct          | as_restated              | ok               | 72    
+ebitda_usd                 | as_originally_reported   | ok               | 72    
+ebitda_usd                 | as_restated              | ok               | 72    
+fcf_margin_pct             | as_originally_reported   | ok               | 72    
+fcf_margin_pct             | as_restated              | ok               | 72    
+free_cash_flow_usd         | as_originally_reported   | ok               | 72    
+free_cash_flow_usd         | as_restated              | ok               | 72    
+gross_margin_pct           | as_originally_reported   | ok               | 72    
+gross_margin_pct           | as_restated              | ok               | 72    
+interest_coverage_x        | as_originally_reported   | ok               | 72    
+interest_coverage_x        | as_restated              | ok               | 72    
+net_margin_pct             | as_originally_reported   | ok               | 72    
+net_margin_pct             | as_restated              | ok               | 72    
+operating_margin_pct       | as_originally_reported   | ok               | 72    
+operating_margin_pct       | as_restated              | ok               | 72    
+opex_ratio_pct             | as_originally_reported   | missing_input    | 12    
+opex_ratio_pct             | as_originally_reported   | ok               | 60    
+opex_ratio_pct             | as_restated              | missing_input    | 12    
+opex_ratio_pct             | as_restated              | ok               | 60    
+rd_intensity_pct           | as_originally_reported   | missing_input    | 12    
+rd_intensity_pct           | as_originally_reported   | ok               | 60    
+rd_intensity_pct           | as_restated              | missing_input    | 12    
+rd_intensity_pct           | as_restated              | ok               | 60    
+revenue_yoy_growth_pct     | as_originally_reported   | missing_input    | 24    
+revenue_yoy_growth_pct     | as_originally_reported   | ok               | 48    
+revenue_yoy_growth_pct     | as_restated              | missing_input    | 24    
+revenue_yoy_growth_pct     | as_restated              | ok               | 48    
+roe_quarterly_pct          | as_originally_reported   | ok               | 72    
+roe_quarterly_pct          | as_restated              | ok               | 72    
+working_capital_usd        | as_originally_reported   | ok               | 72    
+working_capital_usd        | as_restated              | ok               | 72    
