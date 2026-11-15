@@ -463,3 +463,17 @@
   - It will NOT be represented as an authoritative single-run held-out evaluation.
   - A fresh, unseen **Held-Out v3** benchmark ($\ge 50$ cases, $\ge 20$ LLM-path) will be generated, cryptographically frozen with SHA-256, and reserved strictly for final acceptance in Phase 9 without any intermediate runs.
 
+---
+
+### [2026-11-15] DECISION 37: Held-Out Benchmark v3 Cryptographic Freeze for Phase 9 Acceptance
+- **Decision**: Build and cryptographically freeze **Held-Out Benchmark v3** (`tests/evals/agent_heldout_v3.json`) for final Phase 9 evaluation.
+- **Dataset Composition**:
+  - 56 pristine cases across 11 distinct operational categories (single lookup, period compare, cross-company aligned/non-aligned, trend, restated, missing/unavailable, narrative, mixed, follow-up, out-of-scope, hostile).
+  - 22 LLM-path cases (14 qualitative narrative + 8 mixed metric/commentary queries), exceeding the $\ge 20$ requirement.
+  - Completely fresh phrasings and entity/period combinations generated from a new seed, unseen in `dev` (v1) and `dev2` (v2).
+- **Cryptographic Freeze & Protocol Governance**:
+  - SHA-256 hash `c89b37535d7c0d25d93811eae3f3b1c7da287d0079ae21aacc4fc22b35ec938c` frozen in `docs/evidence/agent_heldout_v3_hash.txt`.
+  - Empty audit log initialized at `docs/evidence/agent_heldout_v3_runs.log`.
+  - **Single-Run Invariant**: Held-Out v3 will be executed **strictly once** in Phase 9. No resolver, agent, or prompt adjustments may be made once evaluated.
+
+
