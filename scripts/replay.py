@@ -129,7 +129,13 @@ def replay_request(record: Dict[str, Any]) -> Dict[str, Any]:
             writer = AnswerWriterAgent()
             import asyncio
             payload = asyncio.run(writer.write_answer(user_query, facts_list, []))
-            replayed_answer = payload.get("answer", "")
+            cand_ans = payload.get("answer", "")
+            cand_status = payload.get("status", "ok")
+            has_relevant = any(bool(f.text and f.text.strip()) for f in facts_list)
+            if (cand_status in ("refused", "insufficient_data", "unsupported") or cand_ans.strip().startswith("Refused:")) and has_relevant:
+                replayed_answer = AnswerComposer.compose_fallback_answer(facts_list, resolved_query)
+            else:
+                replayed_answer = cand_ans
 
     # 5. Diff Computation
     clean_stored = stored_answer.strip()
