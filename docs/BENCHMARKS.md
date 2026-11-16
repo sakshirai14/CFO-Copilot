@@ -2,7 +2,7 @@
 
 > **Platform**: CFO Copilot on a Budget  
 > **Hardware Target**: Single 6.0 GB VRAM Budget | 16 Parallel Slots | TTFT < 2,000 ms  
-> **Report Generation Timestamp**: 2026-11-16T16:06:44.873683Z  
+> **Report Generation Timestamp**: 2026-11-16T16:15:11.724453Z  
 > **Authoritative Commit**: `3d44926`  
 > **Serving Engine**: `llama-server` (Build `b12359-b1b770d90`, Metal `MTL0`, 36 layers offloaded)  
 > **Model**: `Qwen2.5-3B-Instruct` (Q4_K_M GGUF, SHA-256: `626b4a6678b86442...`)  
@@ -20,9 +20,8 @@ Direct empirical measurements from isolated synthetic prefill loops across varyi
 | 256 | 64 | 32 | 7.2 ms | 1.9 ms | 790.0 ms | 166.5 ms | **4.74×** (`results.256.speedup_ttft`) | 43.5 tok/s |
 | 512 | 64 | 32 | 1258.3 ms | 1.9 ms | 1424.6 ms | 170.9 ms | **8.33×** (`results.512.speedup_ttft`) | 41.9 tok/s |
 | 1024 | 64 | 32 | 2543.6 ms | 1.8 ms | 2717.0 ms | 187.6 ms | **14.49×** (`results.1024.speedup_ttft`) | 40.3 tok/s |
-| 2048 | 64 | 32 | 5397.7 ms | 1.9 ms | 5585.0 ms | 190.3 ms | **29.34×** (`results.2048.speedup_ttft`) | 36.0 tok/s |
 
-> **Speedup Scope Clarification**: The **29.34× speedup** (`results.2048.speedup_ttft`) is strictly an isolated synthetic measurement for a 2,048-token synthetic prefix in Level 1. It is **NOT** the speedup of the shipped end-to-end platform. On the shipped platform with a 702-token prefix, the measured TTFT speedup is **6.28× at 4 users** (340.0 ms vs 2,134.7 ms) and **6.11× at 16 users** (2,800.5 ms vs 17,113.3 ms).
+> **Platform Speedup Evidence**: On the shipped end-to-end platform with a 702-token prefix (Level 3), the empirical TTFT speedup is **6.28× at 4 users** (340.0 ms vs 2,134.7 ms, raw path: `staggered_matrix.4.cache_on_new`) and **6.11× at 16 users** (2,800.5 ms vs 17,113.3 ms, raw path: `staggered_matrix.16.cache_on_new`). Synthetic 2,048-token speedup figures have been removed from all platform claims as unrepresentative of the shipped contract.
 
 > **Logging Verbosity Disclosure**: Earlier Level 1 synthetic tests were run with `-lv 5` to capture low-level tokenization timings. In the shipped platform configuration (`Makefile`, `README.md`), `-lv 5` is completely removed; default verbosity (`verbosity = 3`) is enforced, and user prompts are **NEVER logged to disk or console**.
 

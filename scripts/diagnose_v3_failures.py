@@ -46,25 +46,23 @@ def main():
 
     def classify_cause(c):
         cid = c["id"]
-        g = gold_by_id[cid]
-        cat = c["category"]
         if cid in ("ho3-sl-01", "ho3-sl-02", "ho3-sl-05", "ho3-sl-06", "ho3-cc-04"):
-            return "gold or scorer mismatch", "KPI schema identifier mismatch (e.g. expected 'revenue_usd' vs resolver 'revenue', or 'current_ratio' vs 'current_ratio_x'). Correct dollar/ratio figure was displayed."
+            return "Gold or scorer mismatch", "KPI schema identifier mismatch (e.g. expected 'revenue_usd' vs resolver 'revenue', or 'current_ratio' vs 'current_ratio_x'). Correct dollar/ratio figure was displayed."
         if cid in ("ho3-cc-02",):
-            return "gold or scorer mismatch", "Evaluator expected single firm string; platform displayed both companies' revenues side-by-side ($436M vs $380.4M)."
+            return "Gold or scorer mismatch", "Evaluator expected single firm string; platform displayed both companies' revenues side-by-side ($436M vs $380.4M)."
         if cid in ("ho3-mu-01", "ho3-mu-02", "ho3-mu-03"):
-            return "gold or scorer mismatch", "Evaluator expected status 'missing_input'; database contains valid reported rows for adjacent periods, returning status 'ok'."
+            return "Gold or scorer mismatch", "Evaluator expected status 'missing_input'; database contains valid reported rows for adjacent periods, returning status 'ok'."
         if cid in ("ho3-tr-01", "ho3-tr-02", "ho3-tr-03", "ho3-tr-04"):
-            return "resolver slot error", "QuestionResolver failed to parse multi-quarter trend range from phrasing; returned status 'missing_data'."
+            return "Resolver slot error", "QuestionResolver failed to parse multi-quarter trend range from phrasing; returned status 'missing_data'."
         if cid in ("ho3-fu-01", "ho3-fu-03"):
-            return "resolver slot error", "Follow-up context resolution failed to inherit prior company/period slots; returned status 'missing_data'."
+            return "Resolver slot error", "Follow-up context resolution failed to inherit prior company/period slots; returned status 'missing_data'."
         if cid in ("ho3-pc-04", "ho3-rs-03"):
-            return "resolver slot error", "Resolver failed to extract comparative quarter pair or defaulted basis to as_restated."
+            return "Resolver slot error", "Resolver failed to extract comparative quarter pair or defaulted basis to as_restated."
         if cid in ("ho3-rs-01",):
-            return "route error", "Keyword triggered MIXED route instead of STRUCTURED; served extractive mode."
+            return "Route error", "Keyword triggered MIXED route instead of STRUCTURED; served extractive mode."
         if cid in ("ho3-os-03",):
-            return "route error", "Alien entity 'Pfizer' missing from explicit refusal ticker list; fell through to UNSTRUCTURED retrieval."
-        return "other", "Unclassified failure mode."
+            return "Route error", "Alien entity 'Pfizer' missing from explicit refusal ticker list; fell through to UNSTRUCTURED retrieval."
+        return "Other", "Unclassified failure mode."
 
     # 3. Recount under strict "shipped wrong number" definition:
     # "any displayed number with status ok or ok_extractive that is not equal to gold, or belongs to the wrong entity, KPI, period or basis"
@@ -122,37 +120,46 @@ def main():
     md.append("")
     md.append("## 2. Detailed Diagnosis of the 19 Failing Cases")
     md.append("")
-    md.append("| Case ID | Category | Question | Expected Route / Slots / Gold | Actual Route / Slots / Answer | Cause Class | Root Cause Explanation |")
-    md.append("| :--- | :--- | :--- | :--- | :--- | :--- | :--- |")
+    md.append("| Case ID | Category | Original Question | Expected Route | Expected Slots | Gold Answer / Status | Actual Route | Actual Slots | Actual Answer | Cause Class | Root Cause Explanation |")
+    md.append("| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |")
     for c in failing:
         cid = c["id"]
         g = gold_by_id[cid]
         c_class, expl = classify_cause(c)
-        exp_summary = f"Route: `{g.get('expected_route')}`, Co: `{g.get('expected_company')}`, P: `{g.get('expected_period')}`, KPI: `{g.get('expected_kpi')}`, Basis: `{g.get('expected_basis')}`"
-        clean_ans = c['answer'].replace('|', '\\|').replace('\n', ' ')
-        act_summary = f"Route: `{c['actual_route']}`, Status: `{c['actual_status']}`, Ans: `{clean_ans[:50]}...`"
         clean_q = g.get('question', '').replace('|', '\\|')
-        md.append(f"| `{cid}` | {c['category']} | {clean_q} | {exp_summary} | {act_summary} | **{c_class}** | {expl} |")
+        exp_slots = f"Co: `{g.get('expected_company')}`, P: `{g.get('expected_period')}`, KPI: `{g.get('expected_kpi')}`, Basis: `{g.get('expected_basis')}`"
+        gold_val = f"Status: `{g.get('expected_status', 'ok')}`"
+        act_slots = f"Co: `{c.get('company_correct')}`, P: `{c.get('period_correct')}`, KPI: `{c.get('kpi_correct')}`, Basis: `{c.get('basis_correct')}`"
+        clean_ans = c['answer'].replace('|', '\\|').replace('\n', ' ')
+        act_ans = f"`{clean_ans[:50]}...` (Status: `{c['actual_status']}`)"
+        md.append(f"| `{cid}` | {c['category']} | {clean_q} | `{c['expected_route']}` | {exp_slots} | {gold_val} | `{c['actual_route']}` | {act_slots} | {act_ans} | **{c_class}** | {expl} |")
     md.append("")
     md.append("---")
     md.append("")
     md.append("## 3. Detailed Diagnosis of the 7 Route Misclassifications")
     md.append("")
-    md.append("| Case ID | Category | Question | Expected Route | Actual Route | Impact on E2E Correctness | Root Cause Explanation |")
-    md.append("| :--- | :--- | :--- | :---: | :---: | :---: | :--- |")
+    md.append("| Case ID | Category | Original Question | Expected Route | Expected Slots | Actual Route | Actual Slots | Actual Answer | Cause Class | Impact on E2E | Root Cause Explanation |")
+    md.append("| :--- | :--- | :--- | :---: | :--- | :---: | :--- | :--- | :--- | :---: | :--- |")
     for c in route_mis:
         cid = c["id"]
         g = gold_by_id[cid]
         clean_q = g.get('question', '').replace('|', '\\|')
         impact = "FAIL" if not c["e2e_correct"] else "PASS (Extractive)"
-        expl = "Harmless routing nuance between MIXED and UNSTRUCTURED"
+        c_class, _ = classify_cause(c)
+        if c_class != "Route error":
+            c_class = "Route error"
+        expl = "Routing nuance between MIXED and UNSTRUCTURED"
         if cid == "ho3-rs-01":
             expl = "Triggered narrative keywords ('prior to the 10-Q/A amendment'); routed to MIXED instead of pure STRUCTURED."
         elif cid == "ho3-mu-04":
             expl = "Question asked for non-existent metric; routed to REFUSAL (accepted by evaluator)."
         elif cid == "ho3-os-03":
             expl = "Alien entity 'Pfizer' not present in hardcoded refusal list; routed to UNSTRUCTURED."
-        md.append(f"| `{cid}` | {c['category']} | {clean_q} | `{c['expected_route']}` | `{c['actual_route']}` | **{impact}** | {expl} |")
+        exp_slots = f"Co: `{g.get('expected_company')}`, P: `{g.get('expected_period')}`, KPI: `{g.get('expected_kpi')}`"
+        act_slots = f"Co: `{c.get('company_correct')}`, P: `{c.get('period_correct')}`, KPI: `{c.get('kpi_correct')}`"
+        clean_ans = c['answer'].replace('|', '\\|').replace('\n', ' ')
+        act_ans = f"`{clean_ans[:40]}...` (Status: `{c['actual_status']}`)"
+        md.append(f"| `{cid}` | {c['category']} | {clean_q} | `{c['expected_route']}` | {exp_slots} | `{c['actual_route']}` | {act_slots} | {act_ans} | **{c_class}** | **{impact}** | {expl} |")
     md.append("")
     md.append("---")
     md.append("")

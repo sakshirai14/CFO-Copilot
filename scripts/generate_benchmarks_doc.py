@@ -58,7 +58,7 @@ def main():
     md.append("")
     md.append("| Prefix Tokens | Query Tokens | Decode Tokens | Cold Prefill (ms) | Warm Prefill (ms) | Cold TTFT (ms) | Warm TTFT (ms) | TTFT Speedup (Raw JSON Path) | Decode Throughput |")
     md.append("| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |")
-    for k in ["256", "512", "1024", "2048"]:
+    for k in ["256", "512", "1024"]:
         res = l1["results"][k]
         cold_p = res["cold"]["prefill_ms_median"]
         warm_p = res["warm"]["prefill_ms_median"]
@@ -68,7 +68,7 @@ def main():
         dec_tok_s = res["warm"]["decode_tok_s_median"]
         md.append(f"| {res['prefix_tokens']} | {res['query_tokens']} | {res['decode_tokens']} | {cold_p:.1f} ms | {warm_p:.1f} ms | {cold_ttft:.1f} ms | {warm_ttft:.1f} ms | **{speedup:.2f}×** (`results.{k}.speedup_ttft`) | {dec_tok_s:.1f} tok/s |")
     md.append("")
-    md.append("> **Speedup Scope Clarification**: The **29.34× speedup** (`results.2048.speedup_ttft`) is strictly an isolated synthetic measurement for a 2,048-token synthetic prefix in Level 1. It is **NOT** the speedup of the shipped end-to-end platform. On the shipped platform with a 702-token prefix, the measured TTFT speedup is **6.28× at 4 users** (340.0 ms vs 2,134.7 ms) and **6.11× at 16 users** (2,800.5 ms vs 17,113.3 ms).")
+    md.append("> **Platform Speedup Evidence**: On the shipped end-to-end platform with a 702-token prefix (Level 3), the empirical TTFT speedup is **6.28× at 4 users** (340.0 ms vs 2,134.7 ms, raw path: `staggered_matrix.4.cache_on_new`) and **6.11× at 16 users** (2,800.5 ms vs 17,113.3 ms, raw path: `staggered_matrix.16.cache_on_new`). Synthetic 2,048-token speedup figures have been removed from all platform claims as unrepresentative of the shipped contract.")
     md.append("")
     md.append("> **Logging Verbosity Disclosure**: Earlier Level 1 synthetic tests were run with `-lv 5` to capture low-level tokenization timings. In the shipped platform configuration (`Makefile`, `README.md`), `-lv 5` is completely removed; default verbosity (`verbosity = 3`) is enforced, and user prompts are **NEVER logged to disk or console**.")
     md.append("")
