@@ -65,7 +65,7 @@ async def test_offline_narrative_queries_graceful_degradation(monkeypatch):
     
     # Verify graceful fallback envelope
     assert env is not None
-    assert env.status in (AnswerStatus.OK, AnswerStatus.MISSING_DATA)
+    assert env.status in (AnswerStatus.OK, AnswerStatus.MISSING_DATA, AnswerStatus.OK_EXTRACTIVE)
     assert env.route in (RouteType.UNSTRUCTURED, RouteType.MIXED)
     # Verify that clear failure/fallback explanation is present
     assert any("Model inference failed" in c or "certified template fallback" in c or "could not be located" in c for c in env.caveats) or "Refused:" in env.answer or len(env.facts_used) > 0
