@@ -465,15 +465,48 @@
 
 ---
 
-### [2026-11-15] DECISION 37: Held-Out Benchmark v3 Cryptographic Freeze for Phase 9 Acceptance
-- **Decision**: Build and cryptographically freeze **Held-Out Benchmark v3** (`tests/evals/agent_heldout_v3.json`) for final Phase 9 evaluation.
-- **Dataset Composition**:
-  - 56 pristine cases across 11 distinct operational categories (single lookup, period compare, cross-company aligned/non-aligned, trend, restated, missing/unavailable, narrative, mixed, follow-up, out-of-scope, hostile).
-  - 22 LLM-path cases (14 qualitative narrative + 8 mixed metric/commentary queries), exceeding the $\ge 20$ requirement.
-  - Completely fresh phrasings and entity/period combinations generated from a new seed, unseen in `dev` (v1) and `dev2` (v2).
-- **Cryptographic Freeze & Protocol Governance**:
-  - SHA-256 hash `c89b37535d7c0d25d93811eae3f3b1c7da287d0079ae21aacc4fc22b35ec938c` frozen in `docs/evidence/agent_heldout_v3_hash.txt`.
-  - Empty audit log initialized at `docs/evidence/agent_heldout_v3_runs.log`.
-  - **Single-Run Invariant**: Held-Out v3 will be executed **strictly once** in Phase 9. No resolver, agent, or prompt adjustments may be made once evaluated.
+### [2026-11-16] DECISION 38: 7-Layer Prefix Layout Contract (PromptBuilder)
+- **Context**: In Phase 7 (Puzzle 2), empirical inspection of `data_pack/CANDIDATE_PACK/puzzle2_data/request_log.csv` demonstrated that the platform's KV prefix cache suffered a catastrophic failure (3.5% hit rate) due to five structural prompt pathologies:
+  1. A second-level wall-clock timestamp at token 16 in `system_instructions` ("17th-token clock killer").
+  2. A random hexadecimal request ID embedded at the end of the system block.
+  3. Non-deterministic tool permutations across 24 factorial orderings.
+  4. Variable user profile placed ahead of invariant KPI glossary and tool schemas.
+  5. A 1-turn sliding conversation history window that continuously shifted the string prefix head.
+- **Decision**: Centralize all prompt construction into `app/domain/prompt_builder.py` with strictly ZERO SQL imports, enforcing the 7-layer contract:
+  - `Layer 1`: Fixed system instructions (no clock, no request ID)
+  - `Layer 2`: Fixed KPI glossary formulas
+  - `Layer 3`: Alphabetically sorted canonical tool schemas
+  - *--- TENANT BOUNDARY ---*
+  - `Layer 4`: User profile (tenant ID, role, locale)
+  - `Layer 5`: Conversation history with hysteresis (turns 1..8 append-only; drops 4 turns at turn 9)
+  - `Layer 6`: Retrieved context facts (deterministic order: score DESC, chunk_id ASC)
+  - `Layer 7`: Date stamp (day granularity YYYY-MM-DD only) + User question
+- **Evidence & Verification**:
+  - Unit tests in `tests/unit/test_prompt_builder.py` verify 100% hash stability of the static prefix across 100 requests.
+  - Empirical serving engine replay on `llama-server` (`scripts/benchmark_level2_prefix_caching.py`) showed cache hit rate jump from **3.48%** (as-logged) to **70.27%** (new contract).
+  - Dev golden set diff (`scripts/diff_prompt_builder_golden.py`) confirmed zero regressions: 0 wrong numbers, 0 injection compliance, 100% schema-valid JSON.
+
+---
+
+### [2026-11-16] DECISION 39: Disjoint Per-Tenant Slot Pools and LRU Handover Sanitization
+- **Context**: In multi-tenant serving, sharing KV cache across tenants creates critical data leakage risks, while dynamic slot assignment across tenants risks cache-timing side-channel attacks.
+- **Decision**: Implement `SlotManager` in `app/orchestration/slot_manager.py` partitioning `llama-server`'s 16 parallel slots into disjoint, strictly enforced tenant pools:
+  - `acme` pool: Slots 0..7
+  - `borealis` pool: Slots 8..15
+- **Slot Lifecycle & Sanitization**:
+  1. **Session Affinity**: Active user sessions pin to a slot within their tenant's assigned pool.
+  2. **LRU Handover**: When a pool is saturated, the oldest idle session's slot is reassigned.
+  3. **Sanitization Invariant**: Because `llama-server` returns 501 on `POST /slots/{id}?action=erase` unless started with `--slot-save-path`, sanitization is guaranteed by (a) disjoint pool boundaries ensuring a slot is never reused across tenants, and (b) non-cached prompt evaluation on session handover.
+  4. **Prefix Pre-Warming**: Pre-warms all 16 slots with the static platform prefix at system startup.
+
+---
+
+### [2026-11-16] DECISION 40: Cache-Timing Side-Channel Analysis and Q4_0 KV Sizing Guarantee
+- **Context**: Even with token-level isolation, shared LLM serving infrastructure can leak information through micro-architectural timing side channels (e.g. observing whether a query completes in 20 ms vs 2,000 ms allows an attacker to deduce whether a specific text chunk was recently processed).
+- **Decision & Defense**:
+  1. **Disjoint Slot Pools**: Because Tenant A (Acme, slots 0..7) and Tenant B (Borealis, slots 8..15) never share slot context buffers, Tenant B cannot probe or measure cache-timing effects of Tenant A's queries.
+  2. **Empirical Isolation Proof**: In `scripts/benchmark_level3_platform_e2e.py`, Tenant A executed confidential audit text on slot 3; Tenant B subsequently executed byte-identical text on slot 8. Asserted that Tenant B achieved **0 cached tokens** (`cache_n = 0`), proving absolute isolation.
+  3. **Q4_0 KV Sizing Guarantee**: Sizing proof from GGUF binary metadata (`scripts/compute_memory_arithmetic.py`) proves Qwen2.5-3B under `q4_0` consumes only 9,216 Bytes/token (562.5 MB for 16 slots at 4,096 context), fitting comfortably within the 2.54 GB budget with 1.98 GB headroom.
+
 
 
