@@ -6,6 +6,7 @@ Can be executed against any running PostgreSQL instance (Docker or local).
 """
 
 import sys
+import time
 from pathlib import Path
 
 # Add project root to path

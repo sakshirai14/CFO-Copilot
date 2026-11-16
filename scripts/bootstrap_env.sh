@@ -9,8 +9,12 @@ ENV_FILE=".env"
 EXAMPLE_FILE=".env.example"
 
 if [ -f "$ENV_FILE" ]; then
-    echo "[bootstrap_env] $ENV_FILE already exists. Preserving existing configuration."
-    exit 0
+    if grep -qE "POSTGRES_PASSWORD=$|POSTGRES_PASSWORD=\"\"" "$ENV_FILE"; then
+        echo "[bootstrap_env] Generating random passwords for empty $ENV_FILE..."
+    else
+        echo "[bootstrap_env] $ENV_FILE already configured. Preserving existing configuration."
+        exit 0
+    fi
 fi
 
 if [ ! -f "$EXAMPLE_FILE" ]; then
