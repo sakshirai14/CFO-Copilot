@@ -49,7 +49,7 @@ def main():
         port=5435,
         dbname="cfo_copilot",
         user="cfo_owner",
-        password=os.getenv("POSTGRES_PASSWORD", "80c35c88478d6b4df392bee1f72eba37")
+        password=os.getenv("POSTGRES_PASSWORD", "")
     )
 
     # Detailed specifications for R1-R12

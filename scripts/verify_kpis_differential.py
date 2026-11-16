@@ -332,7 +332,7 @@ def load_sql_kpis():
         port=int(os.getenv("POSTGRES_PORT", "5435")),
         dbname=os.getenv("POSTGRES_DB", "cfo_copilot"),
         user=os.getenv("POSTGRES_USER", "cfo_owner"),
-        password=os.getenv("POSTGRES_PASSWORD", "80c35c88478d6b4df392bee1f72eba37")
+        password=os.getenv("POSTGRES_PASSWORD", "")
     )
     query = """
         SELECT company_id, fiscal_year, fiscal_quarter, kpi_id, basis, status, value as sql_value

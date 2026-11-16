@@ -29,3 +29,4 @@ jobs:
           # Executes Foundation Lock 2 AST boundary checks and isolated domain unit tests
           # Does not require a live database, GPU, or model serving instance.
           pytest tests/unit/ -v
+

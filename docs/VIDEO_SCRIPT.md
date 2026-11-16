@@ -284,3 +284,4 @@ Loaded 21 attack definitions across 4 files.
 
 **Presenter Narration**:
 > *"All 21 attack vectors pass. Zero ungrounded numbers shipped. The platform runs comfortably inside 2.81 GB of RAM on a 6 GB budget. Thank you."*
+
