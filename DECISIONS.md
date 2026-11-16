@@ -2,7 +2,6 @@
 
 > **Project**: CFO Copilot on a Budget  
 > **Repository**: [AI_RAG_Assignment](file:///Users/sakshirai/AI_RAG_Assignment)  
-> **Author**: Senior GenAI Platform Engineer  
 > **Rule**: Document what was evaluated, what failed, why courses changed, and what we would do differently live.
 
 ---

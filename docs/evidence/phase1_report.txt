@@ -1,7 +1,7 @@
 ================================================================================
 CFO COPILOT ON A BUDGET - PHASE 1 VERIFICATION & ACCEPTANCE REPORT
 ================================================================================
-Generated At: 2026-11-15T06:39:24.134676Z
+Generated At: 2026-11-16T16:49:56.797146Z
 Target Database: cfo_copilot on localhost:5435
 Execution Role: app_ro (Read-Only Enforcement)
 
@@ -15,11 +15,11 @@ Execution Role: app_ro (Read-Only Enforcement)
   line_items               :   1732 rows
   data_quality_issues      :    151 rows
   documents                :     77 rows
-  chunks                   :      0 rows
+  chunks                   :    299 rows
   chat_sessions            :      0 rows
   chat_messages            :      0 rows
   answer_log               :      0 rows
-  schema_migrations        :      7 rows
+  schema_migrations        :      8 rows
 
 --- 2. DATA QUALITY AUDIT (ISSUES BY SEVERITY & TYPE) ---
   Severity [WARNING ]:  131 issues
