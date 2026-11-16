@@ -198,14 +198,35 @@ def ensure_database_ready():
         print(f"[selfcheck] Test DB readiness notice: {e}")
 
 
+def ensure_model_server_ready():
+    print(f"\n========================================================")
+    print(f"[selfcheck] STEP: Model Serving Engine Health Check")
+    print(f"========================================================")
+    try:
+        r = httpx.get("http://127.0.0.1:8080/health", timeout=2.0)
+        if r.status_code == 200 and "ok" in r.text:
+            print("[selfcheck] llama-server already healthy on http://127.0.0.1:8080.")
+            return
+    except Exception:
+        pass
+
+    print("[selfcheck] llama-server not responding. Starting via 'make model-up'...")
+    res = subprocess.run(["make", "model-up"], cwd=PROJECT_ROOT)
+    if res.returncode != 0:
+        print("[selfcheck] Warning: failed to start llama-server via make model-up", file=sys.stderr)
+    else:
+        print("[selfcheck] llama-server successfully started and verified healthy.")
+
+
 def main():
     print("================================================================================")
     print("CFO COPILOT: AUTHORITATIVE END-TO-END SYSTEM SELF-CHECK (make selfcheck)")
     print("================================================================================")
     py = sys.executable
 
-    # 0. Ensure Database Populated
+    # 0. Ensure Database Populated & Model Engine Ready
     ensure_database_ready()
+    ensure_model_server_ready()
 
     # 1. Unit Tests
     run_cmd([py, "-m", "pytest", "tests/unit/", "-q"], "Unit & AST Architecture Tests")
