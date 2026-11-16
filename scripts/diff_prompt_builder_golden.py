@@ -23,6 +23,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+from app.agents.answer_writer import STRICT_SCHEMA
 from app.agents.root_agent import CfoCopilotRootAgent
 from app.domain.answer_verifier import AnswerVerifier
 from app.domain.prompt_builder import PromptBuilder
@@ -65,7 +66,7 @@ async def main():
     for idx, c in enumerate(grounding_dev, 1):
         q = c["question"]
         cat = c.get("category", "")
-        facts = [InputFact(**f) for f in c.get("facts", [])]
+        facts = [InputFact(**f) for f in c.get("input_facts", c.get("facts", []))]
 
         # Use new PromptBuilder
         built = PromptBuilder.build_prompt(
@@ -82,7 +83,8 @@ async def main():
                 "messages": built.messages,
                 "temperature": 0.0,
                 "max_tokens": 512,
-                "response_format": {"type": "json_object"}
+                "presence_penalty": 0.3,
+                "response_format": {"type": "json_object", "schema": STRICT_SCHEMA}
             },
             timeout=40.0
         )
@@ -99,7 +101,7 @@ async def main():
             schema_valid_count += 1
 
         if is_json and is_schema and ans_obj:
-            if ans_obj.status == AnswerStatus.ANSWERED:
+            if ans_obj.status in (AnswerStatus.ANSWERED, AnswerStatus.OK):
                 ver = AnswerVerifier.verify(ans_obj, facts)
                 if ver.valid and len(ver.ungrounded_numbers) == 0:
                     verified_llm_count += 1

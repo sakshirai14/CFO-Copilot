@@ -488,25 +488,32 @@
 
 ---
 
-### [2026-11-16] DECISION 39: Disjoint Per-Tenant Slot Pools and LRU Handover Sanitization
+### [2026-11-16] DECISION 39: Disjoint Per-Tenant Slot Pools and Isolation Realities
 - **Context**: In multi-tenant serving, sharing KV cache across tenants creates critical data leakage risks, while dynamic slot assignment across tenants risks cache-timing side-channel attacks.
 - **Decision**: Implement `SlotManager` in `app/orchestration/slot_manager.py` partitioning `llama-server`'s 16 parallel slots into disjoint, strictly enforced tenant pools:
   - `acme` pool: Slots 0..7
   - `borealis` pool: Slots 8..15
-- **Slot Lifecycle & Sanitization**:
+- **Slot Lifecycle & Sanitization Realities**:
   1. **Session Affinity**: Active user sessions pin to a slot within their tenant's assigned pool.
   2. **LRU Handover**: When a pool is saturated, the oldest idle session's slot is reassigned.
-  3. **Sanitization Invariant**: Because `llama-server` returns 501 on `POST /slots/{id}?action=erase` unless started with `--slot-save-path`, sanitization is guaranteed by (a) disjoint pool boundaries ensuring a slot is never reused across tenants, and (b) non-cached prompt evaluation on session handover.
-  4. **Prefix Pre-Warming**: Pre-warms all 16 slots with the static platform prefix at system startup.
+  3. **Sanitization Invariant**: Because `llama-server` returns 501 on `POST /slots/{id}?action=erase` unless started with `--slot-save-path`, handover with `cache_prompt=False` does NOT erase KV from the engine. Therefore, **the disjoint pools are what isolate tenants**; an `acme` slot is never assigned to `borealis`.
+  4. **Scalability Limitation**: The static 8/8 split is a fixed dual-tenant allocation that does not scale dynamically to N tenants without an elastic slot controller.
+  5. **Shared Resource Timing**: While token leakage is eliminated by disjoint pools, physical GPU execution and HTTP queue timing remain shared across tenants (a tenant running heavy prefills can increase queue wait time for another).
+  6. **Prefix Pre-Warming**: Pre-warms all 16 slots with the static platform prefix at system startup. Context shift is disabled via `--no-context-shift`.
 
 ---
 
-### [2026-11-16] DECISION 40: Cache-Timing Side-Channel Analysis and Q4_0 KV Sizing Guarantee
-- **Context**: Even with token-level isolation, shared LLM serving infrastructure can leak information through micro-architectural timing side channels (e.g. observing whether a query completes in 20 ms vs 2,000 ms allows an attacker to deduce whether a specific text chunk was recently processed).
-- **Decision & Defense**:
-  1. **Disjoint Slot Pools**: Because Tenant A (Acme, slots 0..7) and Tenant B (Borealis, slots 8..15) never share slot context buffers, Tenant B cannot probe or measure cache-timing effects of Tenant A's queries.
-  2. **Empirical Isolation Proof**: In `scripts/benchmark_level3_platform_e2e.py`, Tenant A executed confidential audit text on slot 3; Tenant B subsequently executed byte-identical text on slot 8. Asserted that Tenant B achieved **0 cached tokens** (`cache_n = 0`), proving absolute isolation.
-  3. **Q4_0 KV Sizing Guarantee**: Sizing proof from GGUF binary metadata (`scripts/compute_memory_arithmetic.py`) proves Qwen2.5-3B under `q4_0` consumes only 9,216 Bytes/token (562.5 MB for 16 slots at 4,096 context), fitting comfortably within the 2.54 GB budget with 1.98 GB headroom.
+### [2026-11-16] DECISION 40: Multi-Tenant Isolation Verification & Server-Reported KV Sizing
+- **Context**: Foundation Lock 6 (Partition) requires absolute tenant data isolation, while Foundation Lock 11 (Budget Sizing) requires proven coexistence within 6.0 GB VRAM.
+- **Decision & Measurements**:
+  1. **Property Test (10,000 Operations)**: Executed `scripts/test_tenant_isolation_property.py`. Verified that across 10,000 random operations, `SlotManager` had zero pool violations (Acme always in 0..7, Borealis always in 8..15).
+  2. **Real API Path Isolation**: Pre-warmed static prefix; Tenant A executed confidential merger text; Tenant B executed byte-identical text. Confirmed Tenant B achieved exactly **0 cached tokens** (`cache_n = 0`), proving zero confidential context leakage.
+  3. **Shared Queue Timing Note**: Removed earlier claim that "timing side channel is eliminated". The disjoint pools prevent cache-probe timing, but shared GPU compute and queue admission timing are inherently shared on a single serving node.
+  4. **Server-Reported KV Sizing**: Replaced theoretical 562.5 MB arithmetic with exact server log output:
+     - `llama-server` logs `MTL0 KV buffer size = 648.00 MiB` for `q4_0` (`size = 648.00 MiB (4096 cells, 36 layers, 16/16 seqs)`).
+     - Server RSS is 2,813 MiB, well below the 6.0 GB threshold (3.2 GB safety headroom).
+     - Running launch command:
+       `llama-server -m models/qwen2.5-3b-instruct-q4_k_m.gguf -ngl 99 -dev MTL0 -c 65536 -np 16 --port 8080 --host 127.0.0.1 --jinja -ctk q4_0 -ctv q4_0 -fa on --no-context-shift -lv 5`
 
 
 

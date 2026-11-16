@@ -24,15 +24,19 @@ Our memory arithmetic and serving benchmarks demonstrate that **prefix caching c
    - Qwen2.5-3B features an 8:1 GQA ratio ($H_q = 16$, $H_{kv} = 2$, $D = 128$).
    - At FP16, each token consumes $2 \times 36 \times 2 \times 128 \times 2 = \mathbf{36,864\text{ Bytes/token}}$ (36.0 KiB).
    - Under **Q4_0 KV Quantization**, memory drops to **9,216 Bytes/token** (9.0 KiB).
-   - For all 16 parallel slots at full 4,096-token context ($16 \times 4096 = 65,536\text{ tokens}$):
-     $$\text{KV Footprint} = 65,536 \times 9,216\text{ B} = \mathbf{562.5\text{ MB}}\ (0.562\text{ GB})$$
-   - This consumes only **22.1%** of the 2.54 GB KV budget, leaving a massive **1.98 GB safety margin** preventing any possibility of out-of-memory (OOM) crashes.
-   - By comparison, the reference 3B model ($H_{kv} = 8$) requires **7.00 GB** at FP16 and **3.50 GB** at FP8—completely exceeding the 2.50 GB budget. Only Q4_0 (1.75 GB) allows the reference model to fit.
+   - Server-Reported KV Buffer Size: **648.00 MiB** (`llama-server` log: `size = 648.00 MiB (4096 cells, 36 layers, 16/16 seqs), K (q4_0): 324.00 MiB, V (q4_0): 324.00 MiB`).
+   - Server RSS: **2,813 MiB** (2.75 GiB), consuming under 50% of the 6.0 GB deployment limit with 3.2 GB safety margin.
+   - Shipped Launch Command:
+     ```bash
+     llama-server -m models/qwen2.5-3b-instruct-q4_k_m.gguf -ngl 99 -dev MTL0 -c 65536 -np 16 --port 8080 --host 127.0.0.1 --jinja -ctk q4_0 -ctv q4_0 -fa on --no-context-shift -lv 5
+     ```
+   - By comparison, FP16 allocates **2,304.00 MiB** (server log) with RSS 4,465 MiB.
 3. **Shipped Engine Configuration**:
    - Total Context: `65,536` tokens (`-c 65536`)
    - Parallel Slots: `16` slots (`-np 16`)
    - Tokens per Slot: `4,096` tokens
    - KV Type: `q4_0` (`-ctk q4_0 -ctv q4_0`)
+   - Context Shift: Disabled (`--no-context-shift`)
    - Disjoint Tenant Allocation: Slots 0..7 (Tenant `acme`), Slots 8..15 (Tenant `borealis`)
 
 ---
@@ -190,3 +194,4 @@ We evaluate compliance against the three defined SLO standards:
    On macOS, running inside sandboxed environments blocks Mach port lookups to Apple Silicon Metal IOKit, falling back to CPU execution (4 threads, ~380 tok/s prefill). Running outside isolation unlocks full Metal GPU acceleration (~35,000 tok/s prefill).
 4. **Tokenizer Token Boundary Shifts**:
    Evaluating real BPE tokenization revealed that whitespace token counts are an imperfect proxy for prefix boundaries. Markdown headers and JSON delimiters split into subwords, requiring prompt contracts to standardize exact punctuation and whitespace.
+
