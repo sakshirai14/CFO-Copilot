@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
-"""
-Generate docs/LOCKS.md strictly adhering to empirical verification status.
+"""scripts/generate_locks_doc.py
+[POST-HOC DOCUMENTATION GENERATOR: post-hoc, evaluated on dev only]
+
+This script is a post-hoc documentation generator that compiles and outputs
+docs/LOCKS.md strictly adhering to empirical test outcomes and verification status.
+It is purely a documentation generation tool and was not part of the evaluated application.
 """
 from pathlib import Path
 

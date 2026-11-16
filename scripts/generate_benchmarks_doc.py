@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
 """scripts/generate_benchmarks_doc.py
+[POST-HOC DOCUMENTATION GENERATOR: post-hoc, evaluated on dev only]
+
+This script is a post-hoc documentation generator that parses raw benchmark JSON files
+(kv_level1_minimal_loop.json, kv_level3_platform.json, attacks.json, heldout_v3.json)
+to generate docs/BENCHMARKS.md. It is purely a documentation generation tool and was not part
+of the evaluated application.
 
 Generates docs/BENCHMARKS.md automatically by parsing raw JSON files:
 - benchmarks/results/kv_level1_minimal_loop.json

@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 """scripts/diagnose_v3_failures.py
+[POST-HOC AUDIT TOOL: post-hoc, evaluated on dev only]
 
-Generates docs/evidence/v3_failure_analysis.md from heldout_v3.json and agent_heldout_v3.json.
+This script is a post-hoc diagnostic tool that reads frozen held-out v3 evaluation data
+and generates docs/evidence/v3_failure_analysis.md. It was developed post-freeze for
+error diagnosis and was not part of the evaluated application runtime.
+
 Audits:
 1. Per-category pass/fail counts
 2. Each of the 19 failing structured cases and 7 route misclassifications
