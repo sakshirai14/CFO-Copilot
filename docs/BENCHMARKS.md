@@ -2,7 +2,7 @@
 
 > **Platform**: CFO Copilot on a Budget  
 > **Hardware Target**: Single 6.0 GB VRAM Budget | 16 Parallel Slots | TTFT < 2,000 ms  
-> **Report Generation Timestamp**: 2026-11-16T15:49:44.662360Z  
+> **Report Generation Timestamp**: 2026-11-16T16:06:44.873683Z  
 > **Authoritative Commit**: `3d44926`  
 > **Serving Engine**: `llama-server` (Build `b12359-b1b770d90`, Metal `MTL0`, 36 layers offloaded)  
 > **Model**: `Qwen2.5-3B-Instruct` (Q4_K_M GGUF, SHA-256: `626b4a6678b86442...`)  
@@ -22,6 +22,10 @@ Direct empirical measurements from isolated synthetic prefill loops across varyi
 | 1024 | 64 | 32 | 2543.6 ms | 1.8 ms | 2717.0 ms | 187.6 ms | **14.49×** (`results.1024.speedup_ttft`) | 40.3 tok/s |
 | 2048 | 64 | 32 | 5397.7 ms | 1.9 ms | 5585.0 ms | 190.3 ms | **29.34×** (`results.2048.speedup_ttft`) | 36.0 tok/s |
 
+> **Speedup Scope Clarification**: The **29.34× speedup** (`results.2048.speedup_ttft`) is strictly an isolated synthetic measurement for a 2,048-token synthetic prefix in Level 1. It is **NOT** the speedup of the shipped end-to-end platform. On the shipped platform with a 702-token prefix, the measured TTFT speedup is **6.28× at 4 users** (340.0 ms vs 2,134.7 ms) and **6.11× at 16 users** (2,800.5 ms vs 17,113.3 ms).
+
+> **Logging Verbosity Disclosure**: Earlier Level 1 synthetic tests were run with `-lv 5` to capture low-level tokenization timings. In the shipped platform configuration (`Makefile`, `README.md`), `-lv 5` is completely removed; default verbosity (`verbosity = 3`) is enforced, and user prompts are **NEVER logged to disk or console**.
+
 ---
 
 ## 2. Level 3: Platform End-to-End Latency & Concurrency Benchmarks
@@ -30,6 +34,7 @@ Empirical multi-tenant evaluations on the shipped Metal configuration (`MTL0`, 3
 
 ### 2.1 Workload Context & Cache Hit Rate Ceilings
 - **Shipped Static Prefix Length**: **702 tokens** (Layer 1 Role Instructions + Layer 2 JSON Schema + Layer 3 Tool Definitions).
+- **Prefix Reconciliation (702 vs 751 tokens)**: The platform contract static prefix (Layers 1–3) is exactly **702 tokens** (immutable across all tenants). The **751 tokens** observed during the selfcheck smoke test measured the 702-token prefix PLUS the shared tenant header (`<tenant: acme>`) and facts preamble (49 tokens) shared between consecutive turns on slot 0.
 - **Historical Real-Log Ceiling**: **70.27% – 76.20%** (diagnosed from Puzzle 2 logs due to variable question lengths and context sizes).
 - **Platform Benchmark Workload**: **85.6% – 87.3%** on multi-turn unique tail queries (702 prefix tokens out of ~811 total prompt tokens).
 - **Selfcheck Single-Pair Smoke Test**: **92.9%** (smoke test verifying 2 consecutive queries on slot 0, NOT a multi-user benchmark).
@@ -38,9 +43,9 @@ Empirical multi-tenant evaluations on the shipped Metal configuration (`MTL0`, 3
 
 | Concurrency | Cache Mode & Workload | First Content p50 (ms) | First Content p95 (ms) | First LLM Token p50 (ms) | First LLM Token p95 (ms) | Total Verified Answer p95 (ms) | Cache Hit Rate (%) | KV Buffer Size | Prefill Throughput (tok/s) |
 | :---: | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| 1 user  | Cache OFF (No Prefix Reuse) | 13.1 ms | 13.1 ms | 13.1 ms | 0.0 ms | 13.1 ms | 0.0% | 648.00 MiB | 0.0 tok/s |
-| 1 user  | Cache ON (Old Assembly, Drift) | 13.1 ms | 13.1 ms | 13.1 ms | 0.0 ms | 13.1 ms | 0.0% | 648.00 MiB | 0.0 tok/s |
-| 1 user  | Cache ON (PromptBuilder Shipped) | 13.1 ms | 13.1 ms | 13.1 ms | 0.0 ms | 13.1 ms | 0.0% | 648.00 MiB | 0.0 tok/s |
+| 1 user  | Cache OFF (No Prefix Reuse) | 13.1 ms | 13.1 ms | 13.1 ms | 0.0 ms | 13.1 ms | 0.0% | 648.00 MiB | not measured (pure SQL) |
+| 1 user  | Cache ON (Old Assembly, Drift) | 13.1 ms | 13.1 ms | 13.1 ms | 0.0 ms | 13.1 ms | 0.0% | 648.00 MiB | not measured (pure SQL) |
+| 1 user  | Cache ON (PromptBuilder Shipped) | 13.1 ms | 13.1 ms | 13.1 ms | 0.0 ms | 13.1 ms | 0.0% | 648.00 MiB | not measured (pure SQL) |
 | 4 users | Cache OFF (No Prefix Reuse) | 12.3 ms | 2134.7 ms | 12.3 ms | 2134.7 ms | 3058.8 ms | 0.0% | 648.00 MiB | 404.8 tok/s |
 | 4 users | Cache ON (Old Assembly, Drift) | 12.6 ms | 476.2 ms | 12.6 ms | 476.2 ms | 1381.8 ms | 0.0% | 648.00 MiB | 356.2 tok/s |
 | 4 users | Cache ON (PromptBuilder Shipped) | 12.1 ms | 340.0 ms | 12.1 ms | 340.0 ms | 1256.9 ms | 87.3% | 648.00 MiB | 331.3 tok/s |

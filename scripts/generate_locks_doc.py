@@ -101,8 +101,8 @@ LOCKS_DATA = [
         "purpose": "One-command setup, config-driven, no secrets in the repo.",
         "status": "done",
         "impl": "`docker-compose.yml`: services for PostgreSQL 16 + pgvector.<br>`Makefile`: `make up`, `make down`, `make ingest`, `make kpis`, `make selfcheck`.<br>`.env.example`: config-driven template with no committed secrets.",
-        "test": "Empirical Fresh Clone Verification in `/tmp/cfo_fresh_clone`: clean checkout from git HEAD, copied `.env.example` -> `.env`, executed `make up` and `make selfcheck`. Full stack operational in 17 seconds.",
-        "result": "**PASSED** (17s clean clone verification)"
+        "test": "Empirical Clean Clone Verification in `/tmp/cfo_clean_verification`: zero initial containers/volumes, clean volume creation, full stack operational, `make up` and `make selfcheck` passed in 63 seconds.",
+        "result": "**PASSED** (63s clean volume & container verification)"
     }
 ]
 
@@ -134,3 +134,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

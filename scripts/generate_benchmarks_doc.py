@@ -68,6 +68,10 @@ def main():
         dec_tok_s = res["warm"]["decode_tok_s_median"]
         md.append(f"| {res['prefix_tokens']} | {res['query_tokens']} | {res['decode_tokens']} | {cold_p:.1f} ms | {warm_p:.1f} ms | {cold_ttft:.1f} ms | {warm_ttft:.1f} ms | **{speedup:.2f}×** (`results.{k}.speedup_ttft`) | {dec_tok_s:.1f} tok/s |")
     md.append("")
+    md.append("> **Speedup Scope Clarification**: The **29.34× speedup** (`results.2048.speedup_ttft`) is strictly an isolated synthetic measurement for a 2,048-token synthetic prefix in Level 1. It is **NOT** the speedup of the shipped end-to-end platform. On the shipped platform with a 702-token prefix, the measured TTFT speedup is **6.28× at 4 users** (340.0 ms vs 2,134.7 ms) and **6.11× at 16 users** (2,800.5 ms vs 17,113.3 ms).")
+    md.append("")
+    md.append("> **Logging Verbosity Disclosure**: Earlier Level 1 synthetic tests were run with `-lv 5` to capture low-level tokenization timings. In the shipped platform configuration (`Makefile`, `README.md`), `-lv 5` is completely removed; default verbosity (`verbosity = 3`) is enforced, and user prompts are **NEVER logged to disk or console**.")
+    md.append("")
     md.append("---")
     md.append("")
 
@@ -78,6 +82,7 @@ def main():
     md.append("")
     md.append("### 2.1 Workload Context & Cache Hit Rate Ceilings")
     md.append(f"- **Shipped Static Prefix Length**: **{SHIPPED_STATIC_PREFIX_TOKENS} tokens** (Layer 1 Role Instructions + Layer 2 JSON Schema + Layer 3 Tool Definitions).")
+    md.append("- **Prefix Reconciliation (702 vs 751 tokens)**: The platform contract static prefix (Layers 1–3) is exactly **702 tokens** (immutable across all tenants). The **751 tokens** observed during the selfcheck smoke test measured the 702-token prefix PLUS the shared tenant header (`<tenant: acme>`) and facts preamble (49 tokens) shared between consecutive turns on slot 0.")
     md.append("- **Historical Real-Log Ceiling**: **70.27% – 76.20%** (diagnosed from Puzzle 2 logs due to variable question lengths and context sizes).")
     md.append("- **Platform Benchmark Workload**: **85.6% – 87.3%** on multi-turn unique tail queries (702 prefix tokens out of ~811 total prompt tokens).")
     md.append("- **Selfcheck Single-Pair Smoke Test**: **92.9%** (smoke test verifying 2 consecutive queries on slot 0, NOT a multi-user benchmark).")
@@ -92,12 +97,13 @@ def main():
         c_data = stagg[c]
         for mode, label in [("cache_off", "Cache OFF (No Prefix Reuse)"), ("cache_on_old", "Cache ON (Old Assembly, Drift)"), ("cache_on_new", "Cache ON (PromptBuilder Shipped)")]:
             row = c_data[mode]
+            prefill_val = f"{row['prefill_tokens_per_second']:.1f} tok/s" if row['prefill_tokens_per_second'] > 0 else "not measured (pure SQL)"
             md.append(
                 f"| {c} user{'s' if c != '1' else ' '} | {label} | "
                 f"{row['first_content_p50_ms']:.1f} ms | {row['first_content_p95_ms']:.1f} ms | "
                 f"{row.get('first_llm_token_p50_ms', row['first_content_p50_ms']):.1f} ms | {row['first_llm_token_p95_ms']:.1f} ms | "
                 f"{row['total_verified_answer_p95_ms']:.1f} ms | "
-                f"{row['cache_hit_rate_pct']:.1f}% | 648.00 MiB | {row['prefill_tokens_per_second']:.1f} tok/s |"
+                f"{row['cache_hit_rate_pct']:.1f}% | 648.00 MiB | {prefill_val} |"
             )
     md.append("")
 

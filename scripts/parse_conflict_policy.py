@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """scripts/parse_conflict_policy.py
 
+[POST-HOC AUDIT TOOL: EVALUATED ON DEV ONLY - NOT CLAIMED FOR GENERALIZATION]
+
 Parses docs/CONFLICT_POLICY.md to extract canonical rules R1 through R12,
 executes SQL/Python outcome-changed queries against the live database,
 verifies test existence via pytest collection, and generates docs/evidence/conflict_policy_rules_table.md.

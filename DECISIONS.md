@@ -585,8 +585,13 @@
      - Sandbox elevation (`BypassSandbox: true`) was required strictly for:
        - Local loopback TCP networking on `127.0.0.1:8080` (`llama-server`) and `localhost:5435` (Dockerized PostgreSQL 16).
        - Apple Silicon Metal GPU driver initialization (`MTL0` device access and framework shader compilation).
-     - **Paths Touched**: File read and write operations were strictly confined to `/Users/sakshirai/AI_RAG_Assignment/` and the temporary fresh clone path `/tmp/cfo_fresh_clone`. No files outside these project trees were modified.
+     - **Paths Touched**: File read and write operations were strictly confined to `/Users/sakshirai/AI_RAG_Assignment/` and the temporary fresh clone paths `/tmp/cfo_fresh_clone` and `/tmp/cfo_clean_verification`. No files outside these project trees were modified.
      - **Zero External Network Egress**: Zero external API calls were made. No OpenAI, Anthropic, or hosted cloud LLM endpoints were contacted.
+  4. **Verbosity & Prompt Logging Disclosure**:
+     - Earlier Level 1 and preliminary serving benchmarks in Phase 7 were conducted while `llama-server` was launched with `-lv 5` to capture low-level tokenization timings.
+     - In the shipped production configuration (`Makefile`, `README.md`, `docker-compose`), `-lv 5` is completely removed and default server verbosity (`verbosity = 3`) is enforced.
+     - We have empirically verified via `tail logs/llama_server.log` that raw user prompts, confidential financial disclosures, and completions are **NEVER logged to disk or console**.
+
 
 
 

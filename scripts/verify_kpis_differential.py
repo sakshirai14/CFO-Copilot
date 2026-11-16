@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """scripts/verify_kpis_differential.py
 
+[POST-HOC AUDIT TOOL: EVALUATED ON DEV ONLY - NOT CLAIMED FOR GENERALIZATION]
+
 Independent differential verification engine for CFO Copilot.
 Re-computes all 16 KPIs from scratch using pandas directly from the raw CSV data files
 WITHOUT importing any production application code (no app.data.*).
