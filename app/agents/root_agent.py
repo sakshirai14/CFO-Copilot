@@ -140,7 +140,13 @@ class CfoCopilotRootAgent(BaseAgent):
             )
 
         try:
-            llm_payload = await self.answer_writer.write_answer(question, facts, caveats)
+            llm_payload = await self.answer_writer.write_answer(
+                question=question,
+                facts=facts,
+                caveats=caveats,
+                tenant_id=tenant,
+                user_id=user
+            )
             llm_calls_made += 1
             candidate_text = llm_payload.get("answer", "")
             status_str = llm_payload.get("status", "ok")

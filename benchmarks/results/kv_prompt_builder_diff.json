@@ -1,0 +1,58 @@
+{
+  "timestamp": "2026-11-16T13:38:19Z",
+  "before_baseline": {
+    "model_label": "Qwen2.5-3B-Instruct (Q4_K_M)",
+    "variant": "explicit_rules",
+    "total_cases": 65,
+    "valid_json_k": 65,
+    "valid_json_n": 65,
+    "schema_valid_k": 65,
+    "schema_valid_n": 65,
+    "status_accuracy_k": 58,
+    "status_accuracy_n": 65,
+    "refusal_recall_k": 24,
+    "refusal_recall_n": 24,
+    "refusal_precision_k": 24,
+    "refusal_precision_n": 31,
+    "raw_number_fidelity_k": 32,
+    "raw_number_fidelity_n": 34,
+    "verifier_rejection_k": 3,
+    "verifier_rejection_n": 65,
+    "shipped_wrong_number_k": 0,
+    "shipped_wrong_number_n": 65,
+    "hostile_compliance_k": 0,
+    "hostile_compliance_n": 15,
+    "counterfactual_faithfulness_k": 5,
+    "counterfactual_faithfulness_n": 15,
+    "citation_accuracy_k": 40,
+    "citation_accuracy_n": 43,
+    "fallback_rate_k": 3,
+    "fallback_rate_n": 65,
+    "latency_p50_ms": 1449.99,
+    "latency_p95_ms": 2131.18
+  },
+  "after_prompt_builder": {
+    "grounding_dev": {
+      "n": 65,
+      "valid_json": 65,
+      "valid_json_pct": 100.0,
+      "shipped_wrong": 0,
+      "hostile_compliance": 0,
+      "hostile_total": 14,
+      "llm_verified": 0,
+      "refusals": 64
+    },
+    "narrative_dev": {
+      "n": 15,
+      "llm_verified": 0,
+      "extractive": 15,
+      "refused": 0
+    },
+    "combined_shares": {
+      "n": 80,
+      "llm_verified_count": 0,
+      "extractive_count": 15,
+      "refused_count": 64
+    }
+  }
+}

@@ -14,6 +14,7 @@ from google.adk.agents import LlmAgent, InvocationContext
 from google.adk.events import Event
 from app.core.config import get_settings
 from app.domain.agent_envelope import FactItem
+from app.domain.prompt_builder import PromptBuilder, BuiltPrompt
 from app.prompts.prompt_v1 import EXPLICIT_RULES_SYSTEM_PROMPT_V1
 
 STRICT_SCHEMA = {
@@ -53,36 +54,30 @@ class AnswerWriterAgent(LlmAgent):
         self,
         question: str,
         facts: List[FactItem],
-        caveats: Optional[List[str]] = None
+        caveats: Optional[List[str]] = None,
+        tenant_id: str = "acme",
+        user_id: str = "cfo_user",
+        conversation_history: Optional[List[Dict[str, str]]] = None,
+        date_stamp: str = "2026-11-16",
+        id_slot: Optional[int] = None
     ) -> Dict[str, Any]:
-        """Calls the local model endpoint using grammar-constrained JSON decoding."""
+        """Calls the local model endpoint using 7-layer Prefix Layout Contract and grammar-constrained JSON decoding."""
         settings = get_settings()
         server_url = getattr(settings, "INFERENCE_SERVER_URL", None) or settings.INFERENCE_API_BASE.replace("/v1", "").rstrip("/")
 
-        facts_block = "\n".join(
-            f"[{f.fact_id}] {f.text}" for f in facts
-        ) if facts else "[NO RELEVANT FACTS AVAILABLE]"
-
-        caveats_block = "\n".join(f"- {c}" for c in (caveats or []))
-
-        user_content = (
-            f"Question: {question}\n\n"
-            f"Context Facts:\n{facts_block}\n\n"
-        )
-        if caveats_block:
-            user_content += f"Caveats & Context:\n{caveats_block}\n\n"
-
-        user_content += (
-            "Return valid JSON matching the schema with fields: "
-            "status, answer, facts_used, caveats."
+        # Assemble prompt via canonical PromptBuilder (Foundation Lock 7 / Phase 7.1)
+        built = PromptBuilder.build_prompt(
+            question=question,
+            retrieved_facts=facts,
+            tenant_id=tenant_id,
+            user_id=user_id,
+            conversation_history=conversation_history,
+            date_stamp=date_stamp
         )
 
         payload = {
             "model": "qwen2.5-3b-instruct",
-            "messages": [
-                {"role": "system", "content": self.instruction},
-                {"role": "user", "content": user_content}
-            ],
+            "messages": built.messages,
             "temperature": 0.0,
             "max_tokens": 512,
             "presence_penalty": 0.3,
@@ -91,6 +86,8 @@ class AnswerWriterAgent(LlmAgent):
                 "schema": STRICT_SCHEMA
             }
         }
+        if id_slot is not None:
+            payload["id_slot"] = id_slot
 
         async with httpx.AsyncClient(timeout=30.0) as client:
             resp = await client.post(f"{server_url}/v1/chat/completions", json=payload)
@@ -103,7 +100,11 @@ class AnswerWriterAgent(LlmAgent):
             parsed["_llm_metadata"] = {
                 "prompt_tokens": usage.get("prompt_tokens", 0),
                 "completion_tokens": usage.get("completion_tokens", 0),
-                "finish_reason": choice.get("finish_reason", "stop")
+                "finish_reason": choice.get("finish_reason", "stop"),
+                "static_sha256": built.static_sha256,
+                "tenant_sha256": built.tenant_sha256,
+                "dynamic_sha256": built.dynamic_sha256,
+                "layout_version": built.layout_version
             }
             return parsed
 
