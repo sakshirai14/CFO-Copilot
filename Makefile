@@ -89,7 +89,7 @@ model-up:
 	@if curl -s http://127.0.0.1:$(MODEL_PORT)/health | grep -q 'ok'; then \
 		echo "[make model-up] llama-server already healthy on http://127.0.0.1:$(MODEL_PORT)."; \
 	else \
-		llama-server -m $(MODEL_FILE) -ngl 99 -dev MTL0 -c $(MODEL_CTX) -np $(MODEL_SLOTS) --port $(MODEL_PORT) --host 127.0.0.1 --jinja -ctk q4_0 -ctv q4_0 -fa on --no-context-shift > logs/llama_server.log 2>&1 & echo $$! > logs/llama_server.pid; \
+		nohup llama-server -m $(MODEL_FILE) -ngl 99 -dev MTL0 -c $(MODEL_CTX) -np $(MODEL_SLOTS) --port $(MODEL_PORT) --host 127.0.0.1 --jinja -ctk q4_0 -ctv q4_0 -fa on --no-context-shift > logs/llama_server.log 2>&1 & echo $$! > logs/llama_server.pid; \
 		echo "[make model-up] Waiting for llama-server to be ready on port $(MODEL_PORT)..."; \
 		for i in $$(seq 1 45); do \
 			if curl -s http://127.0.0.1:$(MODEL_PORT)/health | grep -q 'ok'; then \

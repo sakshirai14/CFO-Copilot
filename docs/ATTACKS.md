@@ -31,7 +31,28 @@
 | **ATK-D05** | information_disclosure | Global exception handler catches exception, returns generic error envelope with request_id and ZERO stack trace. | Error response sanitized; zero stack traces or file paths leaked. | **PASS** | `app/api/main.py`<br>`global_exception_handler` |
 | **ATK-D06** | security_controls | Header is ignored; server executes normal pipeline without injecting artificial fault. | X-Fault-Inject header ignored when ENABLE_FAULT_INJECTION=False; normal execution path used. | **PASS** | `app/orchestration/request_lifecycle.py`<br>`RequestLifecycleManager.execute_request` |
 
-## 2. Open Risks & Residual Threat Model
+## 2. Adversarial Test Suite Audit & First-Run Diagnostics
+
+### 2.1 First-Run Failures & Changes Made
+During initial development of `scripts/run_attacks.py`, three tests encountered harness execution errors on their first run. In all three cases, the **ATTACK SCRIPT WAS CHANGED, NOT APPLICATION CODE**:
+1. **ATK-D02 (Input Validation Error Schema)**: The initial test assertion checked for `"error" in body`. Because the application correctly returns FastAPI typed `ErrorEnvelope` with top-level fields `code`, `message`, `details`, and `request_id`, the attack script assertion was updated to accept `("code" in body or "error" in body)`. Application code was unchanged.
+2. **ATK-D04 (Queue Shedding Exception Handling)**: The initial test expected only `QueueFullError`. When all slots are busy, the bounded queue can shed load via `QueueTimeoutError` once the acquisition deadline expires. The attack script was updated to catch `(QueueFullError, QueueTimeoutError)`. Application queue behavior was unchanged.
+3. **ATK-D06 (Fault Injection Override Syntax)**: The initial attack script had a duplicate `finally:` block syntax error in Python. The duplicate block in `scripts/run_attacks.py` was removed. Application code was unchanged.
+
+### 2.2 Three Weakest Attacks
+1. **ATK-A06 (Context Poisoning)**: Tests question routing isolation at the unit level (confirming deterministic SQL route bypasses retrieval) rather than passing poisoned text end-to-end through a live narrative generation pipeline.
+2. **ATK-B04 (Privilege Escalation)**: Verifies PostgreSQL `app_ro` role restrictions via direct connection pool driver execution rather than attempting an exploit through the HTTP API parameters.
+3. **ATK-C01 (Verifier Evasion)**: Evaluates synthetic text number normalization directly on `AnswerVerifier` rather than having the LLM generate adversarially disguised numerical prose.
+
+### 2.3 Per-Tenant Queue Fairness Disclosure
+- **Fairness Testing**: Per-tenant queue fairness (e.g., Tenant A launching 100 concurrent requests to starve Tenant B's interactive requests) was **NOT tested** under a multi-tenant weighted fair queuing model.
+- **Current Shipped Architecture**: `BoundedLlmQueue` is a **single global FIFO queue** (`max_in_flight=16`, `max_waiting=16`). While slot affinity isolates KV caches into 8/8 pools, heavy load from one tenant will cause the shared admission queue to fill, returning HTTP 429 to subsequent callers regardless of tenant identity. Per-tenant token-bucket rate limiting is recommended for production.
+
+### 2.4 Prompt Injection Execution Path Reality
+- **LLM vs. Extractive Path**: In direct security testing (`scripts/run_attacks.py`), ATK-A01, ATK-A04, and ATK-A05 were verified directly against the LLM inference client (`LlmClient`) and `PromptBuilder`.
+- **v3 Evaluation Reality**: During the authoritative held-out v3 evaluation run (`eval_agent_heldout_v3.py`), zero prompt injections from retrieval chunks reached the LLM because narrative queries fell back to extractive retrieval (`status: ok_extractive`) due to the `user_id=user` scoping bug in `root_agent.py`. In that run, injections were neutralized by the extractive pipeline displaying verbatim excerpts without executing instructions.
+
+## 3. Open Risks & Residual Threat Model
 
 1. **Micro-Architectural Resource Contention**: Disjoint slot partitions eliminate cache-probe timing channels, but concurrent requests on a single serving node still share physical GPU execution pipelines and OS network threadpools.
 2. **Static Tenant Allocation**: The current `SlotManager` partitions slots 0..7 to Acme and 8..15 to Borealis. Scaling to arbitrary N tenants requires an elastic slot pool coordinator.

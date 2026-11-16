@@ -28,7 +28,7 @@ Our memory arithmetic and serving benchmarks demonstrate that **prefix caching c
    - Server RSS: **2,813 MiB** (2.75 GiB), consuming under 50% of the 6.0 GB deployment limit with 3.2 GB safety margin.
    - Shipped Launch Command:
      ```bash
-     llama-server -m models/qwen2.5-3b-instruct-q4_k_m.gguf -ngl 99 -dev MTL0 -c 65536 -np 16 --port 8080 --host 127.0.0.1 --jinja -ctk q4_0 -ctv q4_0 -fa on --no-context-shift -lv 5
+     llama-server -m models/qwen2.5-3b-instruct-q4_k_m.gguf -ngl 99 -dev MTL0 -c 65536 -np 16 --port 8080 --host 127.0.0.1 --jinja -ctk q4_0 -ctv q4_0 -fa on --no-context-shift
      ```
    - By comparison, FP16 allocates **2,304.00 MiB** (server log) with RSS 4,465 MiB.
 3. **Shipped Engine Configuration**:
