@@ -2,7 +2,7 @@
 
 > **Platform**: CFO Copilot on a Budget  
 > **Hardware Target**: Single 6.0 GB VRAM Budget | 16 Parallel Slots | TTFT < 2,000 ms  
-> **Report Generation Timestamp**: 2026-11-16T16:15:11.724453Z  
+> **Report Generation Timestamp**: 2026-11-16T16:27:35.996943Z  
 > **Authoritative Commit**: `3d44926`  
 > **Serving Engine**: `llama-server` (Build `b12359-b1b770d90`, Metal `MTL0`, 36 layers offloaded)  
 > **Model**: `Qwen2.5-3B-Instruct` (Q4_K_M GGUF, SHA-256: `626b4a6678b86442...`)  
@@ -42,19 +42,19 @@ Empirical multi-tenant evaluations on the shipped Metal configuration (`MTL0`, 3
 
 | Concurrency | Cache Mode & Workload | First Content p50 (ms) | First Content p95 (ms) | First LLM Token p50 (ms) | First LLM Token p95 (ms) | Total Verified Answer p95 (ms) | Cache Hit Rate (%) | KV Buffer Size | Prefill Throughput (tok/s) |
 | :---: | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| 1 user  | Cache OFF (No Prefix Reuse) | 13.1 ms | 13.1 ms | 13.1 ms | 0.0 ms | 13.1 ms | 0.0% | 648.00 MiB | not measured (pure SQL) |
-| 1 user  | Cache ON (Old Assembly, Drift) | 13.1 ms | 13.1 ms | 13.1 ms | 0.0 ms | 13.1 ms | 0.0% | 648.00 MiB | not measured (pure SQL) |
-| 1 user  | Cache ON (PromptBuilder Shipped) | 13.1 ms | 13.1 ms | 13.1 ms | 0.0 ms | 13.1 ms | 0.0% | 648.00 MiB | not measured (pure SQL) |
-| 4 users | Cache OFF (No Prefix Reuse) | 12.3 ms | 2134.7 ms | 12.3 ms | 2134.7 ms | 3058.8 ms | 0.0% | 648.00 MiB | 404.8 tok/s |
-| 4 users | Cache ON (Old Assembly, Drift) | 12.6 ms | 476.2 ms | 12.6 ms | 476.2 ms | 1381.8 ms | 0.0% | 648.00 MiB | 356.2 tok/s |
-| 4 users | Cache ON (PromptBuilder Shipped) | 12.1 ms | 340.0 ms | 12.1 ms | 340.0 ms | 1256.9 ms | 87.3% | 648.00 MiB | 331.3 tok/s |
-| 16 users | Cache OFF (No Prefix Reuse) | 2580.1 ms | 17113.3 ms | 2580.1 ms | 17113.3 ms | 18775.1 ms | 0.0% | 648.00 MiB | 139.8 tok/s |
-| 16 users | Cache ON (Old Assembly, Drift) | 1614.2 ms | 3219.8 ms | 1614.2 ms | 3219.8 ms | 4865.3 ms | 1.3% | 648.00 MiB | 49.2 tok/s |
-| 16 users | Cache ON (PromptBuilder Shipped) | 1405.1 ms | 2800.5 ms | 1405.1 ms | 2800.5 ms | 4571.0 ms | 85.6% | 648.00 MiB | 44.3 tok/s |
+| 1 user  | Cache OFF (No Prefix Reuse) | 13.1 ms | 13.1 ms | not measured | not measured | 13.1 ms | 0.0% | 648.00 MiB | not measured |
+| 1 user  | Cache ON (Old Assembly, Drift) | 13.1 ms | 13.1 ms | not measured | not measured | 13.1 ms | 0.0% | 648.00 MiB | not measured |
+| 1 user  | Cache ON (PromptBuilder Shipped) | 13.1 ms | 13.1 ms | not measured | not measured | 13.1 ms | 0.0% | 648.00 MiB | not measured |
+| 4 users | Cache OFF (No Prefix Reuse) | 12.3 ms | 2134.7 ms | not measured | 2134.7 ms | 3058.8 ms | 0.0% | 648.00 MiB | 404.8 tok/s |
+| 4 users | Cache ON (Old Assembly, Drift) | 12.6 ms | 476.2 ms | not measured | 476.2 ms | 1381.8 ms | 0.0% | 648.00 MiB | 356.2 tok/s |
+| 4 users | Cache ON (PromptBuilder Shipped) | 12.1 ms | 340.0 ms | not measured | 340.0 ms | 1256.9 ms | 87.3% | 648.00 MiB | 331.3 tok/s |
+| 16 users | Cache OFF (No Prefix Reuse) | 2580.1 ms | 17113.3 ms | not measured | 17113.3 ms | 18775.1 ms | 0.0% | 648.00 MiB | 139.8 tok/s |
+| 16 users | Cache ON (Old Assembly, Drift) | 1614.2 ms | 3219.8 ms | not measured | 3219.8 ms | 4865.3 ms | 1.3% | 648.00 MiB | 49.2 tok/s |
+| 16 users | Cache ON (PromptBuilder Shipped) | 1405.1 ms | 2800.5 ms | not measured | 2800.5 ms | 4571.0 ms | 85.6% | 648.00 MiB | 44.3 tok/s |
 
 ### 2.3 Synchronized Burst-16 Benchmark (PromptBuilder)
-- **First Content p50**: `1420.0 ms` | **First Content p95**: `2336.3 ms`
-- **First LLM Token p50**: `1420.0 ms` | **First LLM Token p95**: `2336.3 ms`
+- **First Content p50**: `not measured` | **First Content p95**: `2336.3 ms`
+- **First LLM Token p50**: `not measured` | **First LLM Token p95**: `2336.3 ms`
 - **Total Verified Answer p95**: `4129.8 ms`
 - **Hardware Backend**: Apple M4 Metal (`MTL0`), 36 layers offloaded, 4 CPU threads.
 
@@ -73,7 +73,7 @@ Measured live on Apple M4 (Server Log Output from `llama-server`):
 | **PostgreSQL + pgvector** | 450.0 MiB | Docker shared buffers + OS file cache | System RAM | — |
 | **FastAPI + FastEmbed** | 280.0 MiB | BAAI/bge-small ONNX runtime | System RAM | — |
 
-> **Note on KV Types (`f16` vs `q4_0`)**: `f16` vs `q4_0` answer quality was not compared on long sequences during this sprint. `q4_0` is a hardware memory choice with the measured server buffer size of **648.00 MiB** (versus **2,304.00 MiB** for `f16`), ensuring coexistence within the 6.0 GB budget with 3.19 GiB headroom while maintaining 0 wrong numbers across all evaluated sets.
+> **Note on KV Types (`f16` vs `q4_0`)**: `f16 vs q4_0 answer quality: not compared`. `q4_0` is a hardware memory choice with the measured server buffer size of **648.00 MiB** (versus **2,304.00 MiB** for `f16`), ensuring coexistence within the 6.0 GB budget with 3.19 GiB headroom while maintaining 0 wrong numbers across all evaluated sets.
 
 ---
 
@@ -122,5 +122,5 @@ Evaluated once on frozen commit `3d44926` with dataset SHA-256 `c89b37535d7c0d25
 | **Tenant Isolation** | Zero cross-tenant leaks | **0 leaks / 10,000 ops** | **MET (PASS)** | Disjoint slot pools (0..7 Acme, 8..15 Borealis) and PostgreSQL RLS strictly prevent cross-tenant data leakage. |
 | **Cold Start Structured TTFT** | $< 2,000\text{ ms}$ | **13.1 ms** | **MET (PASS)** | Deterministic SQL queue bypass achieves sub-15ms responses across all concurrency levels. |
 | **4 Users LLM Prefill TTFT** | $< 2,000\text{ ms}$ | **340.0 ms** | **MET (PASS)** | PromptBuilder prefix caching reuses 702 static prefix tokens (87.3% hit rate), achieving 340ms prefill. |
-| **16 Users Staggered LLM TTFT**| $< 2,000\text{ ms}$ | **2,800.5 ms** | **EXPLAINED** | Contention across 16 active slots on local M4 Metal (4 CPU threads) causes 800ms queue wait. Lever: `BoundedLlmQueue(max_concurrent=4)` bounds TTFT to 340ms. |
-| **16 Users Burst LLM TTFT** | $< 2,000\text{ ms}$ | **2,336.3 ms** | **EXPLAINED** | Synchronized 16-user burst exceeds SLO by 336ms on 4 CPU threads. Production lever: scale server slots or enforce max 8 in-flight. |
+| **16 Users Staggered LLM TTFT**| $< 2,000\text{ ms}$ | **2,800.5 ms** | **NOT MET (UNTHROTTLED)** | Contention across 16 active slots on local M4 Metal (4 CPU threads) causes 800.5 ms SLO overrun. Proposed mitigation (not measured at 16 users): `BoundedLlmQueue(max_in_flight=4)` would admit at most 4 requests at a time. |
+| **16 Users Burst LLM TTFT** | $< 2,000\text{ ms}$ | **2,336.3 ms** | **NOT MET** | Synchronized 16-user burst exceeds SLO by 336.3 ms on 4 CPU threads. |

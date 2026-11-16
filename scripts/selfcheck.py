@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """scripts/selfcheck.py
 
+[OPERATIONAL HARNESS: post-hoc, evaluated on dev only]
+
 Unified One-Command End-to-End Self-Check Suite.
 Runs:
 1. Unit Tests (including AST boundary tests)

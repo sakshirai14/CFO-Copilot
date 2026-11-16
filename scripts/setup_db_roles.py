@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """scripts/setup_db_roles.py
 
+[OPERATIONAL HARNESS: post-hoc, evaluated on dev only]
+
 Idempotent setup for PostgreSQL databases, pgvector extension, and 3-tier role architecture.
 Can be executed against any running PostgreSQL instance (Docker or local).
 """

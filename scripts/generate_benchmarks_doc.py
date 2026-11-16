@@ -97,11 +97,19 @@ def main():
         c_data = stagg[c]
         for mode, label in [("cache_off", "Cache OFF (No Prefix Reuse)"), ("cache_on_old", "Cache ON (Old Assembly, Drift)"), ("cache_on_new", "Cache ON (PromptBuilder Shipped)")]:
             row = c_data[mode]
-            prefill_val = f"{row['prefill_tokens_per_second']:.1f} tok/s" if row['prefill_tokens_per_second'] > 0 else "not measured (pure SQL)"
+            if c == "1":
+                first_llm_p50 = "not measured"
+                first_llm_p95 = "not measured"
+                prefill_val = "not measured"
+            else:
+                first_llm_p50 = "not measured"
+                first_llm_p95 = f"{row['first_llm_token_p95_ms']:.1f} ms"
+                prefill_val = f"{row['prefill_tokens_per_second']:.1f} tok/s"
+
             md.append(
                 f"| {c} user{'s' if c != '1' else ' '} | {label} | "
                 f"{row['first_content_p50_ms']:.1f} ms | {row['first_content_p95_ms']:.1f} ms | "
-                f"{row.get('first_llm_token_p50_ms', row['first_content_p50_ms']):.1f} ms | {row['first_llm_token_p95_ms']:.1f} ms | "
+                f"{first_llm_p50} | {first_llm_p95} | "
                 f"{row['total_verified_answer_p95_ms']:.1f} ms | "
                 f"{row['cache_hit_rate_pct']:.1f}% | 648.00 MiB | {prefill_val} |"
             )
@@ -110,8 +118,8 @@ def main():
     # Burst 16
     burst = l3["burst_16"]
     md.append("### 2.3 Synchronized Burst-16 Benchmark (PromptBuilder)")
-    md.append(f"- **First Content p50**: `{burst.get('first_content_p50_ms', 1420.0):.1f} ms` | **First Content p95**: `{burst['first_content_p95_ms']:.1f} ms`")
-    md.append(f"- **First LLM Token p50**: `{burst.get('first_llm_token_p50_ms', 1420.0):.1f} ms` | **First LLM Token p95**: `{burst['first_llm_token_p95_ms']:.1f} ms`")
+    md.append(f"- **First Content p50**: `not measured` | **First Content p95**: `{burst['first_content_p95_ms']:.1f} ms`")
+    md.append(f"- **First LLM Token p50**: `not measured` | **First LLM Token p95**: `{burst['first_llm_token_p95_ms']:.1f} ms`")
     md.append(f"- **Total Verified Answer p95**: `{burst['total_verified_p95_ms']:.1f} ms`")
     md.append(f"- **Hardware Backend**: Apple M4 Metal (`MTL0`), 36 layers offloaded, 4 CPU threads.")
     md.append("")
@@ -132,7 +140,7 @@ def main():
     md.append("| **PostgreSQL + pgvector** | 450.0 MiB | Docker shared buffers + OS file cache | System RAM | — |")
     md.append("| **FastAPI + FastEmbed** | 280.0 MiB | BAAI/bge-small ONNX runtime | System RAM | — |")
     md.append("")
-    md.append("> **Note on KV Types (`f16` vs `q4_0`)**: `f16` vs `q4_0` answer quality was not compared on long sequences during this sprint. `q4_0` is a hardware memory choice with the measured server buffer size of **648.00 MiB** (versus **2,304.00 MiB** for `f16`), ensuring coexistence within the 6.0 GB budget with 3.19 GiB headroom while maintaining 0 wrong numbers across all evaluated sets.")
+    md.append("> **Note on KV Types (`f16` vs `q4_0`)**: `f16 vs q4_0 answer quality: not compared`. `q4_0` is a hardware memory choice with the measured server buffer size of **648.00 MiB** (versus **2,304.00 MiB** for `f16`), ensuring coexistence within the 6.0 GB budget with 3.19 GiB headroom while maintaining 0 wrong numbers across all evaluated sets.")
     md.append("")
     md.append("---")
     md.append("")
@@ -204,8 +212,8 @@ def main():
     md.append("| **Tenant Isolation** | Zero cross-tenant leaks | **0 leaks / 10,000 ops** | **MET (PASS)** | Disjoint slot pools (0..7 Acme, 8..15 Borealis) and PostgreSQL RLS strictly prevent cross-tenant data leakage. |")
     md.append("| **Cold Start Structured TTFT** | $< 2,000\\text{ ms}$ | **13.1 ms** | **MET (PASS)** | Deterministic SQL queue bypass achieves sub-15ms responses across all concurrency levels. |")
     md.append("| **4 Users LLM Prefill TTFT** | $< 2,000\\text{ ms}$ | **340.0 ms** | **MET (PASS)** | PromptBuilder prefix caching reuses 702 static prefix tokens (87.3% hit rate), achieving 340ms prefill. |")
-    md.append("| **16 Users Staggered LLM TTFT**| $< 2,000\\text{ ms}$ | **2,800.5 ms** | **EXPLAINED** | Contention across 16 active slots on local M4 Metal (4 CPU threads) causes 800ms queue wait. Lever: `BoundedLlmQueue(max_concurrent=4)` bounds TTFT to 340ms. |")
-    md.append("| **16 Users Burst LLM TTFT** | $< 2,000\\text{ ms}$ | **2,336.3 ms** | **EXPLAINED** | Synchronized 16-user burst exceeds SLO by 336ms on 4 CPU threads. Production lever: scale server slots or enforce max 8 in-flight. |")
+    md.append("| **16 Users Staggered LLM TTFT**| $< 2,000\\text{ ms}$ | **2,800.5 ms** | **NOT MET (UNTHROTTLED)** | Contention across 16 active slots on local M4 Metal (4 CPU threads) causes 800.5 ms SLO overrun. Proposed mitigation (not measured at 16 users): `BoundedLlmQueue(max_in_flight=4)` would admit at most 4 requests at a time. |")
+    md.append("| **16 Users Burst LLM TTFT** | $< 2,000\\text{ ms}$ | **2,336.3 ms** | **NOT MET** | Synchronized 16-user burst exceeds SLO by 336.3 ms on 4 CPU threads. |")
 
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUT_PATH.write_text("\n".join(md) + "\n", encoding="utf-8")

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # scripts/bootstrap_env.sh
+# [OPERATIONAL HARNESS: post-hoc, evaluated on dev only]
 # Generates a git-ignored .env file with secure random passwords if missing.
 # Adheres to Foundation Lock 11 (No secrets in repository).
 
