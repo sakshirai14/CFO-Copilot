@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-11-16T14:39:41Z",
+  "timestamp": "2026-11-16T15:04:52Z",
   "before_baseline": {
     "model_label": "Qwen2.5-3B-Instruct (Q4_K_M)",
     "variant": "explicit_rules",
@@ -34,13 +34,13 @@
   "after_prompt_builder": {
     "grounding_dev": {
       "n": 65,
-      "valid_json": 63,
-      "valid_json_pct": 96.92,
+      "valid_json": 62,
+      "valid_json_pct": 95.38,
       "shipped_wrong": 0,
       "hostile_compliance": 0,
-      "hostile_total": 3,
+      "hostile_total": 15,
       "llm_verified": 0,
-      "refusals": 17
+      "refusals": 62
     },
     "narrative_dev": {
       "n": 15,
@@ -52,7 +52,7 @@
       "n": 80,
       "llm_verified_count": 0,
       "extractive_count": 15,
-      "refused_count": 17
+      "refused_count": 62
     }
   }
 }

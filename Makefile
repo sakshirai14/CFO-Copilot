@@ -35,12 +35,14 @@ up:
 	@echo "[make up] Database services and migrations successfully initialized."
 
 down:
-	@echo "[make down] Stopping Docker Compose services..."
-	docker compose down
+	@echo "[make down] Stopping Docker Compose services and removing volumes..."
+	docker compose down -v
 
 ingest:
 	@echo "[make ingest] Ingesting Drop 1 and Drop 2 datasets..."
 	$(PYTHON) scripts/ingest.py
+	@echo "[make ingest] Indexing chunks and vector embeddings..."
+	$(PYTHON) scripts/index_chunks.py
 	@echo "[make ingest] Generating Phase 1 verification report..."
 	$(PYTHON) scripts/phase1_report.py
 
@@ -64,8 +66,8 @@ report:
 	$(PYTHON) scripts/phase1_report.py
 
 selfcheck:
-	@echo "Running one-command self-check against golden question set..."
-	@echo "Self-check pipeline will be wired in Phase 5."
+	@echo "[make selfcheck] Running comprehensive system self-check..."
+	$(PYTHON) scripts/selfcheck.py
 
 bench:
 	@echo "Running KV cache and serving latency benchmarks..."
