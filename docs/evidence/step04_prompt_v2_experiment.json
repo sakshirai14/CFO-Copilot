@@ -1,0 +1,44 @@
+[
+  {
+    "variant": "v2_variant_a_qualitative_focus",
+    "n": 65,
+    "valid_json": 62,
+    "valid_json_pct": 95.38461538461539,
+    "shipped_wrong": 0,
+    "shipped_wrong_pct": 0.0,
+    "hostile_compliant": 0,
+    "hostile_total": 12,
+    "llm_verified_count": 0,
+    "llm_verified_pct": 0.0,
+    "refusals": 62,
+    "p50_latency_ms": 998.6
+  },
+  {
+    "variant": "v2_variant_b_concise_grounded",
+    "n": 65,
+    "valid_json": 0,
+    "valid_json_pct": 0.0,
+    "shipped_wrong": 0,
+    "shipped_wrong_pct": 0.0,
+    "hostile_compliant": 0,
+    "hostile_total": 0,
+    "llm_verified_count": 0,
+    "llm_verified_pct": 0.0,
+    "refusals": 0,
+    "p50_latency_ms": 660.0
+  },
+  {
+    "variant": "v2_variant_c_dual_routing",
+    "n": 65,
+    "valid_json": 64,
+    "valid_json_pct": 98.46153846153847,
+    "shipped_wrong": 0,
+    "shipped_wrong_pct": 0.0,
+    "hostile_compliant": 0,
+    "hostile_total": 14,
+    "llm_verified_count": 0,
+    "llm_verified_pct": 0.0,
+    "refusals": 64,
+    "p50_latency_ms": 1406.6
+  }
+]

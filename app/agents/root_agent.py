@@ -153,18 +153,19 @@ class CfoCopilotRootAgent(BaseAgent):
             has_relevant_passages = any(bool(f.text and f.text.strip()) for f in facts)
             if (status_str in ("refused", "insufficient_data", "unsupported") or candidate_text.strip().startswith("Refused:")) and has_relevant_passages:
                 candidate_text = AnswerComposer.compose_extractive_summary(facts, query)
-                status_enum = AnswerStatus.OK
+                status_enum = AnswerStatus.OK_EXTRACTIVE
                 all_caveats.append("Model writer returned insufficient data; preserved verified extractive filing passages.")
         except Exception as e:
             # Degraded mode fallback on model error/timeout
             candidate_text = AnswerComposer.compose_fallback_answer(facts, query)
-            status_enum = AnswerStatus.OK
+            status_enum = AnswerStatus.OK_EXTRACTIVE
             all_caveats = caveats + [f"Model inference failed ({str(e)}); served certified template fallback."]
             llm_meta = None
 
         # 5. Step 4: Strict Verification & Grounding Interception
         shipped_answer, ver_res, fallback_triggered = self.verifier.verify_and_intercept(candidate_text, facts, query)
         if fallback_triggered:
+            status_enum = AnswerStatus.OK_EXTRACTIVE
             all_caveats.append("Model output contained ungrounded claims; intercepted and replaced with certified SQL fallback.")
 
         latency = (time.perf_counter() - t_start) * 1000.0

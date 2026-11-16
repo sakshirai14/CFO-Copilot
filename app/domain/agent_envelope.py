@@ -19,6 +19,7 @@ class RouteType(str, Enum):
 
 class AnswerStatus(str, Enum):
     OK = "ok"
+    OK_EXTRACTIVE = "ok_extractive"
     MISSING_DATA = "missing_data"
     REFUSED = "refused"
     UNVERIFIED = "unverified"

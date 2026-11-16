@@ -340,3 +340,46 @@ def test_unsupported_number_strictly_rejected():
     assert res.valid is False
     assert any("45" in un["raw_text"] for un in res.ungrounded_numbers)
 
+
+def test_accession_masking_and_financial_token_extraction():
+    """Step 0.3: Ensure exact accession pattern masking while properly extracting:
+    '$10K', '10,000', '-10 million', 'Q3 FY23 revenue of 10', and catching wrong numbers next to accession IDs.
+    """
+    # 1. Test extraction of $10K
+    nums = AnswerVerifier.extract_numbers_from_text("Operating cash flow was $10K for the period.")
+    assert any(n.value == 10000.0 and n.kind == "currency" for n in nums)
+
+    # 2. Test extraction of 10,000
+    nums = AnswerVerifier.extract_numbers_from_text("Operating cash flow was 10,000 for the period.")
+    assert any(n.value == 10000.0 for n in nums)
+
+    # 3. Test extraction of -10 million
+    nums = AnswerVerifier.extract_numbers_from_text("Operating loss was -10 million.")
+    assert any(n.value == -10000000.0 for n in nums)
+
+    # 4. Test extraction of 'Q3 FY23 revenue of 10'
+    nums = AnswerVerifier.extract_numbers_from_text("Q3 FY23 revenue of 10 was reported.")
+    assert any(n.value == 10.0 for n in nums)
+
+    # 5. Wrong number next to accession ID is caught by verifier
+    fact = InputFact(
+        fact_id="f_rev",
+        company_id="ARG",
+        fiscal_year=2023,
+        fiscal_quarter=None,
+        metric_name="revenue",
+        value=800000000.0,
+        text="ARG-10K-FY2023 reported revenue was $800M."
+    )
+    # Model generates wrong number $999M next to accession ID
+    answer = GroundedAnswer(
+        status=AnswerStatus.ANSWERED,
+        answer="According to filing ARG-10K-FY2023 revenue was $999M.",
+        facts_used=["f_rev"],
+        caveats=[]
+    )
+    res = AnswerVerifier.verify(answer, [fact])
+    assert res.valid is False
+    assert any(un["extracted_value"] == 999000000.0 for un in res.ungrounded_numbers)
+
+

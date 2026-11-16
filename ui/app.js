@@ -266,16 +266,25 @@
         // Render verified answer text strictly as plain text
         assistantBubble.textContent = data.answer;
 
-        if (data.degraded) {
+        if (data.status === "ok_extractive" || data.degraded) {
           degradedBanner.style.display = "flex";
-          degradedText.textContent = `Degraded Mode Active: ${data.degraded_reason || "Extractive fallback served."}`;
+          degradedText.textContent = data.status === "ok_extractive" ? "Excerpts from filings; not a synthesized answer" : `Degraded Mode Active: ${data.degraded_reason || "Extractive fallback served."}`;
         }
       } else if (eventName === "final") {
         // Populate all metadata from AnswerEnvelope
         telemetryVerified.textContent = `${data.latency_ms} ms`;
         telemetryLlmCalls.textContent = data.llm_calls_made || "0";
 
-        if (data.verification) {
+        if (data.status === "ok_extractive") {
+          auditVerifier.textContent = "";
+          const badge = document.createElement("span");
+          badge.className = "status-badge extractive";
+          badge.style.background = "#fff3cd";
+          badge.style.color = "#856404";
+          badge.style.borderColor = "#ffeeba";
+          badge.textContent = "Excerpts from filings; not a synthesized answer";
+          auditVerifier.appendChild(badge);
+        } else if (data.verification) {
           auditVerifier.textContent = "";
           const badge = document.createElement("span");
           badge.className = `status-badge ${data.verification.is_valid ? "valid" : "invalid"}`;

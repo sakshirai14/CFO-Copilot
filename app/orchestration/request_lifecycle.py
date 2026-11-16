@@ -399,7 +399,7 @@ class RequestLifecycleManager:
             request_id=request_id,
             question=question,
             route=query.route,
-            status=AnswerStatus.OK if facts else AnswerStatus.MISSING_DATA,
+            status=AnswerStatus.OK_EXTRACTIVE if facts else AnswerStatus.MISSING_DATA,
             answer=fallback_text,
             llm_calls_made=0,
             latency_ms=round(latency, 2),
@@ -439,8 +439,9 @@ class RequestLifecycleManager:
         log_meta = {
             "request_id": request_id,
             "routed_to": envelope.route.value,
-            "model_version": "qwen2.5-3b-instruct",
-            "prompt_template_hash": "frozen_prompt_v1",
+            "model_version": "626b4a6678b86442240e33df819e00132d3ba7dddfe1cdc4fbb18e0a9615c62d",
+            "prompt_template_hash": "dd4a4ded237acf238396237ca7e87b98ad5213a9550085c1451d604580db1f8e",
+            "layout_version": "v1.0",
             "ttft_ms": round(envelope.latency_ms, 2),
             "total_time_ms": round(total_ms, 2),
             "llm_calls": envelope.llm_calls_made,
@@ -450,7 +451,10 @@ class RequestLifecycleManager:
             "timings": {
                 "total_ms": round(total_ms, 2),
                 "queue_wait_ms": round(queue_wait_ms, 2),
-                "agent_latency_ms": envelope.latency_ms
+                "agent_latency_ms": envelope.latency_ms,
+                "layout_version": "v1.0",
+                "model_name": "qwen2.5-3b-instruct-q4_k_m",
+                "model_file_sha256": "626b4a6678b86442240e33df819e00132d3ba7dddfe1cdc4fbb18e0a9615c62d"
             },
             "facts": [f.model_dump() for f in envelope.facts_used]
         }
@@ -464,6 +468,8 @@ class RequestLifecycleManager:
                 envelope_data=envelope.model_dump(),
                 log_meta=log_meta
             )
-        except Exception:
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
             # Persistence logging must not crash user response
             pass

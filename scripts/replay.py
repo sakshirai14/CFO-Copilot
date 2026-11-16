@@ -27,8 +27,9 @@ from app.core.config import get_settings
 from app.domain.agent_envelope import FactItem, ResolvedQuery, RouteType
 from app.domain.answer_composer import AnswerComposer
 
-CURRENT_MODEL_VERSION = "qwen2.5-3b-instruct"
-CURRENT_PROMPT_TEMPLATE_HASH = "frozen_prompt_v1"
+CURRENT_MODEL_VERSION = "626b4a6678b86442240e33df819e00132d3ba7dddfe1cdc4fbb18e0a9615c62d"
+CURRENT_PROMPT_TEMPLATE_HASH = "dd4a4ded237acf238396237ca7e87b98ad5213a9550085c1451d604580db1f8e"
+CURRENT_LAYOUT_VERSION = "v1.0"
 
 
 def get_db_connection():
@@ -194,20 +195,53 @@ def main():
                 sys.exit(0)
 
             print(f"=== Replaying {len(records)} Requests from answer_log ===")
-            exact_matches = 0
+            route_stats: Dict[str, Dict[str, int]] = {}
+            mismatches: List[Dict[str, Any]] = []
+
             for idx, r in enumerate(records, 1):
+                route = r.get("routed_to", "UNKNOWN")
+                if route not in route_stats:
+                    route_stats[route] = {"total": 0, "match": 0, "mismatch": 0, "refused": 0}
+                route_stats[route]["total"] += 1
+
                 res = replay_request(r)
-                status_str = "MATCH" if res["exact_match"] else "MISMATCH"
                 if not res["replayed"]:
-                    status_str = "REFUSED"
-                if res["exact_match"]:
-                    exact_matches += 1
-                print(f"[{idx:02d}/{len(records)}] {r['request_id']} ({r.get('routed_to', 'UNKNOWN')}): {status_str}")
-                if not res["exact_match"] and res["diff"]:
+                    status_str = "HASH_MISMATCH"
+                    route_stats[route]["refused"] += 1
+                    mismatches.append({
+                        "request_id": r["request_id"],
+                        "route": route,
+                        "cause": res["refusal_reason"]
+                    })
+                elif res["exact_match"]:
+                    status_str = "MATCH"
+                    route_stats[route]["match"] += 1
+                else:
+                    status_str = "CONTENT_MISMATCH"
+                    route_stats[route]["mismatch"] += 1
+                    mismatches.append({
+                        "request_id": r["request_id"],
+                        "route": route,
+                        "cause": f"Content diff: {res['diff'][:120]}"
+                    })
+
+                print(f"[{idx:02d}/{len(records)}] {r['request_id']} ({route}): {status_str}")
+                if not res["replayed"]:
+                    print(f"     Cause: {res['refusal_reason']}")
+                elif not res["exact_match"] and res["diff"]:
                     print("     " + res["diff"].replace("\n", "\n     "))
 
-            rate = (exact_matches / len(records)) * 100.0 if records else 0.0
-            print(f"\nTotal Tested: {len(records)} | Exact Matches: {exact_matches} | Match Rate: {rate:.1f}%")
+            total_matches = sum(s["match"] for s in route_stats.values())
+            print("\n--- Per-Route Exact-Match Summary ---")
+            for route, s in sorted(route_stats.items()):
+                print(f"Route '{route}': Total {s['total']} | Match: {s['match']} | Content Mismatch: {s['mismatch']} | Hash Mismatch: {s['refused']}")
+
+            rate = (total_matches / len(records)) * 100.0 if records else 0.0
+            print(f"\nTotal Tested: {len(records)} | Exact Matches: {total_matches} | Match Rate: {rate:.1f}%")
+            if mismatches:
+                print("\n--- Detailed Mismatches & Causes ---")
+                for m in mismatches:
+                    print(f"- {m['request_id']} ({m['route']}): {m['cause']}")
     finally:
         conn.close()
 

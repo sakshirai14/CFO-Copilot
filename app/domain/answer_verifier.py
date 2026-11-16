@@ -155,11 +155,12 @@ class AnswerVerifier:
 
         # Mask calendar years, quarters, and form identifiers
         masked = re.sub(r"\b202[0-9]\b", " ", text)
-        masked = re.sub(r"\bFY202[0-9]\b", " ", masked, flags=re.IGNORECASE)
+        masked = re.sub(r"\bFY\d{2,4}\b", " ", masked, flags=re.IGNORECASE)
         masked = re.sub(r"\bQ[1-4]\b", " ", masked, flags=re.IGNORECASE)
         masked = re.sub(r"\b(?:first|second|third|fourth)\s+quarter\b", " ", masked, flags=re.IGNORECASE)
-        masked = re.sub(r"\b[A-Z]{3,4}-10-?[KQ](?:/A)?(?:-FY\d{4}(?:Q\d)?)?\b", " ", masked, flags=re.IGNORECASE)
-        masked = re.sub(r"(?:-|\b)10-?[KQ](?:/A)?\b", " ", masked, flags=re.IGNORECASE)
+        # Exact accession pattern and Form mention (e.g. ARG-10K-FY2023, Form 10-K)
+        masked = re.sub(r"\b[A-Z]{2,5}-10-?[KQ](?:/A)?(?:-FY\d{4}(?:Q[1-4])?)?(?:#c\d+)?\b", " ", masked, flags=re.IGNORECASE)
+        masked = re.sub(r"\bForm\s+10-?[KQ](?:/A)?\b", " ", masked, flags=re.IGNORECASE)
         masked = re.sub(r"\bRule\s+R\d+\b", " ", masked, flags=re.IGNORECASE)
         masked = re.sub(r"\bNote\s+\d+\b", " ", masked, flags=re.IGNORECASE)
 
@@ -195,8 +196,11 @@ class AnswerVerifier:
             parsed = cls.parse_numeric_token(raw)
             if parsed:
                 # Filter out small integers under 100 without currency / scale symbols (e.g. '30 days')
+                # unless preceded by a financial keyword (e.g. 'revenue of 10')
                 if parsed.value < 100 and parsed.scale == 1.0 and "$" not in raw and "." not in raw:
-                    continue
+                    preceding = masked_for_curr[max(0, m.start() - 30):m.start()].lower()
+                    if not re.search(r"\b(?:revenue|sales|income|profit|cost|expense|debt|equity|cash|assets|liabilities|ebitda|fcf|eps|margin|capex|dividend|value|amount)(?:\s+(?:of|was|is|at|to|equal to))?\s*$", preceding):
+                        continue
                 extracted.append(parsed)
 
         return extracted

@@ -34,16 +34,26 @@ def get_connection(
     pool = get_connection_pool(role=role, is_test=is_test)
     conn = pool.getconn()
     try:
-        if tenant_id:
-            with conn.cursor() as cur:
+        conn.autocommit = False
+        with conn.cursor() as cur:
+            if tenant_id:
                 cur.execute("SET LOCAL app.current_tenant = %s;", (tenant_id,))
+            else:
+                cur.execute("RESET app.current_tenant;")
         yield conn
         if role == "rw":
             conn.commit()
-    except Exception:
-        if role == "rw":
+        else:
             conn.rollback()
+    except Exception:
+        conn.rollback()
         raise
     finally:
+        try:
+            with conn.cursor() as cur:
+                cur.execute("RESET app.current_tenant;")
+            conn.rollback()
+        except Exception:
+            pass
         pool.putconn(conn)
 

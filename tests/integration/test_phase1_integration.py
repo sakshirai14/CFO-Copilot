@@ -47,6 +47,43 @@ class TestMigrationIntegrity:
             assert "001" in versions
         conn.close()
 
+    def test_applied_migration_checksums_enforced(self, test_db_setup, settings):
+        """Step 0.6: Asserts all applied migrations match disk checksums, and tampered files cause run_migrations to fail."""
+        from app.data.migrations import get_migration_files, compute_file_hash
+        conn = psycopg2.connect(**settings.get_connection_params(role="ro", is_test=True))
+        with conn.cursor() as cur:
+            cur.execute("SELECT version, checksum FROM schema_migrations;")
+            recorded = dict(cur.fetchall())
+        conn.close()
+
+        # 1. Assert all disk migrations match recorded checksums exactly
+        assert len(recorded) > 0
+        for version, name, filepath in get_migration_files():
+            if version in recorded:
+                actual_hash = compute_file_hash(filepath)
+                assert recorded[version] == actual_hash, (
+                    f"Migration {version}_{name}.sql checksum mismatch! "
+                    f"Recorded: {recorded[version]}, Disk: {actual_hash}"
+                )
+
+        # 2. Assert tampering an applied migration checksum in the DB triggers ValueError on run_migrations
+        owner_conn = psycopg2.connect(**settings.get_connection_params(role="owner", is_test=True))
+        try:
+            with owner_conn.cursor() as cur:
+                # Intentionally tamper recorded checksum of 001
+                cur.execute("UPDATE schema_migrations SET checksum = 'tampered_hash_value_1234' WHERE version = '001';")
+            owner_conn.commit()
+
+            with pytest.raises(ValueError, match="checksum mismatch"):
+                run_migrations(is_test=True)
+        finally:
+            # Restore genuine checksum
+            real_hash = compute_file_hash(get_migration_files()[0][2])
+            with owner_conn.cursor() as cur:
+                cur.execute("UPDATE schema_migrations SET checksum = %s WHERE version = '001';", (real_hash,))
+            owner_conn.commit()
+            owner_conn.close()
+
 
 class TestIngestionIdempotency:
     def test_reingestion_produces_identical_counts(self, test_db_setup, settings):

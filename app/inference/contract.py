@@ -13,6 +13,7 @@ class AnswerStatus(str, Enum):
     ANSWERED = "answered"
     INSUFFICIENT_DATA = "insufficient_data"
     CONFLICT_NOTED = "conflict_noted"
+    OK_EXTRACTIVE = "ok_extractive"
 
     # Aliases for backwards compatibility with test harnesses and prompts
     OK = "answered"
