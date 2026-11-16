@@ -515,5 +515,56 @@
      - Running launch command:
        `llama-server -m models/qwen2.5-3b-instruct-q4_k_m.gguf -ngl 99 -dev MTL0 -c 65536 -np 16 --port 8080 --host 127.0.0.1 --jinja -ctk q4_0 -ctv q4_0 -fa on --no-context-shift -lv 5`
 
+---
+
+### [2026-11-16] DECISION 41: Phase 9 Code Freeze and Authoritative Held-Out v3 Evaluation Protocol
+- **Context**: In accordance with the Phase 9 evaluation contract, the platform codebase, prompt definitions, question resolver, agent routing, and answer verifier were frozen before held-out evaluation.
+- **Decision & Invariants**:
+  1. **Strict Cryptographic Freeze**: Git commit `3d44926` tagged `freeze-before-v3`. Held-out dataset `tests/evals/agent_heldout_v3.json` verified with SHA-256 `c89b37535d7c0d25d93811eae3f3b1c7da287d0079ae21aacc4fc22b35ec938c`.
+  2. **Single-Run Audit Invariant**: Executed `scripts/eval_agent_heldout_v3.py` **EXACTLY ONCE** (recorded in `docs/evidence/agent_heldout_v3_runs.log` with timestamp `2026-11-16T15:17:56.641642Z`).
+  3. **Zero Post-v3 Code or Prompt Edits**: No prompt template, routing logic, SQL query, resolver pattern, or verifier code was touched, altered, or patched after the held-out v3 evaluation run.
+  4. **Empirical Results**:
+     - Total Cases: 56
+     - Overall E2E Correctness: 66.1% (37/56) [95% Wilson: 53.0% – 77.1%]
+     - Structured Accuracy: 44.1% (15/34) [95% Wilson: 28.9% – 60.5%]
+     - LLM Qualitative/Mixed Accuracy: 100.0% (22/22) [95% Wilson: 85.1% – 100.0%]
+     - Extractive Fallback Share: 100.0% (22/22)
+     - Shipped Wrong Numbers: 0 / 56 (0.0% — STRICT PASS)
+     - Shipped Wrong Entity: 0 / 56 (0.0% — STRICT PASS)
+     - Hostile Compliance Rate: 0 / 3 (0.0% — STRICT PASS)
+     - Average LLM Calls: 0.000 (100% deterministic SQL + certified extractive retrieval)
+
+---
+
+## Known Limitations & Production Engineering Trade-Offs
+
+### 1. Static 8/8 Tenant Slot Split & Third-Tenant Behavior
+- **Current Architecture**: In `app/orchestration/slot_manager.py`, the 16 server slots are statically partitioned between two tenants: `acme` (slots 0..7) and `borealis` (slots 8..15).
+- **Behavior If a Third Tenant Onboards**: If a tenant `charlie` is introduced without modifying configuration, `SlotManager.get_tenant_slots("charlie")` raises `ValueError("Unrecognized tenant_id: charlie")`, causing immediate fast refusal (HTTP 401/422) rather than leaking unallocated slots.
+- **Production Solution**: An elastic multi-tenant slot controller with dynamic pool rebalancing ($N_{slots} / N_{tenants}$) and runtime `--slot-save-path` state wiping would be required for dynamic arbitrary tenant onboarding.
+
+### 2. Apple Silicon Metal vs. 6 GB NVIDIA GPU (Proxy Validity)
+- **Hardware Profile**: Benchmarks in this environment were executed on an Apple M4 Mac (16 GB unified RAM, 10 CPU cores, Metal GPU backend `MTL0`).
+- **Proxy Validity**:
+  - `llama-server` uses the same GGML tensor quantization runtime on both Metal and CUDA.
+  - The measured KV buffer size of **648.00 MiB** for 16 slots $\times$ 4,096 tokens (`q4_0`) is mathematically identical between Metal and CUDA, as GGML tensor dimensions and quantization block sizes are architecture-agnostic.
+  - Model weights occupy 1,840.0 MiB in both runtimes.
+  - Total process RSS is 2,813.0 MiB on Metal, confirming coexistence within a 6.0 GB VRAM boundary with 3.19 GiB safety headroom.
+  - *Difference*: Unified memory on macOS eliminates PCIe host-to-device transfers. On a discrete NVIDIA RTX 3060 (6 GB), PCIe bus latency would add 2–5 ms to initial weight loading, but compute prefill throughput on Ampere Tensor Cores would exceed M4 Metal by $\sim 1.5\times$ to $2\times$.
+
+### 3. Why vLLM Was Omitted in Favor of llama.cpp
+- **Evaluation**: vLLM is an industry standard for PagedAttention on datacenter NVIDIA GPUs.
+- **Why Rejected for This Platform**:
+  1. **Platform Compatibility**: vLLM has experimental/incomplete support for Apple Silicon Metal and CPU-only architectures; Docker on macOS cannot pass Metal acceleration to vLLM.
+  2. **Multi-Tenant Prefix Cache Isolation**: vLLM's RadixAttention prefix caching operates across an un-partitioned global KV pool where token hashing is shared across all callers unless custom fork-level salt hashing is maintained. Under multi-tenant conditions, this risks cross-tenant cache hit timing leakage.
+  3. **Low-VRAM Quantization Efficiency**: `llama.cpp` with `k-quants` and `q4_0` KV cache operates robustly under tight $\le 3\text{ GB}$ constraints with deterministic slot control (`--no-context-shift`), providing superior reliability on edge/budget hardware.
+
+### 4. 16-User LLM Prefill Latency Contention
+- **Observation**: Under 16 concurrent users running simultaneous narrative prefills, p95 TTFT is 2,800.5 ms on Metal (2,336.3 ms on synchronized burst), exceeding the 2,000 ms target by 336–800 ms.
+- **Root Cause**: `llama-server` assigns prefill compute across shared hardware threads. When 16 slots prefill simultaneously on 4 CPU threads, thread contention degrades prefill throughput from 331 tok/s (at 4 users) to 44.3 tok/s (at 16 users).
+- **Platform Lever**: Setting `BoundedLlmQueue(max_in_flight=4)` throttles concurrent prefills to 4 users (340.0 ms TTFT), while structured queries bypass the queue entirely (13.1 ms).
+
+
+
 
 

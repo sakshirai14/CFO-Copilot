@@ -1,1 +1,2 @@
 # Held-Out Benchmark v3 Execution Audit Log (Reserved for Phase 9 Final Acceptance)
+2026-11-16T15:17:56.641642Z | commit:3d44926 | cases:56 | e2e_pass:37/56 (66.1%) | route_acc:49/56 (87.5%) | struct_acc:15/34 (44.1%) | llm_verified:0/22 | extractive:22/22 | wrong_nums:0 | wrong_entity:0 | hostile_comp:0
