@@ -162,22 +162,40 @@ def ensure_database_ready():
     import psycopg2
     from app.core.config import get_settings
     settings = get_settings()
+    py = sys.executable
+
+    # 1. Production database
     try:
-        conn = psycopg2.connect(**settings.get_connection_params(role="ro"))
+        conn = psycopg2.connect(**settings.get_connection_params(role="ro", is_test=False))
         cur = conn.cursor()
         cur.execute("SELECT COUNT(*) FROM kpi_values;")
         count = cur.fetchone()[0]
         conn.close()
         if count == 0:
-            print("[selfcheck] Database not populated. Running ingestion and KPI computation...")
-            py = sys.executable
+            print("[selfcheck] Production database not populated. Running ingestion and KPI computation...")
             run_cmd([py, "scripts/ingest.py"], "Ingest Filings")
             run_cmd([py, "scripts/index_chunks.py"], "Index Chunks")
             run_cmd([py, "scripts/compute_kpis.py"], "Compute 16 KPIs")
         else:
-            print(f"[selfcheck] Database ready ({count} computed KPI rows found).")
+            print(f"[selfcheck] Production database ready ({count} computed KPI rows found).")
     except Exception as e:
-        print(f"[selfcheck] Database readiness notice: {e}")
+        print(f"[selfcheck] Production DB readiness notice: {e}")
+
+    # 2. Test database
+    try:
+        conn_t = psycopg2.connect(**settings.get_connection_params(role="ro", is_test=True))
+        cur_t = conn_t.cursor()
+        cur_t.execute("SELECT COUNT(*) FROM kpi_values;")
+        count_t = cur_t.fetchone()[0]
+        conn_t.close()
+        if count_t == 0:
+            print("[selfcheck] Test database not populated. Running ingestion and KPI computation for test DB...")
+            run_cmd([py, "scripts/ingest.py", "--test"], "Ingest Filings (Test DB)")
+            run_cmd([py, "scripts/compute_kpis.py", "--test"], "Compute 16 KPIs (Test DB)")
+        else:
+            print(f"[selfcheck] Test database ready ({count_t} computed KPI rows found).")
+    except Exception as e:
+        print(f"[selfcheck] Test DB readiness notice: {e}")
 
 
 def main():
