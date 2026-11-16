@@ -210,3 +210,4 @@ class SlotManager:
             total_cached_tokens=total_cached,
             memory_per_slot_bytes=117 * 1024 * 1024  # ~117 MB per slot in Q4_0
         )
+

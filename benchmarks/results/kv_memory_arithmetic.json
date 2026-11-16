@@ -1,0 +1,79 @@
+{
+  "budget": {
+    "total_vram_gb": 6.0,
+    "runtime_activations_reserve_gb": 1.5,
+    "qwen_weights_gb": 1.96,
+    "qwen_kv_budget_gb": 2.54,
+    "reference_weights_gb": 2.0,
+    "reference_kv_budget_gb": 2.5
+  },
+  "qwen2.5_3b": {
+    "layers": 36,
+    "kv_heads": 2,
+    "head_dim": 128,
+    "sizing": {
+      "f16": {
+        "bytes_per_token": 36864,
+        "kib_per_token": 36.0,
+        "max_tokens_in_budget": 73982,
+        "max_4096_sessions": 18.06,
+        "vram_for_16_sessions_gb": 2.25,
+        "fits_16_sessions": true
+      },
+      "q8_0": {
+        "bytes_per_token": 18432,
+        "kib_per_token": 18.0,
+        "max_tokens_in_budget": 147965,
+        "max_4096_sessions": 36.12,
+        "vram_for_16_sessions_gb": 1.125,
+        "fits_16_sessions": true
+      },
+      "q4_0": {
+        "bytes_per_token": 9216,
+        "kib_per_token": 9.0,
+        "max_tokens_in_budget": 295931,
+        "max_4096_sessions": 72.25,
+        "vram_for_16_sessions_gb": 0.562,
+        "fits_16_sessions": true
+      }
+    }
+  },
+  "reference_model": {
+    "layers": 28,
+    "kv_heads": 8,
+    "head_dim": 128,
+    "sizing": {
+      "f16": {
+        "bytes_per_token": 114688,
+        "kib_per_token": 112.0,
+        "max_tokens_in_budget": 23405,
+        "max_4096_sessions": 5.71,
+        "vram_for_16_sessions_gb": 7.0,
+        "fits_16_sessions": false
+      },
+      "q8_0": {
+        "bytes_per_token": 57344,
+        "kib_per_token": 56.0,
+        "max_tokens_in_budget": 46811,
+        "max_4096_sessions": 11.43,
+        "vram_for_16_sessions_gb": 3.5,
+        "fits_16_sessions": false
+      },
+      "q4_0": {
+        "bytes_per_token": 28672,
+        "kib_per_token": 28.0,
+        "max_tokens_in_budget": 93622,
+        "max_4096_sessions": 22.86,
+        "vram_for_16_sessions_gb": 1.75,
+        "fits_16_sessions": true
+      }
+    }
+  },
+  "shipped_config": {
+    "total_context_tokens": 65536,
+    "slots": 16,
+    "tokens_per_slot": 4096,
+    "kv_type": "q4_0",
+    "justification": "Q4_0 KV quantization provides 9,216 bytes/token, requiring only 604 MB of KV cache for all 16 slots at full 4096 context. This leaves 1.97 GB of safety headroom in the 6 GB budget."
+  }
+}

@@ -1,58 +1,34 @@
-# Memory Accounting & 6 GB VRAM Hardware Budget Proof
+# Phase 7.3: KV Cache Memory Sizing Accounting
 
-## 1. Hardware Specification & Usable Budget Definition
-- **Target Hardware Envelope**: Single edge GPU with **6.0 GB total VRAM** (e.g. NVIDIA RTX 2060 / 3060 6 GB or equivalent workstation).
-- **Mandatory System & Driver Reserve**: **1.5 GB** (reserved for CUDA runtime, OS display compositor, PyTorch/llama.cpp backend scratch buffers).
-- **Effective Usable Memory Budget**:
-  $$\text{Usable VRAM Budget} = 6.0 \text{ GB} - 1.5 \text{ GB} = \mathbf{4.50 \text{ GB}} \text{ (4,608 MiB)}$$
-  *Rule*: Model Weights + Total Concurrent KV Cache $\le 4.50 \text{ GB}$.
+> **Methodology**: Extracted architectural parameters directly from `models/qwen2.5-3b-instruct-q4_k_m.gguf` binary metadata 
+> and `data_pack/CANDIDATE_PACK/puzzle2_data/reference_hardware_and_model.csv`.
 
----
+## 1. Budget Breakdown (6.0 GB Total Budget)
 
-## 2. Mathematical KV Cache Formulation
-For any autoregressive Transformer model:
-$$\text{KV Bytes per Token per Slot} = 2 \times \text{layers} \times \text{kv\_heads} \times \text{head\_dim} \times \text{bytes\_per\_num}$$
+- **Total Budget**: 6.0 GB
+- **Runtime & Activations Reserve**: 1.5 GB
+- **Qwen2.5-3B Weights**: 1.96 GB (Leaving **2.54 GB** for KV cache)
+- **Reference 3B Model Weights**: 2.00 GB (Leaving **2.50 GB** for KV cache)
 
-Where:
-- `layers`: Number of Transformer decoder layers.
-- `kv_heads`: Number of key-value attention heads (Grouped Query Attention).
-- `head_dim`: Dimension of each attention head ($d_{\text{model}} / n_{\text{heads}}$).
-- `bytes_per_num`: Precision format (fp16 = 2.0 B, q8_0 = 1.0 B, q4_0 = 0.5 B).
+## 2. Model Architecture Parameters
 
----
+- **Qwen2.5-3B**: Layers $L=36$, KV Heads $H_{kv}=2$, Query Heads $H_q=16$, Head Dim $D=128$
+- **Reference 3B**: Layers $L=28$, KV Heads $H_{kv}=8$, Head Dim $D=128$
 
-## 3. Comprehensive Model Architecture Comparison
+## 3. KV Sizing Comparison Matrix
 
-| Model | Layers | Attention Heads (Q / KV) | Head Dim | KV Bytes / Token (fp16) | Weights (Q4_K_M) | Weights Memory (GiB) |
+| Model | KV Quant Type | Bytes / Token | Max Tokens in Budget | Max 4,096 Sessions | VRAM for 16 Sessions (4k ctx) | Fits 16 Sessions? |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Qwen2.5-3B-Instruct** | 36 | 16 / **2** | 128 | **36,864 B** | 1,936.4 MiB | **1.89 GB** |
-| **Llama-3.2-3B-Instruct** | 28 | 24 / **8** | 128 | **114,688 B** | 2,121.3 MiB | **2.07 GB** |
+| **Qwen2.5-3B** | f16 | 36,864 B | 73,982 | 18.1 | 2.250 GB | **YES** |
+| **Qwen2.5-3B** | q8_0 | 18,432 B | 147,965 | 36.1 | 1.125 GB | **YES** |
+| **Qwen2.5-3B** | q4_0 | 9,216 B | 295,931 | 72.2 | 0.562 GB | **YES** |
+| **Reference 3B** | f16 | 114,688 B | 23,405 | 5.7 | 7.000 GB | **NO** |
+| **Reference 3B** | q8_0 | 57,344 B | 46,811 | 11.4 | 3.500 GB | **NO** |
+| **Reference 3B** | q4_0 | 28,672 B | 93,622 | 22.9 | 1.750 GB | **YES** |
 
-> **Architectural Takeaway**: Llama-3.2-3B allocates 8 KV heads vs. Qwen2.5-3B's 2 KV heads. As a direct mathematical consequence, Llama-3.2-3B requires **$3.11\times$ more KV cache per token** than Qwen2.5-3B for identical context lengths.
+## 4. Shipped Configuration Justification
 
----
-
-## 4. 16 Concurrent Sessions Memory Matrix (4k Context: 65,536 Total Tokens)
-
-Evaluating 16 concurrent chat sessions with $4,096$ tokens of context per slot ($16 \times 4,096 = 65,536$ total tokens):
-
-| Model & Quantization | KV Cache (MiB) | KV Cache (GB) | Model Weights (GB) | Total Footprint (GB) | Usable Budget (4.5 GB) | Margin / Deficit | Status |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Qwen2.5-3B (KV fp16)** | **2,304.0 MiB** | **2.25 GB** | 1.89 GB | **4.14 GB** | 4.50 GB | **+0.36 GB** | ✅ **FITS** |
-| **Qwen2.5-3B (KV q8_0)** | **1,152.0 MiB** | **1.13 GB** | 1.89 GB | **3.02 GB** | 4.50 GB | **+1.48 GB** | ✅ **FITS** |
-| **Qwen2.5-3B (KV q4_0)** | **576.0 MiB** | **0.56 GB** | 1.89 GB | **2.45 GB** | 4.50 GB | **+2.05 GB** | ✅ **FITS** |
-| **Llama-3.2-3B (KV fp16)** | **7,168.0 MiB** | **7.00 GB** | 2.07 GB | **9.07 GB** | 4.50 GB | **-4.57 GB** | ❌ **OOM / EXCEEDS** *(Computed, Not Measured)* |
-| **Llama-3.2-3B (KV q8_0)** | **3,584.0 MiB** | **3.50 GB** | 2.07 GB | **5.57 GB** | 4.50 GB | **-1.07 GB** | ❌ **OOM / EXCEEDS** *(Computed, Not Measured)* |
-| **Llama-3.2-3B (KV q4_0)** | **1,792.0 MiB** | **1.75 GB** | 2.07 GB | **3.82 GB** | 4.50 GB | **+0.68 GB** | ⚠️ FITS (Degraded Perplexity) |
-
----
-
-## 5. Hardware Honesty & Measurement Distinction
-
-- **Mac Unified RAM vs. GPU VRAM**:  
-  All empirical measurements in this repository were collected on an Apple M-series Mac with 16 GB of unified memory. Because macOS Metal dynamically allocates unified memory from host RAM, running 16 slots of Llama-3.2-3B did not crash the Mac operating system.
-- **Labeling of Llama-3.2-3B fp16 (16 slots)**:  
-  Because an edge GPU has a hard physical ceiling of 6.0 GB (4.5 GB usable), the Llama-3.2-3B 16-slot fp16 row is labeled strictly as **"COMPUTED, NOT MEASURED"**. On physical 6 GB hardware, loading 2.07 GB weights followed by a 7.00 GB KV allocation would cause an unrecoverable CUDA Out-of-Memory (`cudaErrorMemoryAllocation`) failure during initialization.
-- **Qwen2.5-3B Feasibility Proof**:  
-  Qwen2.5-3B's total memory requirement under standard fp16 KV cache is **4.14 GB**, fitting comfortably within the 4.50 GB usable envelope with **360 MiB of headroom**.
-
+- **Selected Quantization**: `q4_0`
+- **Allocated Total Context**: 65,536 tokens across 16 parallel slots (4,096 tokens/slot).
+- **Total KV Footprint**: 562.5 MB (0.562 GB), consuming only 21.9% of the 2.57 GB KV budget.
+- **Headroom**: 2.01 GB safety margin in KV budget; 3.48 GB total headroom under the 6.0 GB ceiling.

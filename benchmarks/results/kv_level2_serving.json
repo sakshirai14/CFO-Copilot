@@ -1,0 +1,71 @@
+{
+  "timestamp": "2026-11-16T14:07:40Z",
+  "dataset": "request_log.csv (220 total requests, 14 sessions)",
+  "results": {
+    "cache_off": {
+      "layout_mode": "as_logged",
+      "cache_prompt": false,
+      "total_requests": 25,
+      "total_prompt_tokens": 20490,
+      "total_cached_tokens": 0,
+      "total_new_evaluated_tokens": 20490,
+      "empirical_hit_rate_pct": 0.0,
+      "prefill_p50_ms": 2089.42,
+      "prefill_p95_ms": 2396.24
+    },
+    "as_logged_cache_on": {
+      "layout_mode": "as_logged",
+      "cache_prompt": true,
+      "total_requests": 50,
+      "total_prompt_tokens": 41880,
+      "total_cached_tokens": 1457,
+      "total_new_evaluated_tokens": 40423,
+      "empirical_hit_rate_pct": 3.48,
+      "prefill_p50_ms": 3117.9,
+      "prefill_p95_ms": 3449.11
+    },
+    "fixed_layout_cache_on": {
+      "layout_mode": "fixed_layout",
+      "cache_prompt": true,
+      "total_requests": 220,
+      "total_prompt_tokens": 250309,
+      "total_cached_tokens": 175889,
+      "total_new_evaluated_tokens": 74420,
+      "empirical_hit_rate_pct": 70.27,
+      "prefill_p50_ms": 1326.49,
+      "prefill_p95_ms": 2042.91
+    }
+  },
+  "simulator_comparison": {
+    "as_logged_simulator_hit_rate": 3.5,
+    "as_logged_empirical_hit_rate": 3.48,
+    "fixed_layout_simulator_hit_rate": 76.2,
+    "fixed_layout_empirical_hit_rate": 70.27
+  },
+  "kv_types": {
+    "f16": {
+      "bytes_per_token": 36864,
+      "kv_buffer_16_slots_mb": 2250.0,
+      "ttft_p50_ms": 38.5,
+      "decode_speed_tok_s": 25.9,
+      "valid_json_pct": 100.0,
+      "shipped_wrong": 0
+    },
+    "q8_0": {
+      "bytes_per_token": 18432,
+      "kv_buffer_16_slots_mb": 1125.0,
+      "ttft_p50_ms": 39.2,
+      "decode_speed_tok_s": 26.1,
+      "valid_json_pct": 100.0,
+      "shipped_wrong": 0
+    },
+    "q4_0": {
+      "bytes_per_token": 9216,
+      "kv_buffer_16_slots_mb": 562.5,
+      "ttft_p50_ms": 39.0,
+      "decode_speed_tok_s": 26.0,
+      "valid_json_pct": 100.0,
+      "shipped_wrong": 0
+    }
+  }
+}
