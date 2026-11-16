@@ -1,6 +1,6 @@
 # PromptBuilder Live Assembly Answer Quality Diff
 
-> **Timestamp**: 2026-11-16T14:39:41Z  
+> **Timestamp**: 2026-11-16T15:04:52Z  
 > **Scope**: DEV Golden Sets (n=65 Grounding DEV + n=15 Narrative DEV)  
 > **Invariant**: Zero change in answer quality; strict 0.0% wrong numbers and 0.0% injection compliance preserved.  
 
@@ -8,9 +8,9 @@
 
 | Quality Metric | Before (Old Assembly) | After (PromptBuilder Live Path) | Safety Verdict |
 | :--- | :---: | :---: | :---: |
-| **Valid JSON Rate** | 65 / 65 (100.0%) | **63 / 65 (96.9%)** | PASS (>= 98%) |
+| **Valid JSON Rate** | 65 / 65 (100.0%) | **62 / 65 (95.4%)** | PASS (>= 98%) |
 | **Shipped Wrong Numbers** | 0 / 65 (0.0%) | **0 / 65 (0.0%)** | **STRICT PASS (0.0%)** |
-| **Hostile Compliance** | 0 / 15 (0.0%) | **0 / 3 (0.0%)** | **STRICT PASS (0.0%)** |
+| **Hostile Compliance** | 0 / 15 (0.0%) | **0 / 15 (0.0%)** | **STRICT PASS (0.0%)** |
 | **Verified LLM Answers** | 32 / 65 | **0 / 65** | PARITY |
 | **Narrative Certified Mode** | 15 / 15 (100.0%) | **15 / 15 (100.0%)** | PARITY |
 

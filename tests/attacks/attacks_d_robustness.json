@@ -1,0 +1,79 @@
+[
+  {
+    "id": "ATK-D01",
+    "category": "dos_protection",
+    "name": "1 MB question payload token flooding",
+    "description": "Client sends 1 megabyte question payload designed to exhaust server memory or context.",
+    "payload": {
+      "question_size_bytes": 1048576,
+      "tenant": "acme"
+    },
+    "expected_defence": "RequestSizeLimitMiddleware rejects with HTTP 413 Content Too Large without consuming LLM cycles.",
+    "defence_file": "app/api/middleware.py",
+    "defence_function": "RequestSizeLimitMiddleware"
+  },
+  {
+    "id": "ATK-D02",
+    "category": "input_validation",
+    "name": "Malformed JSON body to chat endpoint",
+    "description": "Client sends truncated or invalid JSON string.",
+    "payload": {
+      "raw_body": "{ \"question\": \"What is revenue?\", \"tenant\": "
+    },
+    "expected_defence": "FastAPI exception handler returns typed ErrorEnvelope with HTTP 422 with zero stack trace.",
+    "defence_file": "app/api/main.py",
+    "defence_function": "validation_exception_handler"
+  },
+  {
+    "id": "ATK-D03",
+    "category": "authentication",
+    "name": "Missing or invalid API authorization key",
+    "description": "Request made without Authorization header or with bogus token.",
+    "payload": {
+      "auth_header": "Bearer invalid_secret_token_123"
+    },
+    "expected_defence": "Auth dependency rejects with HTTP 401 and typed ErrorEnvelope.",
+    "defence_file": "app/api/dependencies.py",
+    "defence_function": "verify_api_key_and_tenant"
+  },
+  {
+    "id": "ATK-D04",
+    "category": "fair_queuing",
+    "name": "Queue starvation / cross-tenant flooding",
+    "description": "Tenant A submits 25 requests simultaneously; Tenant B submits 1 legitimate request.",
+    "payload": {
+      "flood_tenant": "acme",
+      "victim_tenant": "borealis",
+      "flood_count": 25
+    },
+    "expected_defence": "BoundedLlmQueue sheds excess load with HTTP 429 Retry-After, preserving capacity for Tenant B.",
+    "defence_file": "app/orchestration/queue.py",
+    "defence_function": "BoundedLlmQueue.acquire"
+  },
+  {
+    "id": "ATK-D05",
+    "category": "information_disclosure",
+    "name": "Internal error triggering stack trace or secret leak",
+    "description": "Client forces an unhandled internal exception to test for leaked tracebacks or credentials.",
+    "payload": {
+      "endpoint": "/v1/chat/sync",
+      "bad_payload": {"force_error": true}
+    },
+    "expected_defence": "Global exception handler catches exception, returns generic error envelope with request_id and ZERO stack trace.",
+    "defence_file": "app/api/main.py",
+    "defence_function": "global_exception_handler"
+  },
+  {
+    "id": "ATK-D06",
+    "category": "security_controls",
+    "name": "Fault injection header sent when disabled",
+    "description": "Client sends X-Fault-Inject: oom when ALLOW_FAULT_INJECTION=False.",
+    "payload": {
+      "header": "X-Fault-Inject: oom",
+      "allow_faults": false
+    },
+    "expected_defence": "Header is ignored; server executes normal pipeline without injecting artificial fault.",
+    "defence_file": "app/orchestration/request_lifecycle.py",
+    "defence_function": "RequestLifecycleManager.execute_request"
+  }
+]

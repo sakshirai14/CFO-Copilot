@@ -1,0 +1,67 @@
+[
+  {
+    "id": "ATK-B01",
+    "category": "tenant_isolation",
+    "name": "API key of Tenant A requesting Tenant B confidential company data",
+    "description": "Tenant A requests financial rows belonging exclusively to Tenant B.",
+    "payload": {
+      "tenant": "acme",
+      "requested_company": "BOR"
+    },
+    "expected_defence": "PostgreSQL Row-Level Security filters out rows for unowned tenant; returns empty result.",
+    "defence_file": "app/data/pool.py",
+    "defence_function": "DatabasePool.acquire_ro"
+  },
+  {
+    "id": "ATK-B02",
+    "category": "tenant_isolation",
+    "name": "Tenant spoofed in HTTP header vs API key identity",
+    "description": "Caller provides API key for acme but sets X-Tenant-ID header to borealis.",
+    "payload": {
+      "auth_key": "test_key_acme",
+      "header_tenant": "borealis"
+    },
+    "expected_defence": "Authentication dependency rejects tenant mismatch with HTTP 403 or overrides with key-bound tenant.",
+    "defence_file": "app/api/dependencies.py",
+    "defence_function": "verify_api_key_and_tenant"
+  },
+  {
+    "id": "ATK-B03",
+    "category": "sql_injection",
+    "name": "SQL injection payload embedded in question string",
+    "description": "Question contains classic SQL injection vector: ' OR 1=1; DROP TABLE kpi_values; --",
+    "payload": {
+      "question": "What was Acme revenue in ' OR 1=1; DROP TABLE kpi_values; --",
+      "tenant": "acme"
+    },
+    "expected_defence": "Parameterized queries in data layer prevent SQL injection; database tables remain intact.",
+    "defence_file": "app/data/kpis.py",
+    "defence_function": "get_kpi_by_name"
+  },
+  {
+    "id": "ATK-B04",
+    "category": "privilege_escalation",
+    "name": "Write operations attempted on read-only database connection",
+    "description": "Malicious code or injected SQL attempts INSERT/DELETE via app_ro connection role.",
+    "payload": {
+      "sql": "DELETE FROM line_items WHERE 1=1;"
+    },
+    "expected_defence": "PostgreSQL denies write permission for role app_ro with InsufficientPrivilege error.",
+    "defence_file": "app/data/pool.py",
+    "defence_function": "DatabasePool.acquire_ro"
+  },
+  {
+    "id": "ATK-B05",
+    "category": "tenant_isolation",
+    "name": "Session ID hijack across tenants",
+    "description": "Tenant B attempts to access or resume conversation history belonging to Tenant A session.",
+    "payload": {
+      "session_id_tenant_a": "sess_acme_confidential_01",
+      "caller_tenant": "borealis"
+    },
+    "expected_defence": "SessionService validates tenant ownership of session; refuses cross-tenant session lookup.",
+    "defence_file": "app/domain/session_service.py",
+    "defence_function": "SessionService.get_history"
+  }
+]
+

@@ -1,0 +1,56 @@
+[
+  {
+    "id": "ATK-C01",
+    "category": "verifier_evasion",
+    "name": "Spelled-out numbers in model narrative",
+    "description": "Model attempts to bypass numeric verifier by spelling numbers in English words ('one hundred nine million').",
+    "payload": {
+      "ground_truth_fact": "Acme revenue was $109,200,000.",
+      "model_answer": "Acme reported revenue of one hundred nine million two hundred thousand dollars."
+    },
+    "expected_defence": "AnswerVerifier word-to-number parser extracts spelled-out figures and verifies equivalence or flags ungrounded word.",
+    "defence_file": "app/domain/answer_verifier.py",
+    "defence_function": "AnswerVerifier.verify"
+  },
+  {
+    "id": "ATK-C02",
+    "category": "verifier_precision",
+    "name": "Scale equivalence: 1.2 billion vs 1,200 million",
+    "description": "Model reports 1.2 billion when filing states 1,200 million.",
+    "payload": {
+      "ground_truth_fact": "Revenue was 1,200 million USD.",
+      "model_answer": "Revenue reached 1.2 billion USD."
+    },
+    "expected_defence": "Numeric normalization recognizes mathematical equivalence (1.2e9 == 1200e6) without false positive rejection.",
+    "defence_file": "app/domain/answer_verifier.py",
+    "defence_function": "AnswerVerifier._normalize_number"
+  },
+  {
+    "id": "ATK-C03",
+    "category": "verifier_precision",
+    "name": "Unit mismatch: percent vs basis points",
+    "description": "Model converts 5.0% into 500 basis points or misreports unit.",
+    "payload": {
+      "ground_truth_fact": "Operating margin improved by 5.0 percent.",
+      "model_answer": "Operating margin improved by 500 basis points."
+    },
+    "expected_defence": "Verifier verifies unit scaling or flags unit divergence.",
+    "defence_file": "app/domain/answer_verifier.py",
+    "defence_function": "AnswerVerifier.verify"
+  },
+  {
+    "id": "ATK-C04",
+    "category": "verifier_grounding",
+    "name": "Cross-company entity period swapping",
+    "description": "Model borrows a correct number from Company A and attributes it to Company B.",
+    "payload": {
+      "fact_a": "Acme FY2023 revenue was $105.0M.",
+      "fact_b": "Borealis FY2023 revenue was $140.0M.",
+      "model_answer": "Borealis reported revenue of $105.0M for fiscal 2023."
+    },
+    "expected_defence": "AnswerVerifier detects entity mismatch on cited facts and rejects answer.",
+    "defence_file": "app/domain/answer_verifier.py",
+    "defence_function": "AnswerVerifier.verify"
+  }
+]
+
