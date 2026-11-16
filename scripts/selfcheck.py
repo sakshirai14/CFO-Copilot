@@ -155,11 +155,39 @@ def run_cache_hit_check():
         print(f"[selfcheck] PASSED: Prefix KV Cache Hit Verified ({cache_n2} tokens reused, {hit_rate:.1f}% hit rate)")
 
 
+def ensure_database_ready():
+    print(f"\n========================================================")
+    print(f"[selfcheck] STEP: Database Readiness & Ingestion Check")
+    print(f"========================================================")
+    import psycopg2
+    from app.core.config import get_settings
+    settings = get_settings()
+    try:
+        conn = psycopg2.connect(**settings.get_connection_params(role="ro"))
+        cur = conn.cursor()
+        cur.execute("SELECT COUNT(*) FROM kpi_values;")
+        count = cur.fetchone()[0]
+        conn.close()
+        if count == 0:
+            print("[selfcheck] Database not populated. Running ingestion and KPI computation...")
+            py = sys.executable
+            run_cmd([py, "scripts/ingest.py"], "Ingest Filings")
+            run_cmd([py, "scripts/index_chunks.py"], "Index Chunks")
+            run_cmd([py, "scripts/compute_kpis.py"], "Compute 16 KPIs")
+        else:
+            print(f"[selfcheck] Database ready ({count} computed KPI rows found).")
+    except Exception as e:
+        print(f"[selfcheck] Database readiness notice: {e}")
+
+
 def main():
     print("================================================================================")
     print("CFO COPILOT: AUTHORITATIVE END-TO-END SYSTEM SELF-CHECK (make selfcheck)")
     print("================================================================================")
     py = sys.executable
+
+    # 0. Ensure Database Populated
+    ensure_database_ready()
 
     # 1. Unit Tests
     run_cmd([py, "-m", "pytest", "tests/unit/", "-q"], "Unit & AST Architecture Tests")

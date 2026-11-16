@@ -32,11 +32,15 @@ up:
 	@echo "[make up] Applying database migrations to main and test databases..."
 	$(PYTHON) app/data/migrations.py
 	$(PYTHON) app/data/migrations.py --test
-	@echo "[make up] Database services and migrations successfully initialized."
+	@echo "[make up] Starting model serving engine (llama-server)..."
+	@$(MAKE) model-up
+	@echo "[make up] Platform services and migrations successfully initialized."
 
 down:
 	@echo "[make down] Stopping Docker Compose services and removing volumes..."
 	docker compose down -v
+	@echo "[make down] Stopping llama-server if running..."
+	@$(MAKE) model-down
 
 ingest:
 	@echo "[make ingest] Ingesting Drop 1 and Drop 2 datasets..."
@@ -82,16 +86,20 @@ puzzle2-eval:
 model-up:
 	@echo "[make model-up] Starting llama-server with $(MODEL_FILE) on port $(MODEL_PORT)..."
 	@mkdir -p logs
-	@llama-server -m $(MODEL_FILE) -c $(MODEL_CTX) -np $(MODEL_SLOTS) --port $(MODEL_PORT) --host 127.0.0.1 --jinja > logs/llama_server.log 2>&1 & echo $$! > logs/llama_server.pid
-	@echo "[make model-up] Waiting for llama-server to be ready on port $(MODEL_PORT)..."
-	@for i in $$(seq 1 45); do \
-		if curl -s http://127.0.0.1:$(MODEL_PORT)/health | grep -q 'ok'; then \
-			echo "[make model-up] llama-server ready on http://127.0.0.1:$(MODEL_PORT) (PID: $$(cat logs/llama_server.pid))"; \
-			exit 0; \
-		fi; \
-		sleep 1; \
-	done; \
-	echo "[ERROR] llama-server failed to start! Check logs/llama_server.log"; exit 1
+	@if curl -s http://127.0.0.1:$(MODEL_PORT)/health | grep -q 'ok'; then \
+		echo "[make model-up] llama-server already healthy on http://127.0.0.1:$(MODEL_PORT)."; \
+	else \
+		llama-server -m $(MODEL_FILE) -ngl 99 -dev MTL0 -c $(MODEL_CTX) -np $(MODEL_SLOTS) --port $(MODEL_PORT) --host 127.0.0.1 --jinja -ctk q4_0 -ctv q4_0 -fa on --no-context-shift > logs/llama_server.log 2>&1 & echo $$! > logs/llama_server.pid; \
+		echo "[make model-up] Waiting for llama-server to be ready on port $(MODEL_PORT)..."; \
+		for i in $$(seq 1 45); do \
+			if curl -s http://127.0.0.1:$(MODEL_PORT)/health | grep -q 'ok'; then \
+				echo "[make model-up] llama-server ready on http://127.0.0.1:$(MODEL_PORT) (PID: $$(cat logs/llama_server.pid))"; \
+				exit 0; \
+			fi; \
+			sleep 1; \
+		done; \
+		echo "[ERROR] llama-server failed to start! Check logs/llama_server.log"; exit 1; \
+	fi
 
 model-down:
 	@echo "[make model-down] Stopping llama-server..."
