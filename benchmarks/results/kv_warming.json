@@ -1,0 +1,33 @@
+{
+  "timestamp": "2026-11-16T13:40:06Z",
+  "total_slots": 16,
+  "tenant_pools": {
+    "acme": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "borealis": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
+  },
+  "warming_wall_time_ms": 17166.68,
+  "avg_warming_ttft_ms": 10820.48,
+  "total_cached_tokens": 11520,
+  "memory_per_slot_mb": 117.0,
+  "aggregate_kv_memory_mb": 1872.0,
+  "warmed_first_request_ttft_ms": 449.55,
+  "llama_cpp_slot_architecture_note": "llama.cpp slots maintain independent context buffers. The static prefix is prefilled once per slot (16 prefill operations). Total prefill cost is amortized across all requests."
+}
